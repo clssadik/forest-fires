@@ -7,7 +7,7 @@ Sistemin özü: NASA FIRMS tespitlerinden başlayan, hava + DEM + bitki örtüs�
 ## Mevcut durum (2026-10-25)
 
 - Teknoloji yığını onaylandı ([docs/04](docs/04-teknoloji-beyin-firtinasi.md) "Kararlar"). Proje iskeleti kuruldu, çalıştırma talimatları için kök [README.md](README.md).
-- Git deposu `main` dalında; henüz commit yok (kullanıcı istemeden commit atmayın).
+- Git deposu `main` dalında, uzak depo (remote) yok. Kullanıcı istemeden commit atmayın; commit mesajları İngilizce ve açıklayıcı olmalı.
 - İlham kaynağı FireTrace demo videosu ayrıntılı olarak belgelendi.
 
 ## Önce bunları okuyun
