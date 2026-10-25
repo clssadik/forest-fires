@@ -3,6 +3,9 @@
 docs/
 .DS_Store
 
+# Gizli anahtarlar (ör. FIRMS_MAP_KEY); şablon: backend/.env.example
+.env
+
 # Veri ve üretilen dosyalar
 data/*
 !data/.gitkeep
