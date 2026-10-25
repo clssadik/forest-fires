@@ -6,7 +6,9 @@ hesaplanıp `data/islenmis/<ad>/hava_alani.npz` dosyasına yazılır. Sorguda al
 doğrusal, uzayda çift doğrusal (bilineer) olarak ince ızgaraya indirilir.
 
 - Rüzgar: u ve v bileşenleri ayrı ayrı IDW ile enterpole edilir; yön açısı asla doğrudan
-  ortalanmaz (350° ile 10° ortalaması 0°, yani kuzey, olmalı; 180° değil).
+  ortalanmaz (350° ile 10° ortalaması 0°, yani kuzey, olmalı; 180° değil). Vektör ortalaması
+  noktalar arasında hızı düşürdüğü için hız ayrıca skaler olarak enterpole edilir
+  (`ruzgar_hizi_ms`); yön için u/v, hız için bu alan kullanılmalı.
 - Sıcaklık: IDW'den önce her noktanın değeri standart düşüm oranıyla (6.5 °C/km) deniz
   seviyesine indirilir; IDW'den sonra hücrenin DEM ortalama yüksekliğine çıkarılır.
 - Bağıl nem: yükseklik düzeltmesi yapılmaz (basitleştirme).
@@ -30,7 +32,7 @@ from orman.senaryo import Senaryo
 KABA_CARPAN = 30  # ince hücre sayısı; 30 x 30 m = 900 m kaba hücre
 SICAKLIK_DUSUS_C_PER_M = 0.0065  # standart atmosfer düşüm oranı (°C/m)
 IDW_GUC = 2.0
-ALAN_DEGISKENLERI = ("ruzgar_u", "ruzgar_v", "sicaklik_c", "bagil_nem")
+ALAN_DEGISKENLERI = ("ruzgar_u", "ruzgar_v", "ruzgar_hizi_ms", "sicaklik_c", "bagil_nem")
 _MIN_MESAFE = 1e-6  # m; bundan yakın noktalar "tam çakışık" sayılır
 
 
@@ -208,6 +210,14 @@ class HavaAlani:
         for ad, veri in self.alanlar.items():
             sonuc[ad] = self._ince_yap((1 - oran) * veri[k0] + oran * veri[k1])
         return sonuc
+
+    @property
+    def ince_kaba_esleme(self) -> tuple[tuple[np.ndarray, ...], tuple[np.ndarray, ...]]:
+        """Bilineer büyütme ağırlıkları: (satır, sütun), her biri (alt indeks, üst indeks, üst ağırlığı).
+
+        Alanı tam çözünürlükte üretmeden hücre hücre sorgulamak isteyen kod (model çekirdeği) içindir.
+        """
+        return self._satir, self._sutun
 
     def _zaman_agirligi(self, t: float) -> tuple[int, int, float]:
         s = self.saatler

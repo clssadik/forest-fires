@@ -76,6 +76,21 @@ def test_ruzgar_yonu_350_ile_10_arasi_kuzey_olur():
     assert np.hypot(u, v) == pytest.approx(5.0 * np.cos(np.deg2rad(10.0)), rel=1e-3)
 
 
+def test_skaler_hiz_vektor_ortalamasindan_bagimsiz():
+    # Doğudan ve batıdan 5 m/s: vektör ortalaması 0, skaler hız 5 kalmalı.
+    nokta_xy = np.array([[0.0, 0.0], [2000.0, 0.0]])
+    olcumler = {
+        "ruzgar_u": np.array([[5.0, -5.0]]),
+        "ruzgar_v": np.array([[0.0, 0.0]]),
+        "ruzgar_hizi_ms": np.array([[5.0, 5.0]]),
+    }
+    sonuc = kaba_alan_hesapla(
+        nokta_xy, np.array([10.0, 10.0]), olcumler, np.array([[1000.0, 0.0]]), np.array([10.0])
+    )
+    assert sonuc["ruzgar_u"][0, 0] == pytest.approx(0.0, abs=1e-6)
+    assert sonuc["ruzgar_hizi_ms"][0, 0] == pytest.approx(5.0)
+
+
 def test_sicaklik_lapse_rate_deniz_seviyesi_ve_hucre_yuksekligi():
     # 1000 m'de 20 °C: deniz seviyesinde 26.5 °C. Hücre 0 m'de olduğunda aynı değer kalır.
     sonuc = kaba_alan_hesapla(
