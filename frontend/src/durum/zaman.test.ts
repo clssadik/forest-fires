@@ -29,4 +29,23 @@ describe('zaman durumu', () => {
     useZaman.getState().ilerlet(60_000)
     expect(useZaman.getState()).toMatchObject({ t: 10 * SAAT, oynatiliyor: false })
   })
+
+  it('sondayken oynat baştan başlatır', () => {
+    useZaman.setState({ t: 10 * SAAT })
+    useZaman.getState().oynatDuraklat()
+    expect(useZaman.getState()).toMatchObject({ t: 0, oynatiliyor: true })
+  })
+
+  it('aralık ayarlanınca t sınırlanır ve oynatma durur', () => {
+    useZaman.setState({ oynatiliyor: true })
+    useZaman.getState().aralikAyarla(2 * SAAT, 5 * SAAT, 9 * SAAT)
+    expect(useZaman.getState()).toMatchObject({ baslangic: 2 * SAAT, bitis: 5 * SAAT, t: 5 * SAAT, oynatiliyor: false })
+  })
+
+  it('hız ayarlanabilir', () => {
+    useZaman.getState().hizAyarla(240)
+    useZaman.getState().oynatDuraklat()
+    useZaman.getState().ilerlet(1000)
+    expect(useZaman.getState().t).toBe(4 * SAAT)
+  })
 })

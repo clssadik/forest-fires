@@ -15,6 +15,9 @@ interface ZamanDurumu {
   zamanaGit: (t: number) => void
   oynatDuraklat: () => void
   ilerlet: (gercekMs: number) => void
+  hizAyarla: (hiz: number) => void
+  /** Senaryo yüklenince zaman aralığını ve başlangıç anını ayarlar. */
+  aralikAyarla: (baslangic: number, bitis: number, t?: number) => void
 }
 
 const sinirla = (t: number, alt: number, ust: number) => Math.min(Math.max(t, alt), ust)
@@ -26,11 +29,19 @@ export const useZaman = create<ZamanDurumu>((set) => ({
   oynatiliyor: false,
   hiz: 60,
   zamanaGit: (t) => set((d) => ({ t: sinirla(t, d.baslangic, d.bitis) })),
-  oynatDuraklat: () => set((d) => ({ oynatiliyor: !d.oynatiliyor })),
+  oynatDuraklat: () =>
+    set((d) => {
+      // Sondayken oynat'a basılırsa baştan başlar.
+      if (!d.oynatiliyor && d.t >= d.bitis) return { oynatiliyor: true, t: d.baslangic }
+      return { oynatiliyor: !d.oynatiliyor }
+    }),
   ilerlet: (gercekMs) =>
     set((d) => {
       if (!d.oynatiliyor) return d
       const t = sinirla(d.t + gercekMs * d.hiz * 60, d.baslangic, d.bitis)
       return { t, oynatiliyor: t < d.bitis }
     }),
+  hizAyarla: (hiz) => set({ hiz: Math.max(hiz, 0) }),
+  aralikAyarla: (baslangic, bitis, t = baslangic) =>
+    set({ baslangic, bitis, t: sinirla(t, baslangic, bitis), oynatiliyor: false }),
 }))

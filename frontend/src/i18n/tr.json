@@ -8,7 +8,122 @@
     "bagliDegil": "Sunucuya ulaşılamıyor",
     "kontrol": "Sunucu kontrol ediliyor…"
   },
-  "sahne": {
-    "yerTutucu": "3B sahne iskeleti: arazi ve yangın katmanları Adım 1 ve 3'ten sonra gelecek."
+  "ustBar": {
+    "olaySecici": "Olay seç",
+    "kipler": {
+      "olay": "Olay",
+      "iha": "İHA'lar",
+      "kaynaklar": "Kaynaklar"
+    },
+    "kipYakinda": "Bu kip henüz hazır değil",
+    "menuler": {
+      "gorunum": "Görünüm",
+      "analiz": "Analiz",
+      "paylas": "Paylaş"
+    },
+    "ayarlar": "Ayarlar",
+    "kucult": "Küçült"
+  },
+  "harita": {
+    "kuzey": "K",
+    "pusula": "Pusula",
+    "tamEkran": "Tam ekran",
+    "zoom": "Yakınlaştırma",
+    "kip2B": "2B",
+    "kip3B": "3B",
+    "tutusma": "Tutuşma",
+    "yukseklik": "{{deger}} m",
+    "olcekKm": "{{deger}} km",
+    "olcekM": "{{deger}} m"
+  },
+  "sagPanel": {
+    "sekmeler": {
+      "katmanlar": "Katmanlar",
+      "analiz": "Analiz",
+      "kanitlar": "Kanıtlar",
+      "notlar": "Notlar"
+    },
+    "yakinda": "Bu sekme sonraki adımlarda doldurulacak."
+  },
+  "katmanlar": {
+    "arazi": "Arazi (3B)",
+    "goruntu": "Hava Görüntüsü",
+    "yanikIzi": "Yanık İzi (dNBR)",
+    "yayilim": "Yayılım (Model)",
+    "olasilik": "Tutuşma Olasılığı",
+    "ruzgar": "Rüzgâr (Vektörler)",
+    "mudahale": "Müdahale (Atış ve Hat)",
+    "yapilar": "Yapılar",
+    "yollar": "Yollar ve Patikalar",
+    "sinirlar": "İdari Sınırlar",
+    "opaklik": "{{ad}} saydamlığı"
+  },
+  "olayOzeti": {
+    "baslik": "Olay Özeti",
+    "duzenle": "Düzenle",
+    "ad": "Olay Adı",
+    "kimlik": "Olay No",
+    "konum": "Konum",
+    "baslangic": "Başlangıç (tah.)",
+    "bitis": "Bitiş",
+    "toplamAlan": "Toplam Alan",
+    "neden": "Neden (ön)",
+    "durum": "Analiz Durumu",
+    "hektar": "{{deger}} ha",
+    "nedenler": {
+      "arastiriliyor": "Araştırılıyor",
+      "insan": "İnsan kaynaklı",
+      "dogal": "Doğal"
+    },
+    "durumlar": {
+      "suruyor": "Analiz sürüyor",
+      "tamamlandi": "Tamamlandı"
+    }
+  },
+  "hava": {
+    "baslik": "Hava ve Yangın Davranışı",
+    "kaynakCephe": "(cephede)",
+    "secenekler": "Seçenekler",
+    "ruzgar": "Rüzgâr",
+    "sicaklik": "Sıcaklık",
+    "nem": "Nem",
+    "yakitNemi": "Yakıt Nemi",
+    "erc": "ERC",
+    "alevBoyu": "Alev Boyu",
+    "kmSa": "{{deger}} km/sa",
+    "yon": "{{yon}} ({{derece}}°)",
+    "derece": "{{deger}} °C",
+    "aralikM": "{{min}}–{{max}} m",
+    "sondu": "Söndü",
+    "baslamadi": "—"
+  },
+  "zaman": {
+    "baslik": "Zaman Çizelgesi",
+    "oynat": "Oynat",
+    "duraklat": "Duraklat",
+    "ileri": "Bir saat ileri",
+    "hiz": "Oynatma hızı",
+    "imlec": "Zaman imleci"
+  },
+  "grafikler": {
+    "yananAlan": "Yanan Alan",
+    "yananAlanBirim": "(ha)",
+    "yayilmaHizi": "Yayılma Hızı",
+    "yayilmaHiziBirim": "(m/dk)",
+    "profil": "Yükseklik Profili",
+    "profilAlt": "(seçili yol)",
+    "secenekler": "Grafik seçenekleri",
+    "km": "{{deger}} km"
+  },
+  "olaylar": {
+    "baslik": "Önemli Olaylar",
+    "ekle": "Ekle",
+    "turler": {
+      "tutusma": "Tutuşma (tah.)",
+      "hizliBuyume": "Hızlı Büyüme",
+      "sicramaAtesi": "Sıçrama Ateşi (olası)",
+      "sirtGecisi": "Sırt Geçişi",
+      "kontrolAltinda": "Kontrol Altında (tah.)"
+    }
   }
 }
