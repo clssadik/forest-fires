@@ -49,6 +49,18 @@ uv --directory backend run orman-veri manavgat_2021
 
 Çıktılar `data/islenmis/manavgat_2021/` altına yazılır; görsel kontrol için `onizleme/*.png`.
 
+## Yayılım modeli
+
+Hücresel otomat (Alexandridis vd. 2008 biçiminde; rüzgâr + eğim). Bölge paketi hazırsa:
+
+```bash
+uv --directory backend run orman-model manavgat_2021 --calisma 20
+```
+
+Her hücrenin varış zamanını (`toa.tif`, dakika), çoklu çalıştırmada yanma olasılığını
+(`olasilik.tif`), bir özet (`ozet.json`) ve önizlemeyi (`onizleme_toa.png`)
+`data/islenmis/manavgat_2021/model_v1/` altına yazar. Model v1 henüz kalibre edilmedi.
+
 ## Testler
 
 ```bash
