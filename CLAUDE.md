@@ -6,16 +6,31 @@ Sistemin özü: NASA FIRMS tespitlerinden başlayan, hava + DEM + bitki örtüs�
 
 ## Mevcut durum (2026-10-25)
 
-- Teknoloji yığını onaylandı ([docs/04](docs/04-teknoloji-beyin-firtinasi.md) "Kararlar"). Proje iskeleti kuruldu, çalıştırma talimatları için kök [README.md](README.md).
+- **Adım 0 ve 1 bitti.** Manavgat 2021 bölge paketi tek komutla üretiliyor (`uv --directory backend run orman-veri manavgat_2021`, önbellekle ~6 sn): yükseklik, eğim, bakı, yakıt sınıfı, saatlik hava (ızgaraya yayılmış: `BolgePaketi.hava_alani().alan(zaman)`), FIRMS tespitleri.
+- **Ön yüz:** FireTrace ana ekranının (Incident) Türkçe kopyası hazır, ama **tüm veri sahte** (`frontend/src/veri/ornekSenaryo.ts`, `frontend/src/model/*`). Kullanıcı bu ekranı daha sonra büyük ölçüde değiştirecek.
+- **Sırada:** Adım 2 (Sentinel-2 dNBR ile gerçek yanmış alan) ve Adım 3 (hücresel otomat model v1).
+- Teknoloji kararları: [docs/04](docs/04-teknoloji-beyin-firtinasi.md) "Kararlar". Çalıştırma: kök [README.md](README.md).
 - Git deposu `main` dalında; uzak depo **herkese açık**: https://github.com/clssadik/forest-fires. Kullanıcı istemeden commit veya push yapmayın; commit mesajları İngilizce ve açıklayıcı olmalı.
-- İlham kaynağı FireTrace demo videosu ayrıntılı olarak belgelendi.
 
 ## Önce bunları okuyun
 
 1. [docs/05-yol-haritasi.md](docs/05-yol-haritasi.md): **yaşayan plan**; hangi adımdayız, sıradaki görevler. Kaldığımız yer burası
-2. [docs/04-teknoloji-beyin-firtinasi.md](docs/04-teknoloji-beyin-firtinasi.md): teknoloji soruları ve kararlar (Adım 0'ın parçası)
-3. [docs/01-proje-onerisi.md](docs/01-proje-onerisi.md): resmi kapsam ve 16 haftalık plan
-4. [docs/02-firetrace-teknik-inceleme.md](docs/02-firetrace-teknik-inceleme.md): referans demo; §12 mimari ipuçları, §13 projeyle eşleştirme
+2. [docs/04-teknoloji-beyin-firtinasi.md](docs/04-teknoloji-beyin-firtinasi.md): teknoloji kararları
+3. [docs/06-dogrulama-yanginlari.md](docs/06-dogrulama-yanginlari.md): Manavgat 2021 (ana) ve Marmaris 2022 (genelleme testi); tutuşma zamanı ve konumu, veri erişimi
+4. [docs/07-literatur.md](docs/07-literatur.md): kaynaklar ve okuma sırası (model için Alexandridis 2008)
+5. [docs/01-proje-onerisi.md](docs/01-proje-onerisi.md): resmi kapsam ve 16 haftalık plan
+6. [docs/02-firetrace-teknik-inceleme.md](docs/02-firetrace-teknik-inceleme.md): referans demo; §12 mimari ipuçları, §13 projeyle eşleştirme
+
+## Kod haritası
+
+- `backend/src/orman/`
+  - `ayarlar.py`: yollar (`data/ham`, `data/islenmis`) ve `backend/.env` okuma
+  - `izgara.py`: ortak model ızgarası (`MANAVGAT_2021`: EPSG:32636, 30 m, 1583 × 1808) ve `izgaraya_yansit`
+  - `senaryo.py`: senaryo = ızgara + tarih aralığı + tutuşma zamanı/konumu
+  - `veri/`: `firms.py`, `dem.py`, `arazi_ortusu.py`, `hava.py`, `hava_alani.py`, `bolge_paketi.py` (`olustur`, `yukle -> BolgePaketi`, CLI `orman-veri`)
+  - `api.py`: FastAPI (şimdilik yalnızca `/api/saglik`)
+- `frontend/src/`: `durum/` (Zustand; `zaman.ts` tek zaman kaynağı), `bilesenler/` (üst bar, sağ panel, alt şerit, harita kontrolleri), `sahne/` (R3F: arazi, ağaçlar, yangın shader'ı, rüzgâr), `model/` + `veri/` (**sahte**, gerçek arka uç çıktısıyla değiştirilecek), `i18n/tr.json` (tüm metinler)
+- Kod stili: Türkçe tanımlayıcılar ve açıklamalar. Testler: `uv --directory backend run pytest`, `npm --prefix frontend test`.
 
 Görsellere gerçekten ihtiyacınız yoksa videoyu yeniden izlemeyin; inceleme dokümanı eksiksizdir. Gerekirse kare indeksi: [docs/03-firetrace-kare-indeksi.md](docs/03-firetrace-kare-indeksi.md).
 
@@ -24,5 +39,7 @@ Görsellere gerçekten ihtiyacınız yoksa videoyu yeniden izlemeyin; inceleme d
 - FireTrace bir **ilham** kaynağı; kurgu verili bir konsept demo. Projenin değeri gerçek veri, gerçek model ve doğrulamadadır. Resources (uçak/araç) modu kapsam dışıdır.
 - **Her çalışma oturumunun sonunda** `docs/05-yol-haritasi.md` dosyasını, dosyanın sonundaki "Güncelleme kuralları"na göre güncelleyin: biten görevler, durum tablosu, sonuçlar, değişiklik günlüğü.
 - Takvimi ve ilerleme hızını kullanıcı yönetir. Hafta, tarih veya takvim sormayın.
+- **Gizli anahtarlar** (`FIRMS_MAP_KEY`) yalnızca `backend/.env` dosyasında durur (git'e girmez). Değeri asla yazdırmayın, loglamayın, commit etmeyin; commit öncesi staged değişikliklerde anahtar geçmediğini kontrol edin.
+- `data/` git'e girmez; her şey `orman-veri` komutuyla yeniden üretilebilir olmalı.
 - Teknoloji kararı alındığında `docs/04-…` içindeki "Kararlar" bölümüne tarih ve gerekçeyle yazın.
 - **`docs/` klasörü yalnızca yerelde tutulur ve asla commit edilmez.** Kişisel bilgiler (öğrenci numarası, öneri PDF'i) ve başkasına ait video kareleri içeriyor; depo herkese açık. `.gitignore` buna göre ayarlı. Dokümanları güncellemeye devam edin, sadece git'e eklemeyin. Depoyu temiz bir klondan açan ajanlarda `docs/` bulunmaz.
