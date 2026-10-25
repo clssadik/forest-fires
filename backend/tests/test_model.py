@@ -1,0 +1,211 @@
+"""Yayılım modeli v1: yapay senaryolarla fiziksel davranış testleri (bkz. docs/model.md)."""
+
+from datetime import UTC, datetime, timedelta
+
+import numpy as np
+import pytest
+from affine import Affine
+
+from orman.izgara import Izgara
+from orman.model.yayilim import Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
+from orman.veri.hava_alani import ALAN_DEGISKENLERI, HavaAlani
+
+BOYUT = 201
+MERKEZ = (BOYUT // 2, BOYUT // 2)
+# 8 yön: (satır adımı, sütun adımı). Satır güneye doğru artar.
+YONLER = {
+    "K": (-1, 0),
+    "KD": (-1, 1),
+    "D": (0, 1),
+    "GD": (1, 1),
+    "G": (1, 0),
+    "GB": (1, -1),
+    "B": (0, -1),
+    "KB": (-1, -1),
+}
+
+
+def _duz_arazi(boyut: int = BOYUT) -> Arazi:
+    return Arazi(
+        yukseklik=np.zeros((boyut, boyut), dtype=np.float32),
+        yanabilir=np.ones((boyut, boyut), dtype=bool),
+        yakit=np.ones((boyut, boyut), dtype=np.uint8),
+        cozunurluk=30.0,
+    )
+
+
+def _menziller(toa: np.ndarray, merkez=MERKEZ) -> dict[str, float]:
+    """Her yönde, merkezden yanmış hücreler boyunca kesintisiz gidilebilen uzaklık (m)."""
+    sonuc = {}
+    for ad, (dr, dc) in YONLER.items():
+        k = 0
+        while True:
+            r, c = merkez[0] + (k + 1) * dr, merkez[1] + (k + 1) * dc
+            if not (0 <= r < toa.shape[0] and 0 <= c < toa.shape[1]) or np.isnan(toa[r, c]):
+                break
+            k += 1
+        sonuc[ad] = k * 30.0 * np.hypot(dr, dc)
+    return sonuc
+
+
+# Hızlı zaman ölçeği (hız ve yanma süresi birlikte ölçeklenir): şekil aynı, testler küçük ızgarada
+# kısa sürede biter. Varsayılanla aynı "hız × yanma süresi" çarpımı korunur.
+HIZLI = Parametreler(
+    hiz_olcegi=Parametreler().hiz_olcegi * 8,
+    yanma_suresi_dk=Parametreler().yanma_suresi_dk / 8,
+)
+
+
+def _ortalama_menzil(arazi, ruzgar, bitis_dk, tohumlar=range(5), parametreler=HIZLI):
+    """Birkaç tohumun ortalama yön menzilleri (rastgele dalgalanmayı azaltır)."""
+    toplam = dict.fromkeys(YONLER, 0.0)
+    for tohum in tohumlar:
+        toa = yayilim(arazi, ruzgar, [MERKEZ], parametreler, tohum=tohum, bitis_dk=bitis_dk)
+        for ad, m in _menziller(toa).items():
+            toplam[ad] += m / len(tohumlar)
+    return toplam
+
+
+def test_tutusma_hucresi_sifirda_ve_toa_bitisi_asmaz():
+    toa = yayilim(_duz_arazi(), Ruzgar.sabit(0.0, 0.0), [MERKEZ], HIZLI, 0, bitis_dk=30)
+    assert toa[MERKEZ] == 0.0
+    assert np.nanmax(toa) <= 30.0
+    assert np.nanmin(toa) == 0.0
+    assert toa.dtype == np.float32
+
+
+def test_duz_ruzgarsiz_yaklasik_daire():
+    menzil = _ortalama_menzil(_duz_arazi(), Ruzgar.sabit(0.0, 0.0), bitis_dk=60)
+    degerler = np.array(list(menzil.values()))
+    assert degerler.min() > 600  # yangın gerçekten büyüdü (> 20 hücre)
+    # Daire: en uzun ve en kısa yön arasındaki fark küçük; köşegenler eksenlerden farklı değil.
+    assert degerler.max() / degerler.min() < 1.25
+    eksen = np.mean([menzil[y] for y in ("K", "D", "G", "B")])
+    kosegen = np.mean([menzil[y] for y in ("KD", "GD", "GB", "KB")])
+    assert kosegen / eksen == pytest.approx(1.0, abs=0.12)
+
+
+def test_ruzgar_yonunde_uzar():
+    # Batıdan esen 8 m/s rüzgar (doğuya doğru): yangın doğuya uzar.
+    duz = _ortalama_menzil(_duz_arazi(), Ruzgar.sabit(0.0, 0.0), bitis_dk=60)
+    menzil = _ortalama_menzil(_duz_arazi(), Ruzgar.sabit(8.0, 270.0), bitis_dk=60)
+    assert menzil["D"] > duz["D"]  # rüzgar yönünde rüzgarsızdan hızlı
+    assert menzil["D"] > 3.0 * menzil["B"]
+    assert menzil["D"] > 1.3 * menzil["K"]
+    assert menzil["K"] == pytest.approx(menzil["G"], rel=0.2)
+
+
+def test_ruzgar_yonu_meteorolojik_kurala_uyar():
+    # Kuzeyden esen rüzgar (0°) güneye iter.
+    menzil = _ortalama_menzil(_duz_arazi(), Ruzgar.sabit(8.0, 0.0), bitis_dk=60)
+    assert menzil["G"] > 2.0 * menzil["K"]
+
+
+def test_yokus_yukari_hizlanir():
+    # Kuzeye doğru 15° yükselen düzlem.
+    arazi = _duz_arazi()
+    satir = np.arange(BOYUT, dtype=np.float32)[:, None]
+    arazi.yukseklik[:] = (BOYUT - satir) * 30.0 * np.tan(np.deg2rad(15.0))
+    menzil = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30)
+    assert menzil["K"] < 2900  # ızgara kenarına ulaşmadı
+    assert menzil["K"] > 1.5 * menzil["G"]
+    assert menzil["D"] == pytest.approx(menzil["B"], rel=0.2)
+
+
+def test_yanmaz_bariyeri_gecmez():
+    arazi = _duz_arazi()
+    arazi.yanabilir[:, 130] = False  # tek hücre genişliğinde dikey şerit (ör. dere, yol)
+    ruzgar = Ruzgar.sabit(10.0, 270.0)  # rüzgar bariyere doğru
+    toa = yayilim(arazi, ruzgar, [MERKEZ], HIZLI, tohum=1, bitis_dk=600)
+    assert not np.isnan(toa[:, 129]).all()  # yangın bariyere ulaştı
+    assert np.isnan(toa[:, 130:]).all()
+
+
+def test_yanmaz_hucreler_hic_yanmaz():
+    arazi = _duz_arazi()
+    rng = np.random.default_rng(0)
+    arazi.yanabilir[rng.random(arazi.yanabilir.shape) < 0.2] = False
+    arazi.yanabilir[MERKEZ] = True
+    toa = yayilim(arazi, Ruzgar.sabit(3.0, 90.0), [MERKEZ], HIZLI, 2, bitis_dk=120)
+    assert np.isnan(toa[~arazi.yanabilir]).all()
+
+
+def test_ayni_tohum_ayni_sonuc_farkli_tohum_farkli():
+    arazi, ruzgar = _duz_arazi(), Ruzgar.sabit(5.0, 45.0)
+    a = yayilim(arazi, ruzgar, [MERKEZ], HIZLI, tohum=7, bitis_dk=60)
+    b = yayilim(arazi, ruzgar, [MERKEZ], HIZLI, tohum=7, bitis_dk=60)
+    c = yayilim(arazi, ruzgar, [MERKEZ], HIZLI, tohum=8, bitis_dk=60)
+    np.testing.assert_array_equal(a, b)
+    assert not np.array_equal(a, c, equal_nan=True)
+
+
+def _tek_komsu_ortalama_bekleme(komsu: tuple[int, int], tekrar: int = 3000) -> float:
+    """3 x 3 alanda yalnızca merkez ve tek komşu yanabilir: komşunun ortalama TOA'sı."""
+    arazi = _duz_arazi(3)
+    arazi.yanabilir[:] = False
+    arazi.yanabilir[1, 1] = arazi.yanabilir[komsu] = True
+    p = Parametreler(yanma_suresi_dk=1e9)
+    return float(
+        np.mean(
+            [
+                yayilim(arazi, Ruzgar.sabit(0.0, 0.0), [(1, 1)], p, tohum=t, bitis_dk=1e9)[komsu]
+                for t in range(tekrar)
+            ]
+        )
+    )
+
+
+def test_bekleme_ortalamasi_eksende_bir_bolu_hiz_kosegende_karekok_iki_kat():
+    p = Parametreler()
+    beklenen = 1.0 / (p.hiz_olcegi * p.p_h)
+    assert _tek_komsu_ortalama_bekleme((1, 2)) == pytest.approx(beklenen, rel=0.06)
+    assert _tek_komsu_ortalama_bekleme((2, 2)) == pytest.approx(np.sqrt(2) * beklenen, rel=0.06)
+
+
+def test_yanma_suresi_bitince_tutusturamaz():
+    # Çok kısa yanma süresi: yangın ilk hücrelerde söner.
+    p = Parametreler(yanma_suresi_dk=0.01)
+    toa = yayilim(_duz_arazi(), Ruzgar.sabit(0.0, 0.0), [MERKEZ], p, tohum=0, bitis_dk=1e9)
+    assert (~np.isnan(toa)).sum() < 20
+
+
+def test_ruzgar_zamanla_degisir():
+    # İlk saat batıdan, sonra doğudan esen rüzgar: hava alanı saatlik güncelleniyor.
+    ruzgar = Ruzgar(
+        dakikalar=np.array([0.0, 60.0, 61.0, 600.0]),
+        u=np.array([8, 8, -8, -8], dtype=np.float32).reshape(4, 1, 1),
+        v=np.zeros((4, 1, 1), dtype=np.float32),
+        hiz=np.full((4, 1, 1), 8.0, dtype=np.float32),
+    )
+    assert ruzgar.ornekle(0, 0, 30.0)[0] == pytest.approx(8.0)
+    assert ruzgar.ornekle(0, 0, 300.0)[0] == pytest.approx(-8.0)
+    toa = yayilim(_duz_arazi(), ruzgar, [MERKEZ], HIZLI, tohum=0, bitis_dk=140)
+    menzil = _menziller(toa)
+    assert menzil["B"] > 0.5 * menzil["D"]  # sonradan batıya dönen yangın
+
+
+def test_hava_alanindan_ornekleme_tam_alanla_ayni():
+    izgara = Izgara("test", "EPSG:32636", Affine(30.0, 0, 500000.0, 0, -30.0, 4000000.0), 7, 5)
+    rng = np.random.default_rng(3)
+    alanlar = {ad: rng.uniform(-5, 5, (3, 3, 4)).astype(np.float32) for ad in ALAN_DEGISKENLERI}
+    t0 = datetime(2021, 7, 28, 9, tzinfo=UTC)
+    saatler = np.array([(t0 + timedelta(hours=h)).timestamp() for h in range(3)])
+    alan = HavaAlani(izgara, 2, saatler, alanlar)
+    ruzgar = Ruzgar.hava_alanindan(alan, t0)
+    tam = alan.alan(t0 + timedelta(minutes=75))
+    for r, c in [(0, 0), (2, 3), (4, 6)]:
+        u, v, hiz = ruzgar.ornekle(r, c, 75.0)
+        assert u == pytest.approx(tam["ruzgar_u"][r, c], abs=1e-5)
+        assert v == pytest.approx(tam["ruzgar_v"][r, c], abs=1e-5)
+        assert hiz == pytest.approx(tam["ruzgar_hizi_ms"][r, c], abs=1e-5)
+
+
+def test_coklu_calistirma_olasilik_haritasi():
+    sonuc = coklu_yayilim(
+        _duz_arazi(), Ruzgar.sabit(5.0, 270.0), [MERKEZ], HIZLI, range(6), bitis_dk=40
+    )
+    assert sonuc.olasilik[MERKEZ] == 1.0
+    assert 0.0 <= sonuc.olasilik.min() and sonuc.olasilik.max() <= 1.0
+    assert ((sonuc.olasilik > 0) & (sonuc.olasilik < 1)).any()  # sınırda belirsizlik var
+    assert sonuc.toa_ortanca[MERKEZ] == 0.0
+    assert np.isnan(sonuc.toa_ortanca[sonuc.olasilik == 0]).all()

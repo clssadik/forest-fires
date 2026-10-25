@@ -14,6 +14,7 @@ class Senaryo:
     bitis: date  # veri aralığının son günü (UTC)
     tutusma_utc: datetime
     tutusma_konumu: tuple[float, float]  # (enlem, boylam), WGS84
+    model_bitis_utc: datetime | None = None  # simülasyonun duracağı an (yaklaşık söndürme)
 
     @property
     def ad(self) -> str:
@@ -28,4 +29,6 @@ MANAVGAT_2021 = Senaryo(
     bitis=date(2021, 8, 8),
     tutusma_utc=datetime(2021, 7, 28, 9, 0, tzinfo=UTC),
     tutusma_konumu=(36.9313, 31.3838),
+    # FIRMS tespitlerinin %94'ü bu andan önce; sonrası dağınık, söner hâldeki noktalar.
+    model_bitis_utc=datetime(2021, 8, 4, 0, 0, tzinfo=UTC),
 )
