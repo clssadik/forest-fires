@@ -7,7 +7,7 @@ Sistemin özü: NASA FIRMS tespitlerinden başlayan, hava + DEM + bitki örtüs�
 ## Mevcut durum (2026-10-25)
 
 - Teknoloji yığını onaylandı ([docs/04](docs/04-teknoloji-beyin-firtinasi.md) "Kararlar"). Proje iskeleti kuruldu, çalıştırma talimatları için kök [README.md](README.md).
-- Git deposu `main` dalında, uzak depo (remote) yok. Kullanıcı istemeden commit atmayın; commit mesajları İngilizce ve açıklayıcı olmalı.
+- Git deposu `main` dalında; uzak depo **herkese açık**: https://github.com/clssadik/forest-fires. Kullanıcı istemeden commit veya push yapmayın; commit mesajları İngilizce ve açıklayıcı olmalı.
 - İlham kaynağı FireTrace demo videosu ayrıntılı olarak belgelendi.
 
 ## Önce bunları okuyun
@@ -25,4 +25,4 @@ Görsellere gerçekten ihtiyacınız yoksa videoyu yeniden izlemeyin; inceleme d
 - **Her çalışma oturumunun sonunda** `docs/05-yol-haritasi.md` dosyasını, dosyanın sonundaki "Güncelleme kuralları"na göre güncelleyin: biten görevler, durum tablosu, sonuçlar, değişiklik günlüğü.
 - Takvimi ve ilerleme hızını kullanıcı yönetir. Hafta, tarih veya takvim sormayın.
 - Teknoloji kararı alındığında `docs/04-…` içindeki "Kararlar" bölümüne tarih ve gerekçeyle yazın.
-- `docs/referans/firetrace/firetrace-demo.mp4` 207 MB; git deposu açılınca bu dosyayı commit etmeyin (GitHub'ın 100 MB sınırını aşıyor). `.gitignore` buna göre ayarlı.
+- **`docs/` klasörü yalnızca yerelde tutulur ve asla commit edilmez.** Kişisel bilgiler (öğrenci numarası, öneri PDF'i) ve başkasına ait video kareleri içeriyor; depo herkese açık. `.gitignore` buna göre ayarlı. Dokümanları güncellemeye devam edin, sadece git'e eklemeyin. Depoyu temiz bir klondan açan ajanlarda `docs/` bulunmaz.

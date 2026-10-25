@@ -1,5 +1,6 @@
-# Büyük referans videosu (207 MB, GitHub 100 MB sınırını aşar)
-docs/referans/firetrace/firetrace-demo.mp4
+# Dokümantasyon ve referans görseller yalnızca yerelde tutulur (kişisel bilgi ve
+# üçüncü taraf görseller içerir; depo herkese açık)
+docs/
 .DS_Store
 
 # Veri ve üretilen dosyalar

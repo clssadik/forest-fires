@@ -3,8 +3,7 @@
 Uydu tabanlı aktif yangın gözlemleri ile meteorolojik ve topoğrafik veri füzyonuna dayalı, hücresel otomat temelli orman yangını yayılım modellemesi, 3B coğrafi görselleştirme ve çoklu İHA keşif rotası optimizasyonu.
 Mersin Üniversitesi Bilgisayar Mühendisliği bitirme projesi.
 
-- Plan ve ilerleme: [docs/05-yol-haritasi.md](docs/05-yol-haritasi.md)
-- Tüm dokümanlar: [docs/README.md](docs/README.md)
+Proje dokümantasyonu (plan, kararlar, referanslar) `docs/` klasöründe yalnızca yerelde tutulur ve bu depoda yer almaz.
 
 ## Klasörler
 
@@ -14,7 +13,7 @@ Mersin Üniversitesi Bilgisayar Mühendisliği bitirme projesi.
 | `frontend/` | React + TypeScript + Vite; 3B sahne (React Three Fiber), 2D harita (MapLibre) |
 | `data/` | İndirilen ham veri ve üretilen bölge paketleri (git'e girmez) |
 | `notebooks/` | Keşif ve deney defterleri |
-| `docs/` | Dokümantasyon ve referans görseller |
+| `docs/` | Dokümantasyon ve referans görseller (yalnızca yerelde, git'e girmez) |
 
 ## Çalıştırma
 
