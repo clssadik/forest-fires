@@ -1,0 +1,14 @@
+{
+  "uygulama": {
+    "ad": "Orman Yangını Analizi",
+    "altBaslik": "Yayılım modelleme ve doğrulama"
+  },
+  "sunucu": {
+    "bagli": "Sunucu bağlı",
+    "bagliDegil": "Sunucuya ulaşılamıyor",
+    "kontrol": "Sunucu kontrol ediliyor…"
+  },
+  "sahne": {
+    "yerTutucu": "3B sahne iskeleti: arazi ve yangın katmanları Adım 1 ve 3'ten sonra gelecek."
+  }
+}
