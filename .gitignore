@@ -1,0 +1,13 @@
+# Büyük referans videosu (207 MB, GitHub 100 MB sınırını aşar)
+docs/referans/firetrace/firetrace-demo.mp4
+.DS_Store
+
+# Veri ve üretilen dosyalar
+data/*
+!data/.gitkeep
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
