@@ -559,8 +559,10 @@ dependencies = [
     { name = "geopandas" },
     { name = "numba" },
     { name = "numpy" },
+    { name = "pandas" },
     { name = "pystac-client" },
     { name = "rasterio" },
+    { name = "requests" },
     { name = "rioxarray" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -578,8 +580,10 @@ requires-dist = [
     { name = "geopandas", specifier = ">=1.2.0" },
     { name = "numba", specifier = ">=0.68.0" },
     { name = "numpy", specifier = ">=2.5.4" },
+    { name = "pandas", specifier = ">=3.1.0" },
     { name = "pystac-client", specifier = ">=0.9.1" },
     { name = "rasterio", specifier = ">=1.5.2" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "rioxarray", specifier = ">=0.23.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
 ]
