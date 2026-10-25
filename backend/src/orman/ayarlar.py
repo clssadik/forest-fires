@@ -6,7 +6,8 @@ from pathlib import Path
 BACKEND_DIZINI = Path(__file__).resolve().parents[2]
 PROJE_DIZINI = BACKEND_DIZINI.parent
 VERI_DIZINI = PROJE_DIZINI / "data"
-HAM_VERI_DIZINI = VERI_DIZINI / "ham"
+HAM_VERI_DIZINI = VERI_DIZINI / "ham"  # kaynaktan indirildiği gibi
+ISLENMIS_VERI_DIZINI = VERI_DIZINI / "islenmis"  # ortak model ızgarasına oturtulmuş
 
 
 def _env_dosyasini_oku(yol: Path) -> dict[str, str]:
