@@ -35,7 +35,7 @@ Ardından http://localhost:5173 adresini açın. Ön yüz `/api` isteklerini ark
 
 ## Veri
 
-Model girdileri açık verilerden üretilir: Copernicus DEM (yükseklik), ESA WorldCover 2020 (bitki örtüsü), Open-Meteo / ERA5 (saatlik hava), NASA FIRMS (aktif yangın tespitleri).
+Model girdileri açık verilerden üretilir: Copernicus DEM (yükseklik), ESA WorldCover 2020 (bitki örtüsü), Open-Meteo / ERA5 (saatlik hava), NASA FIRMS (aktif yangın tespitleri). Doğrulama referansı olan gerçek yanmış alan Sentinel-2 L2A görüntülerinden (dNBR) çıkarılır.
 
 ```bash
 cp backend/.env.example backend/.env
