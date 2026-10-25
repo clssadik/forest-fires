@@ -4,7 +4,8 @@
 
 Üretilen dosyalar `data/islenmis/<ad>/` altındadır:
 yukseklik.tif, egim.tif, baki.tif, arazi_ortusu.tif, yakit_sinifi.tif (+ .json),
-hava.csv, hava_alani.npz, firms.csv ve görsel kontrol için onizleme/*.png.
+hava.csv, hava_alani.npz, firms.csv, dnbr.tif, yanma_siddeti.tif, yanmis_alan.tif (+ .json)
+ve görsel kontrol için onizleme/*.png.
 """
 
 import argparse
@@ -21,7 +22,7 @@ from rasterio.errors import NotGeoreferencedWarning
 
 from orman.ayarlar import HAM_VERI_DIZINI, ISLENMIS_VERI_DIZINI
 from orman.senaryo import MANAVGAT_2021, Senaryo
-from orman.veri import arazi_ortusu, dem, firms, hava
+from orman.veri import arazi_ortusu, dem, firms, hava, yanmis_alan
 from orman.veri import hava_alani as hava_alani_modulu
 from orman.veri.hava_alani import HavaAlani
 
@@ -43,6 +44,17 @@ SICAKLIK_DURAKLARI = np.array(
     dtype=np.float64,
 )
 OK_RENGI = (15, 15, 15)
+# Yanma şiddeti (Key & Benson sınıf kodu) -> renk; 0 = veri yok
+SIDDET_RENKLERI = {
+    0: (90, 90, 90),
+    1: (120, 170, 90),  # yeniden büyüme
+    2: (190, 200, 170),  # yanmamış
+    3: (250, 220, 110),  # düşük
+    4: (245, 150, 60),  # orta-düşük
+    5: (215, 70, 40),  # orta-yüksek
+    6: (110, 20, 40),  # yüksek
+}
+SINIR_RENGI = (20, 20, 20)
 ONIZLEME_HAVA_ZAMANI = datetime(2021, 7, 28, 10, tzinfo=UTC)  # UTC; yerelde 13:00
 
 
@@ -56,6 +68,8 @@ class BolgePaketi:
     yakit: np.ndarray  # yakıt sınıfı kodu, uint8 (0 = yanmaz)
     hava: pd.DataFrame  # saatlik, UTC, nokta bazında
     tespitler: pd.DataFrame  # FIRMS, UTC; satir/sutun = ızgara hücresi
+    dnbr: np.ndarray  # Sentinel-2 dNBR (ofseti düzeltilmiş), float32, NaN = veri yok
+    yanmis_alan: np.ndarray  # gerçek yanmış alan, uint8 (1 = yanmış); doğrulama referansı
     _hava_alani: HavaAlani | None = field(default=None, init=False, repr=False)
 
     @property
@@ -110,6 +124,11 @@ def olustur(senaryo: Senaryo) -> dict[str, Path]:
         pd.read_csv(yollar["hava"], parse_dates=["zaman_utc"]),
     )
     yollar["firms"] = _firms_hazirla(senaryo)
+    yollar |= yanmis_alan.hazirla(
+        senaryo,
+        pd.read_csv(yollar["firms"], parse_dates=["zaman_utc"]),
+        _oku(yollar["yakit_sinifi"]),
+    )
     yollar |= onizlemeleri_yaz(yukle(senaryo))
     return yollar
 
@@ -133,6 +152,8 @@ def yukle(senaryo: Senaryo) -> BolgePaketi:
         yakit=_oku(d / "yakit_sinifi.tif"),
         hava=pd.read_csv(d / "hava.csv", parse_dates=["zaman_utc"]),
         tespitler=pd.read_csv(d / "firms.csv", parse_dates=["zaman_utc"]),
+        dnbr=_oku(d / "dnbr.tif"),
+        yanmis_alan=_oku(d / "yanmis_alan.tif"),
     )
 
 
@@ -204,6 +225,23 @@ def hava_rgb(alan: dict[str, np.ndarray], deniz: np.ndarray, aralik: int = 60) -
     return rgb
 
 
+def siddet_rgb(
+    dnbr: np.ndarray, yanmis: np.ndarray, deniz: np.ndarray, golge: np.ndarray
+) -> np.ndarray:
+    """Yanma şiddeti renkleri, gölgelendirme ve yanmış alan maskesinin sınırı (koyu çizgi)."""
+    siddet = yanmis_alan.siddet_sinifi(dnbr)
+    rgb = np.zeros((*dnbr.shape, 3), dtype=np.uint8)
+    for kod, renk in SIDDET_RENKLERI.items():
+        rgb[siddet == kod] = renk
+    rgb = (rgb * (0.55 + 0.45 * golge[..., None])).astype(np.uint8)
+    rgb[deniz] = DENIZ_RENGI
+    m = yanmis.astype(bool)
+    ic = m.copy()
+    ic[1:-1, 1:-1] = m[1:-1, 1:-1] & m[:-2, 1:-1] & m[2:, 1:-1] & m[1:-1, :-2] & m[1:-1, 2:]
+    rgb[m & ~ic] = SINIR_RENGI
+    return rgb
+
+
 def _png_yaz(yol: Path, rgb: np.ndarray) -> None:
     yol.parent.mkdir(parents=True, exist_ok=True)
     # Önizleme düz bir görüntüdür; konum bilgisi taşımaması beklenen durum.
@@ -238,6 +276,11 @@ def onizlemeleri_yaz(paket: BolgePaketi) -> dict[str, Path]:
     yollar = {"onizleme_yukseklik": d / "yukseklik.png", "onizleme_yakit": d / "yakit_firms.png"}
     _png_yaz(yollar["onizleme_yukseklik"], yukseklik_rgb)
     _png_yaz(yollar["onizleme_yakit"], yakit)
+
+    yollar["onizleme_yanmis_alan"] = d / "yanmis_alan.png"
+    _png_yaz(
+        yollar["onizleme_yanmis_alan"], siddet_rgb(paket.dnbr, paket.yanmis_alan, deniz, golge)
+    )
 
     alan = paket.hava_alani().alan(ONIZLEME_HAVA_ZAMANI)
     yollar["onizleme_hava"] = d / f"hava_{ONIZLEME_HAVA_ZAMANI:%Y-%m-%dT%H}.png"
