@@ -81,6 +81,19 @@ async function iste(yol: string, secenek?: RequestInit): Promise<Response> {
   return yanit
 }
 
+/** `GET /api/yanginlar` satırı: tanımlı geçmiş yangınlar. */
+export interface YanginOzeti {
+  ad: string
+  baslik: string
+  konum: string
+  tutusma_utc: string
+  bitis_utc: string | null
+  paket_hazir: boolean
+  sonuc_var: boolean
+}
+
+export const yanginListesi = async (): Promise<YanginOzeti[]> => (await fetch('/api/yanginlar')).json()
+
 export const yanginBilgisi = async (ad: string): Promise<YanginBilgisi> => (await iste(ad)).json()
 
 /** Son simülasyon sonucu; henüz çalıştırılmadıysa null. */

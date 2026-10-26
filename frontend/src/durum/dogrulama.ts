@@ -23,6 +23,8 @@ interface DogrulamaDurumu {
   /** Haritanın t anındaki sayımları (hücre). */
   anlik: AnlikSayilar | null
   yukle: () => Promise<void>
+  /** Başka bir geçmiş yangına geçer: durum sıfırlanır, yeni yangının verisi yüklenir. */
+  yanginSec: (ad: string) => Promise<void>
   simulasyonCalistir: () => Promise<void>
   katmanAcKapa: (k: DogrulamaKatmani) => void
   renkKipiAyarla: (k: RenkKipi) => void
@@ -51,9 +53,12 @@ export const useDogrulama = create<DogrulamaDurumu>((set, get) => ({
   yukle: async () => {
     if (get().yukleme === 'yukleniyor' || get().yukleme === 'hazir') return
     const { ad } = get()
+    // Yükleme sürerken başka yangın seçilirse bu yüklemenin yanıtları atılır.
+    const guncel = () => get().ad === ad
     set({ yukleme: 'yukleniyor', hata: null })
     try {
       const bilgi = await api.yanginBilgisi(ad)
+      if (!guncel()) return
       set({ bilgi })
       get().zamaniKur()
       const [firms, gercek, sonuc] = await Promise.all([
@@ -62,11 +67,28 @@ export const useDogrulama = create<DogrulamaDurumu>((set, get) => ({
         api.sonucGetir(ad),
       ])
       const model = sonuc ? await api.rasterGetir(ad, 'model_toa') : null
+      if (!guncel()) return
       const { genislik, yukseklik } = bilgi.harita
       set({ sonuc, rasterlar: { genislik, yukseklik, firms, gercek, model }, yukleme: 'hazir' })
     } catch (e) {
-      set({ yukleme: 'hata', hata: e instanceof Error ? e.message : String(e) })
+      if (guncel()) set({ yukleme: 'hata', hata: e instanceof Error ? e.message : String(e) })
     }
+  },
+
+  yanginSec: async (ad) => {
+    if (ad === get().ad) return
+    set({
+      ad,
+      yukleme: 'bos',
+      hata: null,
+      bilgi: null,
+      sonuc: null,
+      rasterlar: null,
+      simulasyon: 'bos',
+      simulasyonHatasi: null,
+      anlik: null,
+    })
+    await get().yukle()
   },
 
   simulasyonCalistir: async () => {
@@ -76,6 +98,7 @@ export const useDogrulama = create<DogrulamaDurumu>((set, get) => ({
     try {
       const sonuc = await api.simulasyonCalistir(ad)
       const model = await api.rasterGetir(ad, 'model_toa')
+      if (get().ad !== ad) return set({ simulasyon: 'bos' })
       set({ sonuc, rasterlar: { ...get().rasterlar!, model }, simulasyon: 'bos' })
     } catch (e) {
       set({ simulasyon: 'hata', simulasyonHatasi: e instanceof Error ? e.message : String(e) })

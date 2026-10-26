@@ -19,6 +19,7 @@ import {
   IkonTakvim,
   Logo,
 } from '../ikonlar'
+import { OlaySecici } from './OlaySecici'
 import { SunucuGostergesi } from './SunucuGostergesi'
 
 const Ayirici = ({ noktali = false }: { noktali?: boolean }) => (
@@ -27,7 +28,7 @@ const Ayirici = ({ noktali = false }: { noktali?: boolean }) => (
   />
 )
 
-/** Üst bar: logo, olay seçici, konum, tarih aralığı, kip sekmeleri, menüler (docs/02 §3). */
+/** Üst bar: logo, olay seçici (doğrulama ekranında geçmiş yangınlar), konum, tarih aralığı, kip sekmeleri, menüler (docs/02 §3). */
 export function UstBar() {
   const { t } = useTranslation()
   const ekran = useEkran((d) => d.ekran)
@@ -61,14 +62,7 @@ export function UstBar() {
       <span className="text-soluk max-[1600px]:hidden">{t('uygulama.altBaslik')}</span>
       <Ayirici noktali />
 
-      <button
-        type="button"
-        className="ml-1 flex items-center gap-2 rounded px-2 py-1 font-semibold hover:bg-black/5"
-        title={t('ustBar.olaySecici')}
-      >
-        {baslik.ad}
-        <IkonAsagi boyut={14} />
-      </button>
+      <OlaySecici ad={baslik.ad} secilebilir={ekran === 'dogrulama'} />
       <span className="ml-3 text-soluk max-[1560px]:hidden">{baslik.konum}</span>
 
       <span className="ml-5 flex items-center gap-2">

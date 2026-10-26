@@ -25,3 +25,7 @@ export const gunAySaat = (t: number) => `${gunAy(t)} ${saat(t)}`
 export const gunAyYil = (t: number) => gunAyYilF.format(t)
 /** "28 Tem 2021 12:00" */
 export const tamTarih = (t: number) => `${gunAyYil(t)} ${saat(t)}`
+
+/** Grafik ekseni için "yuvarlak" adım: en fazla ~5 çizgi (10, 50, 100, …, 50.000, 100.000). */
+export const eksenAdimi = (enBuyuk: number) =>
+  [10, 50, 100, 500, 1000, 2000, 5000, 10_000, 20_000, 50_000].find((a) => enBuyuk / a <= 5) ?? 100_000

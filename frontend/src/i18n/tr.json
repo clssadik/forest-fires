@@ -10,6 +10,7 @@
   },
   "ustBar": {
     "olaySecici": "Olay seç",
+    "olayYukleniyor": "Yangınlar yükleniyor…",
     "kipler": {
       "olay": "Olay",
       "dogrulama": "Doğrulama",
@@ -221,7 +222,7 @@
         "ruzgarsiz_egimsiz": "Rüzgârsız ve eğimsiz",
         "daire": "Aynı alanlı daire"
       },
-      "gecemiyor": "En iyi model, {{modelAd}}, {{model}} ile şimdilik {{ad}} yönteminin ({{en}}) gerisinde. Yangın kuzey rüzgârına rağmen doğuya koştu; model bunu henüz açıklayamıyor. Adım 6'nın hedefi bu farkı kapatmak.",
+      "gecemiyor": "En iyi model, {{modelAd}}, {{model}} ile bu yangında {{ad}} yönteminin ({{en}}) gerisinde.",
       "kaynak": "Kaynak: orman-dogrula raporu ({{calisma}} çalıştırma)."
     },
     "grafik": {

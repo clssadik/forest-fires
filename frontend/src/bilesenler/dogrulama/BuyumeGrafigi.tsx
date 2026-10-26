@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { gunAy, sayi } from '../../bicim'
+import { eksenAdimi, gunAy, sayi } from '../../bicim'
 import { tutusmaMs, useDogrulama } from '../../durum/dogrulama'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
@@ -28,7 +28,7 @@ export function BuyumeGrafigi() {
   const firms = sonuc ? seri(sonuc.firms_buyume_ha).filter((p) => p.x <= bitis) : []
   const gercek = bilgi?.gercek_ha ?? 0
   const enBuyuk = Math.max(gercek, ...model.map((p) => p.y), 1)
-  const yAdim = enBuyuk > 120_000 ? 50_000 : 20_000
+  const yAdim = eksenAdimi(enBuyuk)
   const yUst = Math.ceil(enBuyuk / yAdim) * yAdim
 
   const ic = { gen: Math.max(gen - SOL - SAG, 1), yuk: Math.max(yuk - UST - ALT, 1) }

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { saat, sayi } from '../../bicim'
+import { eksenAdimi, saat, sayi } from '../../bicim'
 import { tutusmaMs, useSenaryo } from '../../durum/senaryo'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
@@ -21,7 +21,7 @@ export function SenaryoGrafigi() {
 
   const bas = ozet ? tutusmaMs(ozet) : baslangic
   const enBuyuk = Math.max(...(ozet?.buyume_ha[0] ?? [0]), 1)
-  const yAdim = [10, 50, 100, 500, 1000, 2000, 5000, 10_000, 20_000, 50_000].find((a) => enBuyuk / a <= 5) ?? 100_000
+  const yAdim = eksenAdimi(enBuyuk)
   const yUst = Math.ceil(enBuyuk / yAdim) * yAdim
   const ic = { gen: Math.max(gen - SOL - SAG, 1), yuk: Math.max(yuk - UST - ALT, 1) }
   const px = (x: number) => SOL + ((x - baslangic) / Math.max(bitis - baslangic, 1)) * ic.gen
