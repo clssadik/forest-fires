@@ -5,6 +5,8 @@ import { defineConfig } from 'vitest/config'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // MapLibre çalışanı ES modülü olarak yükleniyor (bkz. DogrulamaHaritasi.tsx).
+  worker: { format: 'es' },
   server: {
     // Arka uç: `uv run orman` (backend/)
     proxy: { '/api': 'http://127.0.0.1:8000' },

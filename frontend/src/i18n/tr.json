@@ -12,6 +12,7 @@
     "olaySecici": "Olay seç",
     "kipler": {
       "olay": "Olay",
+      "dogrulama": "Doğrulama",
       "iha": "İHA'lar",
       "kaynaklar": "Kaynaklar"
     },
@@ -124,6 +125,101 @@
       "sicramaAtesi": "Sıçrama Ateşi (olası)",
       "sirtGecisi": "Sırt Geçişi",
       "kontrolAltinda": "Kontrol Altında (tah.)"
+    }
+  },
+  "dogrulama": {
+    "yukleniyor": "Bölge verisi yükleniyor…",
+    "yuklenemedi": "Veri yüklenemedi",
+    "birim": {
+      "sa": "sa",
+      "ha": "ha"
+    },
+    "harita": {
+      "kaynaklar": "Copernicus DEM · ESA WorldCover · Sentinel-2 · NASA FIRMS",
+      "yukleniyor": "Model ve uydu verileri yükleniyor…"
+    },
+    "imlec": {
+      "model": "Model varışı:",
+      "firms": "FIRMS ilk tespit:",
+      "gercek": "Gerçekte:",
+      "yandi": "yandı",
+      "yanmadi": "yanmadı"
+    },
+    "lejant": {
+      "yayilim": "Model tahmini (yanma zamanı)",
+      "yeni": "yeni tutuşan",
+      "eski": "2+ gün önce",
+      "karsilastirma": "Model ve gözlenen yanık alan",
+      "gercekSinir": "Gerçek yanmış alan (Sentinel-2)",
+      "firms": "FIRMS tespiti (yeni → eski)",
+      "tutusma": "Tutuşma noktası"
+    },
+    "karisiklik": {
+      "dogru": "Doğru tahmin",
+      "yanlisAlarm": "Yanlış alarm",
+      "kacirilan": "Kaçırılan"
+    },
+    "katmanlar": {
+      "baslik": "Katmanlar",
+      "renkKipi": "Renk kipi",
+      "kipler": {
+        "yayilim": "Yayılım",
+        "karsilastirma": "Karşılaştırma"
+      },
+      "model": "Model tahmini",
+      "gercek": "Gerçek yanmış alan sınırı",
+      "firms": "FIRMS uydu tespitleri",
+      "altlik": "Arazi ve bitki örtüsü",
+      "osm": "OpenStreetMap (yer adları)"
+    },
+    "simulasyon": {
+      "baslik": "Simülasyon",
+      "yok": "Henüz simülasyon çalıştırılmadı. Çalıştırınca model tahmini haritada belirir.",
+      "ozet": "{{calisma}} çalıştırma · {{sure}} sn · {{zaman}}",
+      "calistir": "Simülasyonu çalıştır",
+      "calisiyor": "Çalışıyor…",
+      "bekleyin": "Model 20 kez farklı rastgelelikle çalışıyor; birkaç saniye sürer."
+    },
+    "anlik": {
+      "baslik": "Seçili an",
+      "model": "Model tahmini",
+      "gozlenen": "Gözlenen yanık",
+      "iou": "Örtüşme (IoU)",
+      "aciklama": "Gözlenen yanık: gerçek yanmış alanın FIRMS uydularının o ana kadar gördüğü kısmı. Son anda gerçek alanın tamamı sayılır. Alanlar yaklaşıktır."
+    },
+    "sonuc": {
+      "baslik": "Doğrulama sonucu",
+      "calisma": "{{calisma}} çalıştırmanın topluluğu",
+      "esitAlan": "Şekil başarısı (alan eşitlenmiş)",
+      "esitAlanAciklama": "Model gerçek alan kadar yaktığı anda ({{saat}}. saat) gerçek alanla karşılaştırılır; zaman hızından bağımsızdır.",
+      "bitis": "Bitişte ({{zaman}})",
+      "isabet": "İsabet",
+      "duyarlilik": "Duyarlılık",
+      "karisiklik": "Karışıklık matrisi",
+      "alanlar": "Model {{model}} yaktı; gerçekte yanan {{gercek}}.",
+      "zaman": "Zaman",
+      "zamanAciklama": "Model bir hücreye FIRMS'ten ortanca {{fark}} saat sonra varıyor. ±12 saat içinde uyuşan alan: {{oran}}."
+    },
+    "baseline": {
+      "baslik": "Basit yöntemlerle kıyas",
+      "olcut": "alan eşitlenmiş IoU",
+      "adlar": {
+        "model_v1": "Model v1 (rüzgâr + eğim)",
+        "ruzgarsiz": "Rüzgârsız model",
+        "egimsiz": "Eğimsiz model",
+        "ruzgarsiz_egimsiz": "Rüzgârsız ve eğimsiz",
+        "daire": "Aynı alanlı daire"
+      },
+      "gecemiyor": "Model v1 ({{model}}) şimdilik {{ad}} yönteminin ({{en}}) gerisinde. Ana neden rüzgâr verisi: yangın doğuya koştu, ERA5 rüzgârı onu batıya itiyor. Adım 6'nın hedefi bu farkı kapatmak.",
+      "kaynak": "Kaynak: orman-dogrula raporu ({{calisma}} çalıştırma)."
+    },
+    "grafik": {
+      "baslik": "Yanan alan",
+      "model": "Model",
+      "firms": "FIRMS'in gördüğü gerçek alan",
+      "gercek": "Gerçek toplam {{ha}} ha",
+      "bin": "{{deger}} bin",
+      "bos": "Simülasyon çalıştırılınca model eğrisi burada görünür."
     }
   }
 }

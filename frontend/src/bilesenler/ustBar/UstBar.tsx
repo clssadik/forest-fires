@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAyYil } from '../../bicim'
+import { bitisMs, tutusmaMs, useDogrulama } from '../../durum/dogrulama'
+import { useEkran } from '../../durum/ekran'
 import { olay } from '../../veri/ornekSenaryo'
 import {
   IkonArac,
@@ -25,6 +27,14 @@ const Ayirici = ({ noktali = false }: { noktali?: boolean }) => (
 /** Üst bar: logo, olay seçici, konum, tarih aralığı, kip sekmeleri, menüler (docs/02 §3). */
 export function UstBar() {
   const { t } = useTranslation()
+  const ekran = useEkran((d) => d.ekran)
+  const ekranAyarla = useEkran((d) => d.ekranAyarla)
+  const bilgi = useDogrulama((d) => d.bilgi)
+  // Doğrulama ekranı gerçek senaryonun bilgisini, olay ekranı (şimdilik) örnek veriyi gösterir.
+  const baslik =
+    ekran === 'dogrulama' && bilgi
+      ? { ad: bilgi.baslik, konum: bilgi.konum, baslangic: tutusmaMs(bilgi), bitis: bitisMs(bilgi) }
+      : olay
 
   return (
     <header className="flex h-11 shrink-0 items-center overflow-hidden border-b border-cizgi bg-ust pr-2 pl-4 text-[13.5px] whitespace-nowrap [&>*]:shrink-0">
@@ -41,18 +51,29 @@ export function UstBar() {
         className="ml-1 flex items-center gap-2 rounded px-2 py-1 font-semibold hover:bg-black/5"
         title={t('ustBar.olaySecici')}
       >
-        {olay.ad}
+        {baslik.ad}
         <IkonAsagi boyut={14} />
       </button>
-      <span className="ml-3 text-soluk">{olay.konum}</span>
+      <span className="ml-3 text-soluk">{baslik.konum}</span>
 
       <span className="ml-5 flex items-center gap-2">
         <IkonTakvim boyut={14} className="text-soluk" />
-        {gunAyYil(olay.baslangic)} – {gunAyYil(olay.bitis)}
+        {gunAyYil(baslik.baslangic)} – {gunAyYil(baslik.bitis)}
       </span>
 
       <nav className="ml-3.5 flex rounded-md bg-[#cfc9b9] p-[3px]">
-        <KipSekmesi etkin ikon={<IkonHarita boyut={14} />} ad={t('ustBar.kipler.olay')} />
+        <KipSekmesi
+          secili={ekran === 'olay'}
+          onClick={() => ekranAyarla('olay')}
+          ikon={<IkonHarita boyut={14} />}
+          ad={t('ustBar.kipler.olay')}
+        />
+        <KipSekmesi
+          secili={ekran === 'dogrulama'}
+          onClick={() => ekranAyarla('dogrulama')}
+          ikon={<IkonGrafik boyut={14} />}
+          ad={t('ustBar.kipler.dogrulama')}
+        />
         <KipSekmesi ikon={<IkonIha boyut={14} />} ad={t('ustBar.kipler.iha')} rozet={6} />
         <KipSekmesi ikon={<IkonArac boyut={14} />} ad={t('ustBar.kipler.kaynaklar')} rozet={6} />
       </nav>
@@ -78,25 +99,30 @@ export function UstBar() {
   )
 }
 
+/** Kip sekmesi; `onClick` verilmezse henüz hazır olmayan kip olarak pasif görünür. */
 function KipSekmesi({
   ad,
   ikon,
   rozet,
-  etkin = false,
+  secili = false,
+  onClick,
 }: {
   ad: string
   ikon: ReactNode
   rozet?: number
-  etkin?: boolean
+  secili?: boolean
+  onClick?: () => void
 }) {
   const { t } = useTranslation()
   return (
     <button
       type="button"
-      disabled={!etkin}
-      title={etkin ? undefined : t('ustBar.kipYakinda')}
+      disabled={!onClick}
+      onClick={onClick}
+      aria-pressed={onClick ? secili : undefined}
+      title={onClick ? undefined : t('ustBar.kipYakinda')}
       className={`flex items-center gap-1.5 rounded-[5px] px-2.5 py-[3px] ${
-        etkin ? 'bg-[#efebe0] shadow-[0_1px_2px_rgba(0,0,0,0.12)]' : 'text-soluk'
+        secili ? 'bg-[#efebe0] shadow-[0_1px_2px_rgba(0,0,0,0.12)]' : onClick ? 'hover:bg-black/5' : 'text-soluk'
       }`}
     >
       {ikon}
