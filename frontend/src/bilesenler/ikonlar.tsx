@@ -136,6 +136,54 @@ export function IkonIleri(p: IkonOzellik) {
   )
 }
 
+export function IkonDonSol(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5" />
+    </Ikon>
+  )
+}
+
+export function IkonDonSag(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+    </Ikon>
+  )
+}
+
+/** Eğ: ufka doğru bak (yatık paralelkenar + aşağı ok). */
+export function IkonEg(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M6 14h14l-2 6H4z" />
+      <path d="M12 3v7M9 7l3 3 3-3" />
+    </Ikon>
+  )
+}
+
+/** Dikleş: tepeden bak (kare + yukarı ok). */
+export function IkonDik(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <rect x="5" y="13" width="14" height="8" rx="1" />
+      <path d="M12 10V3M9 6l3-3 3 3" />
+    </Ikon>
+  )
+}
+
+export function IkonHedef(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <circle cx="12" cy="12" r="7" />
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+    </Ikon>
+  )
+}
+
 export function IkonTamEkran(p: IkonOzellik) {
   return (
     <Ikon {...p}>

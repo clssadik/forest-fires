@@ -35,7 +35,15 @@
     "tutusma": "Tutuşma",
     "yukseklik": "{{deger}} m",
     "olcekKm": "{{deger}} km",
-    "olcekM": "{{deger}} m"
+    "olcekM": "{{deger}} m",
+    "tutusmayaGit": "Tutuşma noktasına git",
+    "kuzeyeDon": "Kuzeyi yukarı al",
+    "solaDon": "Sola döndür",
+    "sagaDon": "Sağa döndür",
+    "eg": "Eğ (ufka bak)",
+    "dik": "Dikleş (tepeden bak)",
+    "ipucu3B": "Sürükle: kaydır · ⇧ Shift + sürükle: döndür / eğ · iki parmak, tekerlek: yakınlaş",
+    "ipucu2B": "Sürükle: kaydır · iki parmak, tekerlek: yakınlaş"
   },
   "sagPanel": {
     "sekmeler": {
