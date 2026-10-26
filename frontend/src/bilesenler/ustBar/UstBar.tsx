@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { gunAyYil } from '../../bicim'
 import { bitisMs, tutusmaMs, useDogrulama } from '../../durum/dogrulama'
 import { useEkran } from '../../durum/ekran'
+import { bitisMs as senaryoBitisMs, tutusmaMs as senaryoTutusmaMs, useSenaryo } from '../../durum/senaryo'
+import { useZaman } from '../../durum/zaman'
 import { olay } from '../../veri/ornekSenaryo'
 import {
+  IkonAlev,
   IkonArac,
   IkonAsagi,
   IkonAyar,
@@ -30,11 +33,23 @@ export function UstBar() {
   const ekran = useEkran((d) => d.ekran)
   const ekranAyarla = useEkran((d) => d.ekranAyarla)
   const bilgi = useDogrulama((d) => d.bilgi)
-  // Doğrulama ekranı gerçek senaryonun bilgisini, olay ekranı (şimdilik) örnek veriyi gösterir.
+  const senaryo = useSenaryo((d) => d.ozet)
+  // Senaryo sonucu yokken zaman çubuğunun boş aralığı (şimdi → +48 sa) gösterilir.
+  const zamanBaslangic = useZaman((d) => d.baslangic)
+  const zamanBitis = useZaman((d) => d.bitis)
+  // Doğrulama ekranı gerçek yangının, senaryo ekranı seçilen yerin, olay ekranı (şimdilik)
+  // örnek verinin bilgisini gösterir.
   const baslik =
     ekran === 'dogrulama' && bilgi
       ? { ad: bilgi.baslik, konum: bilgi.konum, baslangic: tutusmaMs(bilgi), bitis: bitisMs(bilgi) }
-      : olay
+      : ekran === 'senaryo'
+        ? {
+            ad: t('senaryo.baslik'),
+            konum: t('senaryo.konum'),
+            baslangic: senaryo ? senaryoTutusmaMs(senaryo) : zamanBaslangic,
+            bitis: senaryo ? senaryoBitisMs(senaryo) : zamanBitis,
+          }
+        : olay
 
   return (
     <header className="relative flex h-11 shrink-0 items-center overflow-hidden border-b border-cizgi bg-ust pr-2 pl-4 text-[13.5px] whitespace-nowrap [&>*]:shrink-0">
@@ -73,6 +88,12 @@ export function UstBar() {
           onClick={() => ekranAyarla('dogrulama')}
           ikon={<IkonGrafik boyut={14} />}
           ad={t('ustBar.kipler.dogrulama')}
+        />
+        <KipSekmesi
+          secili={ekran === 'senaryo'}
+          onClick={() => ekranAyarla('senaryo')}
+          ikon={<IkonAlev boyut={14} />}
+          ad={t('ustBar.kipler.senaryo')}
         />
         <KipSekmesi ikon={<IkonIha boyut={14} />} ad={t('ustBar.kipler.iha')} rozet={6} />
         <KipSekmesi ikon={<IkonArac boyut={14} />} ad={t('ustBar.kipler.kaynaklar')} rozet={6} />

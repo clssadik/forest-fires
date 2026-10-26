@@ -3,6 +3,7 @@ import { AltSerit } from './bilesenler/altSerit/AltSerit'
 import { DogrulamaEkrani } from './bilesenler/dogrulama/DogrulamaEkrani'
 import { Harita } from './bilesenler/harita/Harita'
 import { SagPanel } from './bilesenler/sagPanel/SagPanel'
+import { SenaryoEkrani } from './bilesenler/senaryo/SenaryoEkrani'
 import { UstBar } from './bilesenler/ustBar/UstBar'
 import { useEkran } from './durum/ekran'
 import { useZaman } from './durum/zaman'
@@ -15,7 +16,7 @@ const olayZamaniniKur = () =>
 // Senaryonun zaman aralığı ilk çizimden önce kurulur (etiketler ilk karede doğru zamanla açılsın).
 olayZamaniniKur()
 
-/** Ana ekran: üst bar + seçili kip (olay: 3B örnek veri; doğrulama: 2B gerçek veri). */
+/** Ana ekran: üst bar + seçili kip (olay: 3B örnek veri; doğrulama ve senaryo: 2B gerçek veri). */
 function App() {
   useOynatici()
   const ekran = useEkran((d) => d.ekran)
@@ -36,8 +37,10 @@ function App() {
           </main>
           <SagPanel />
         </div>
-      ) : (
+      ) : ekran === 'dogrulama' ? (
         <DogrulamaEkrani />
+      ) : (
+        <SenaryoEkrani />
       )}
     </div>
   )

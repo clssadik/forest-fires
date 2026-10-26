@@ -13,6 +13,7 @@
     "kipler": {
       "olay": "Olay",
       "dogrulama": "Doğrulama",
+      "senaryo": "Senaryo",
       "iha": "İHA'lar",
       "kaynaklar": "Kaynaklar"
     },
@@ -230,6 +231,72 @@
       "gercek": "Gerçek toplam {{ha}} ha",
       "bin": "{{deger}} bin",
       "bos": "Simülasyon çalıştırılınca model eğrisi burada görünür."
+    }
+  },
+  "senaryo": {
+    "baslik": "Senaryo",
+    "konum": "Haritadan seçilen yer",
+    "harita": {
+      "kaynaklar": "Copernicus DEM · ESA WorldCover · Open-Meteo",
+      "yukleniyor": "Harita yükleniyor…",
+      "hesaplaniyor": "Arazi ve hava tahmini indiriliyor, model çalışıyor…",
+      "ipucu": "Yangının çıkacağı yere tıklayın"
+    },
+    "bantlar": {
+      "yuksek": "Neredeyse kesin yanar (≥ %90)",
+      "orta": "Olası (≥ %50)",
+      "dusuk": "Düşük olasılık (≥ %10)",
+      "yuksekKisa": "≥ %90",
+      "ortaKisa": "≥ %50",
+      "dusukKisa": "≥ %10"
+    },
+    "lejant": {
+      "baslik": "Yanma olasılığı"
+    },
+    "yer": {
+      "baslik": "Tutuşma yeri",
+      "ipucu": "Haritada yangının çıkacağı yere tıklayın. Sistem o bölgenin arazisini, bitki örtüsünü ve önümüzdeki 48 saatin hava tahminini kendisi indirir; yangının nasıl yayılabileceğini hesaplar. Başka bir yere tıklayınca yeniden hesaplanır.",
+      "tutusma": "Tutuşma: {{zaman}} · {{yakit}}",
+      "calisiyor": "Hesaplanıyor. Yeni bir yer için ~20–30 sn sürer.",
+      "sure": "Veri {{veri}} sn · model {{model}} sn (20 çalıştırma)",
+      "altlik": "Bitki örtüsü haritasını göster"
+    },
+    "yakitlar": {
+      "0": "yanmaz alan",
+      "1": "orman",
+      "2": "maki / çalılık",
+      "3": "ot",
+      "4": "tarım alanı"
+    },
+    "hatalar": {
+      "yanmaz": "Bu noktanın çevresinde yanabilecek bitki yok (deniz, göl, şehir ya da kaya). Ormanlık ya da çalılık bir yere tıklayın.",
+      "veri": "Arazi ya da hava verisi indirilemedi. İnternet bağlantısını kontrol edip tekrar deneyin.",
+      "mesgul": "Bir hesap zaten sürüyor; bitmesini bekleyin.",
+      "diger": "Hesap yapılamadı. Arka uç çalışıyor mu?"
+    },
+    "alan": {
+      "baslik": "Tahmini yanan alan",
+      "menzil": "{{saat}}. saatte tahmini menzil: {{alt}} (neredeyse kesin) ile {{ust}} (düşük olasılık) arası.",
+      "kenar": "Olası alan {{saat}}. saatte hesap alanının (40 × 40 km) kenarına dayandı; gerçek yayılım daha geniş olabilir."
+    },
+    "hava": {
+      "baslik": "Hava (tahmin)",
+      "kaynak": "Open-Meteo, tutuşma noktası",
+      "ruzgar": "Rüzgâr",
+      "nem": "Bağıl nem",
+      "sicaklik": "Sıcaklık"
+    },
+    "grafik": {
+      "baslik": "Zamana göre yanan alan",
+      "bos": "Haritadan bir yer seçin"
+    },
+    "guven": {
+      "baslik": "Bu tahmin ne kadar güvenilir?",
+      "olcum": "Geçmiş iki yangında aynı ayarlarla sınandı (Manavgat 2021, Marmaris 2022; hava tahmini kusursuz varsayılarak). İlk 12 saatte gerçekte yanan alanın %73–99'u “olası” bandın içinde kaldı; bandın %48–95'i gerçekten yandı. Aynı büyüklükte bir daire %49–92'de kalıyor.",
+      "sondurme": "Söndürme çalışmalarını bilmez: 24 saatten sonra alanı abartır (Marmaris'te 48. saatte gerçeğin 8 katı). İlk 12–24 saate güvenin, sonrasını “en kötü durum” olarak okuyun.",
+      "yon": "Yön tahmini kabadır; rüzgâr verisi ~25 km çözünürlüklü tahminden gelir. Tek bir çizgi yerine olasılık bantları bu yüzden gösterilir.",
+      "hava": "Hava tahmin edildiği gibi gelmezse sonuç değişir.",
+      "bantlar": "Bantlar yalnızca modelin kendi rastlantısallığını gösterir; hava tahminindeki belirsizliği içermez. Bu yüzden birbirine yakın çıkarlar."
     }
   }
 }
