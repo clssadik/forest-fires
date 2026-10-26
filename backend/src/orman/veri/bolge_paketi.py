@@ -117,7 +117,7 @@ def olustur(senaryo: Senaryo) -> dict[str, Path]:
     yollar = {}
     yollar |= dem.hazirla(senaryo.izgara)
     yollar |= arazi_ortusu.hazirla(senaryo.izgara)
-    yollar["hava"] = hava.hazirla(senaryo.izgara)["islenmis"]
+    yollar["hava"] = hava.hazirla(senaryo.izgara, senaryo.baslangic, senaryo.bitis)["islenmis"]
     yollar["hava_alani"] = hava_alani_modulu.hazirla(
         senaryo.izgara,
         _oku(yollar["yukseklik"]),

@@ -21,9 +21,8 @@ from numpy.typing import ArrayLike
 from orman.ayarlar import HAM_VERI_DIZINI, ISLENMIS_VERI_DIZINI
 from orman.izgara import BBox, Izgara
 
-API = "https://archive-api.open-meteo.com/v1/archive"
-BASLANGIC = date(2021, 7, 26)
-BITIS = date(2021, 8, 8)
+ARSIV_API = "https://archive-api.open-meteo.com/v1/archive"
+TAHMIN_API = "https://api.open-meteo.com/v1/forecast"
 DEGISKENLER = {
     "temperature_2m": "sicaklik_c",
     "relative_humidity_2m": "bagil_nem",
@@ -103,15 +102,15 @@ def tabloya_cevir(yanit: dict | list[dict]) -> pd.DataFrame:
     return tablo[SUTUNLAR]
 
 
-def _indir(noktalar: list[tuple[float, float]]) -> str:
+def _indir(noktalar: list[tuple[float, float]], baslangic: date, bitis: date, api: str) -> str:
     """Tüm noktaları tek istekte sorgular; ham JSON metnini döndürür."""
     yanit = requests.get(
-        API,
+        api,
         params={
             "latitude": ",".join(f"{enlem:.4f}" for enlem, _ in noktalar),
             "longitude": ",".join(f"{boylam:.4f}" for _, boylam in noktalar),
-            "start_date": BASLANGIC.isoformat(),
-            "end_date": BITIS.isoformat(),
+            "start_date": baslangic.isoformat(),
+            "end_date": bitis.isoformat(),
             "hourly": ",".join(DEGISKENLER),
             "wind_speed_unit": "ms",
             "timezone": "GMT",
@@ -123,16 +122,39 @@ def _indir(noktalar: list[tuple[float, float]]) -> str:
     return yanit.text
 
 
-def hazirla(izgara: Izgara, nx: int = 4, ny: int = 3) -> dict[str, Path]:
-    """Izgara alanı için saatlik hava verisini indirir, kaydeder ve CSV'ye yazar.
+def _kapsiyor(metin: str, baslangic: date, bitis: date) -> bool:
+    """Önbellekteki yanıt tam olarak istenen gün aralığını mı içeriyor?"""
+    konum = json.loads(metin)
+    saatler = (konum if isinstance(konum, dict) else konum[0])["hourly"]["time"]
+    return saatler[0][:10] == baslangic.isoformat() and saatler[-1][:10] == bitis.isoformat()
 
+
+def hazirla(
+    izgara: Izgara,
+    baslangic: date,
+    bitis: date,
+    nx: int = 4,
+    ny: int = 3,
+    tahmin: bool = False,
+) -> dict[str, Path]:
+    """Izgara alanı için `baslangic`–`bitis` (UTC günleri, ikisi dahil) saatlik havayı indirir,
+    kaydeder ve CSV'ye yazar.
+
+    `tahmin=False`: geçmiş (ERA5 arşivi, ~5 gün gecikmeli). `tahmin=True`: Open-Meteo tahmin
+    API'si (son birkaç gün + önümüzdeki günler; "şimdi" senaryoları için).
     Döner: {"ham": ham JSON yolu, "islenmis": hava.csv yolu}. Saatler UTC'dir.
     """
     ham_yol = HAM_VERI_DIZINI / izgara.ad / "open_meteo.json"
-    if ham_yol.exists():  # önbellek: geçmiş veri değişmez
+    # Önbellek: geçmiş veri değişmez; ama başka bir tarih aralığına aitse yeniden indirilir.
+    if ham_yol.exists() and _kapsiyor(ham_yol.read_text(encoding="utf-8"), baslangic, bitis):
         metin = ham_yol.read_text(encoding="utf-8")
     else:
-        metin = _indir(kafes_noktalari(izgara.wgs84_sinirlari(), nx, ny))
+        metin = _indir(
+            kafes_noktalari(izgara.wgs84_sinirlari(), nx, ny),
+            baslangic,
+            bitis,
+            TAHMIN_API if tahmin else ARSIV_API,
+        )
         ham_yol.parent.mkdir(parents=True, exist_ok=True)
         ham_yol.write_text(metin, encoding="utf-8")
 
