@@ -7,7 +7,15 @@ import pytest
 from affine import Affine
 
 from orman.izgara import Izgara
-from orman.model.yayilim import Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
+from orman.model.yayilim import (
+    V2_YAKIT,
+    Arazi,
+    Parametreler,
+    Ruzgar,
+    coklu_yayilim,
+    yakit_carpani,
+    yayilim,
+)
 from orman.veri.hava_alani import ALAN_DEGISKENLERI, HavaAlani
 
 BOYUT = 201
@@ -119,6 +127,32 @@ def test_yanmaz_bariyeri_gecmez():
     toa = yayilim(arazi, ruzgar, [MERKEZ], HIZLI, tohum=1, bitis_dk=600)
     assert not np.isnan(toa[:, 129]).all()  # yangın bariyere ulaştı
     assert np.isnan(toa[:, 130:]).all()
+
+
+def test_v2_yakit_carpani_alexandridis_tablosu():
+    # (1 + p_veg) · (1 + p_den): orman = kızılçam, normal yoğunluk; maki = çalılık;
+    # ot ve tarım = tarım, seyrek (Alexandridis vd. 2008, Tablo 1).
+    carpan = yakit_carpani(V2_YAKIT)
+    assert carpan[1] == pytest.approx(1.4)
+    assert carpan[2] == pytest.approx(1.0)
+    assert carpan[3] == pytest.approx(0.7 * 0.6)
+    assert carpan[4] == pytest.approx(0.7 * 0.6)
+    assert yakit_carpani(Parametreler()) == pytest.approx([1.0] * 5)  # v1: yakıt farkı yok
+
+
+def test_tarim_ormandan_yavas_yanar():
+    # Batı yarısı tarım, doğu yarısı orman; rüzgârsız düz arazi.
+    arazi = _duz_arazi()
+    arazi.yakit[:, : MERKEZ[1]] = 4
+    v2 = Parametreler(
+        hiz_olcegi=HIZLI.hiz_olcegi, yanma_suresi_dk=HIZLI.yanma_suresi_dk,
+        p_veg=V2_YAKIT.p_veg, p_den=V2_YAKIT.p_den,
+    )  # fmt: skip
+    menzil = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30, parametreler=v2)
+    assert menzil["D"] < 2900  # ızgara kenarına ulaşmadı
+    assert menzil["D"] > 2.0 * menzil["B"]  # beklenen hız oranı 1,4 / 0,42 ≈ 3,3
+    v1 = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30)
+    assert v1["D"] == pytest.approx(v1["B"], rel=0.2)
 
 
 def test_yanmaz_hucreler_hic_yanmaz():

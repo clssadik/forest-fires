@@ -47,6 +47,21 @@ class Parametreler:
     p_den: tuple[float, ...] = (0.0,) * YAKIT_SINIF_SAYISI
 
 
+def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
+    """Yakıt sınıfı başına (1 + p_veg) · (1 + p_den); tutuşma hızının yakıt payı."""
+    return (1.0 + np.array(parametreler.p_veg)) * (1.0 + np.array(parametreler.p_den))
+
+
+# v2 yakıt tablosu, Alexandridis vd. (2008) Tablo 1'den, kalibrasyonsuz:
+# p_veg tarım −0,3 · çalılık 0 · kızılçam +0,4; p_den seyrek −0,4 · normal 0 · yoğun +0,3.
+# Orman = kızılçam (bölgenin baskın türü), normal yoğunluk; maki = çalılık; ot ve tarım = tarım,
+# seyrek (yaz sonu hasat edilmiş tarla, sulu bahçe, kayalık otluk).
+V2_YAKIT = Parametreler(
+    p_veg=(0.0, 0.4, 0.0, -0.3, -0.3),
+    p_den=(0.0, 0.0, 0.0, -0.4, -0.4),
+)
+
+
 @dataclass
 class Arazi:
     yukseklik: np.ndarray  # m, float32
