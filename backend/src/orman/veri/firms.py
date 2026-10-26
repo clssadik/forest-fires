@@ -39,7 +39,9 @@ def tespitleri_indir(
     tablolar = []
     for kaynak in kaynaklar:
         for gun, sayi in _gun_parcalari(baslangic, bitis):
-            yanit = requests.get(f"{API}/{anahtar}/{kaynak}/{alan}/{sayi}/{gun.isoformat()}", timeout=60)
+            yanit = requests.get(
+                f"{API}/{anahtar}/{kaynak}/{alan}/{sayi}/{gun.isoformat()}", timeout=60
+            )
             if yanit.status_code != 200 or not yanit.text.startswith("latitude"):
                 # Anahtar URL'de olduğu için URL'yi hataya yazmıyoruz.
                 raise RuntimeError(f"FIRMS {kaynak} {gun}: {yanit.status_code} {yanit.text[:200]}")
@@ -51,5 +53,7 @@ def tespitleri_indir(
         return pd.DataFrame()
     tum = pd.concat(tablolar, ignore_index=True)
     saat = tum["acq_time"].astype(int).astype(str).str.zfill(4)
-    tum["zaman_utc"] = pd.to_datetime(tum["acq_date"] + " " + saat, format="%Y-%m-%d %H%M", utc=True)
+    tum["zaman_utc"] = pd.to_datetime(
+        tum["acq_date"] + " " + saat, format="%Y-%m-%d %H%M", utc=True
+    )
     return tum.sort_values("zaman_utc", ignore_index=True)

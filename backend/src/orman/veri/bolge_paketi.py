@@ -10,6 +10,7 @@ ve görsel kontrol için onizleme/*.png.
 
 import argparse
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
@@ -67,9 +68,10 @@ class BolgePaketi:
     arazi_ortusu: np.ndarray  # WorldCover kodu, uint8
     yakit: np.ndarray  # yakıt sınıfı kodu, uint8 (0 = yanmaz)
     hava: pd.DataFrame  # saatlik, UTC, nokta bazında
-    tespitler: pd.DataFrame  # FIRMS, UTC; satir/sutun = ızgara hücresi
-    dnbr: np.ndarray  # Sentinel-2 dNBR (ofseti düzeltilmiş), float32, NaN = veri yok
-    yanmis_alan: np.ndarray  # gerçek yanmış alan, uint8 (1 = yanmış); doğrulama referansı
+    # Doğrulama katmanları; yalnızca geçmiş yangın paketlerinde var (senaryo modunda None).
+    tespitler: pd.DataFrame | None = None  # FIRMS, UTC; satir/sutun = ızgara hücresi
+    dnbr: np.ndarray | None = None  # Sentinel-2 dNBR (ofseti düzeltilmiş), float32, NaN = veri yok
+    yanmis_alan: np.ndarray | None = None  # gerçek yanmış alan, uint8 (1 = yanmış)
     _hava_alani: HavaAlani | None = field(default=None, init=False, repr=False)
 
     @property
@@ -111,18 +113,38 @@ def _firms_hazirla(senaryo: Senaryo) -> Path:
     return yol
 
 
-def olustur(senaryo: Senaryo) -> dict[str, Path]:
-    """Tüm katmanları üretir (indirilmiş ham veri varsa yeniden indirmez)."""
-    (ISLENMIS_VERI_DIZINI / senaryo.ad).mkdir(parents=True, exist_ok=True)
-    yollar = {}
-    yollar |= dem.hazirla(senaryo.izgara)
-    yollar |= arazi_ortusu.hazirla(senaryo.izgara)
-    yollar["hava"] = hava.hazirla(senaryo.izgara, senaryo.baslangic, senaryo.bitis)["islenmis"]
+def model_girdilerini_olustur(senaryo: Senaryo, canli: bool = False) -> dict[str, Path]:
+    """Modelin çalışması için yeterli katmanlar: yükseklik, eğim, bakı, yakıt, hava alanı.
+
+    `canli=True` (senaryo modu, "şimdi"): hava Open-Meteo tahmin API'sinden, DEM uzak
+    karolardan pencereyle. Doğrulama katmanları (FIRMS, Sentinel-2) üretilmez.
+    """
+    d = ISLENMIS_VERI_DIZINI / senaryo.ad
+    d.mkdir(parents=True, exist_ok=True)
+    # Üç kaynak birbirinden bağımsız; ağ beklemesi üst üste binsin diye aynı anda indirilir.
+    with ThreadPoolExecutor(3) as havuz:
+        if canli and (d / "yukseklik.tif").exists():  # arazi değişmez: aynı noktaya ikinci istek
+            yukseklik = havuz.submit(
+                lambda: {ad: d / f"{ad}.tif" for ad in ("yukseklik", "egim", "baki")}
+            )
+        else:
+            yukseklik = havuz.submit(dem.hazirla, senaryo.izgara, canli)
+        ortu = havuz.submit(arazi_ortusu.hazirla, senaryo.izgara)
+        hava_yolu = havuz.submit(
+            hava.hazirla, senaryo.izgara, senaryo.baslangic, senaryo.bitis, tahmin=canli
+        )
+        yollar = yukseklik.result() | ortu.result() | {"hava": hava_yolu.result()["islenmis"]}
     yollar["hava_alani"] = hava_alani_modulu.hazirla(
         senaryo.izgara,
         _oku(yollar["yukseklik"]),
         pd.read_csv(yollar["hava"], parse_dates=["zaman_utc"]),
     )
+    return yollar
+
+
+def olustur(senaryo: Senaryo) -> dict[str, Path]:
+    """Tüm katmanları üretir (indirilmiş ham veri varsa yeniden indirmez)."""
+    yollar = model_girdilerini_olustur(senaryo)
     yollar["firms"] = _firms_hazirla(senaryo)
     yollar |= yanmis_alan.hazirla(
         senaryo,
@@ -143,6 +165,8 @@ def _oku(yol: Path) -> np.ndarray:
 
 def yukle(senaryo: Senaryo) -> BolgePaketi:
     d = ISLENMIS_VERI_DIZINI / senaryo.ad
+    if not (d / "yanmis_alan.tif").exists():
+        return model_girdilerini_yukle(senaryo)
     return BolgePaketi(
         senaryo=senaryo,
         yukseklik=_oku(d / "yukseklik.tif"),
@@ -154,6 +178,20 @@ def yukle(senaryo: Senaryo) -> BolgePaketi:
         tespitler=pd.read_csv(d / "firms.csv", parse_dates=["zaman_utc"]),
         dnbr=_oku(d / "dnbr.tif"),
         yanmis_alan=_oku(d / "yanmis_alan.tif"),
+    )
+
+
+def model_girdilerini_yukle(senaryo: Senaryo) -> BolgePaketi:
+    """Doğrulama katmanları olmadan paket (`model_girdilerini_olustur` çıktısı)."""
+    d = ISLENMIS_VERI_DIZINI / senaryo.ad
+    return BolgePaketi(
+        senaryo=senaryo,
+        yukseklik=_oku(d / "yukseklik.tif"),
+        egim=_oku(d / "egim.tif"),
+        baki=_oku(d / "baki.tif"),
+        arazi_ortusu=_oku(d / "arazi_ortusu.tif"),
+        yakit=_oku(d / "yakit_sinifi.tif"),
+        hava=pd.read_csv(d / "hava.csv", parse_dates=["zaman_utc"]),
     )
 
 

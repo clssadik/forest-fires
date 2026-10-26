@@ -13,6 +13,11 @@ Uç noktalar (`{ad}` = senaryo adı, ör. `manavgat_2021`):
     GET  /api/yanginlar/{ad}/raster/{katman} model_toa | firms_varis (uint16 dk) | gercek (uint8)
     GET  /api/yanginlar/{ad}/sonuc           son simülasyonun ölçütleri
     POST /api/yanginlar/{ad}/simulasyon      modeli çalıştırır, ölçütleri döndürür
+
+Senaryo modu ("şimdi burada yangın çıksa?", `senaryo_modu.py`; `{kimlik}` yanıttan gelir):
+    POST /api/senaryo?enlem=..&boylam=..     paketi hazırlar, modeli çalıştırır, özeti döndürür
+    GET  /api/senaryo/{kimlik}/raster        %10/%50/%90 olasılığa ulaşma anı (3 × uint16 dk)
+    GET  /api/senaryo/{kimlik}/altlik.png    gölgeli arazi + bitki örtüsü altlığı
 """
 
 import json
@@ -30,13 +35,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response
 
-from orman import __version__, gosterim
+from orman import __version__, gosterim, senaryo_modu
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.calistir import BUYUME_SAATLERI, DENEYLER, V1, DeneyOrtami, model_deneyi
 from orman.dogrulama.olcutler import buyume_egrisi
 from orman.model.calistir import MODEL_SURUMU, yaz_raster
 from orman.senaryo import Senaryo
-from orman.veri.bolge_paketi import SENARYOLAR
+from orman.veri.bolge_paketi import SENARYOLAR, model_girdilerini_yukle
 
 app = FastAPI(title="Orman Yangını Yayılım API", version=__version__)
 
@@ -267,3 +272,90 @@ def simulasyon(ad: str, calisma: int = Query(20, ge=1, le=EN_FAZLA_CALISMA)) -> 
         return kayit
     finally:
         _simulasyon_kilidi.release()
+
+
+def _senaryo_sonucu(kimlik: str) -> tuple[dict, Senaryo]:
+    """Kaydedilmiş senaryo özeti ve (özetteki tutuşmadan yeniden kurulan) senaryo."""
+    yol = senaryo_modu.senaryo_dizini(kimlik) / "sonuc.json"
+    if "/" in kimlik or ".." in kimlik or not yol.exists():
+        raise HTTPException(404, f"Bilinmeyen senaryo: {kimlik}")
+    ozet = json.loads(yol.read_text())
+    konum = ozet["tutusma_konumu"]
+    senaryo = senaryo_modu.noktadan_senaryo(
+        konum["enlem"], konum["boylam"], datetime.fromisoformat(ozet["tutusma_utc"])
+    )
+    return ozet, senaryo
+
+
+@lru_cache(maxsize=4)
+def _senaryo_raster(kimlik: str, surum: float) -> bytes:
+    _, senaryo = _senaryo_sonucu(kimlik)
+    harita = gosterim.harita_izgarasi(senaryo.izgara)
+    with rasterio.open(senaryo_modu.senaryo_dizini(kimlik) / "esik_toa.tif") as ds:
+        bantlar = ds.read()
+    return b"".join(
+        gosterim.dakika_kodla(
+            gosterim.haritaya_yansit(bant, senaryo.izgara, harita, np.nan)
+        ).tobytes()
+        for bant in bantlar
+    )
+
+
+@app.post("/api/senaryo")
+def senaryo_calistir(
+    enlem: float = Query(..., ge=-60, le=70), boylam: float = Query(..., ge=-180, le=180)
+) -> dict:
+    """Seçilen noktada şimdi (bu saatin başında) tutuşan bir yangını modeller.
+
+    Yeni bir nokta için ~20–40 sn (arazi verisi indirilir), aynı yakın nokta için ~1 sn.
+    """
+    if not _simulasyon_kilidi.acquire(blocking=False):
+        raise HTTPException(409, "Bir simülasyon zaten çalışıyor.")
+    try:
+        sonuc = senaryo_modu.calistir(enlem, boylam)
+    except ValueError as e:  # tutuşma noktasında yanabilir bitki yok
+        raise HTTPException(422, str(e)) from e
+    except (OSError, RuntimeError) as e:  # veri kaynağına ulaşılamadı
+        raise HTTPException(502, f"Veri indirilemedi: {e}") from e
+    finally:
+        _simulasyon_kilidi.release()
+    harita = gosterim.harita_izgarasi(sonuc.senaryo.izgara)
+    return sonuc.ozet | {
+        "harita": {
+            "genislik": harita.genislik,
+            "yukseklik": harita.yukseklik,
+            "koseler": gosterim.koseler(harita),
+            "sinirlar": sonuc.senaryo.izgara.wgs84_sinirlari(),
+        }
+    }
+
+
+@app.get("/api/senaryo/{kimlik}/raster")
+def senaryo_raster(kimlik: str) -> Response:
+    """Harita ızgarasında art arda üç bant (eşik sırasıyla), her biri uint16 küçük-sonlu."""
+    _, senaryo = _senaryo_sonucu(kimlik)
+    yol = senaryo_modu.senaryo_dizini(kimlik) / "esik_toa.tif"
+    harita = gosterim.harita_izgarasi(senaryo.izgara)
+    return Response(
+        _senaryo_raster(kimlik, yol.stat().st_mtime),
+        media_type="application/octet-stream",
+        headers={
+            "X-Veri-Turu": "uint16",
+            "X-Bant-Sayisi": str(len(senaryo_modu.ESIKLER)),
+            "X-Genislik": str(harita.genislik),
+            "X-Yukseklik": str(harita.yukseklik),
+        },
+    )
+
+
+@app.get("/api/senaryo/{kimlik}/altlik.png")
+def senaryo_altlik(kimlik: str) -> Response:
+    _senaryo_sonucu(kimlik)  # bilinmeyen kimlik → 404
+    return Response(_senaryo_altlik(kimlik), media_type="image/png")
+
+
+@lru_cache(maxsize=4)
+def _senaryo_altlik(kimlik: str) -> bytes:
+    _, senaryo = _senaryo_sonucu(kimlik)
+    paket = model_girdilerini_yukle(senaryo)
+    return gosterim.png(gosterim.altlik_rgba(paket, gosterim.harita_izgarasi(senaryo.izgara)))

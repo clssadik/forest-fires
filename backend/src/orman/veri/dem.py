@@ -74,12 +74,29 @@ def karo_indir(kod: str, hedef_dizin: Path) -> Path | None:
     return hedef
 
 
-def mozaikle_ve_yansit(karo_yollari: list[Path], izgara: Izgara) -> np.ndarray:
-    """Karoları birleştirir ve ortak ızgaraya bilineer yöntemle oturtur (metre, float32)."""
-    kaynaklar = [rasterio.open(yol) for yol in karo_yollari]
+def uzak_karolar(bbox: BBox) -> list[str]:
+    """Kutuyu kaplayan ve kaynakta bulunan karoların adresleri (olmayanlar genelde deniz)."""
+    adresler = []
+    for kod in karo_kodlari(bbox):
+        if requests.head(karo_url(kod), timeout=30).status_code == 200:
+            adresler.append(karo_url(kod))
+        else:
+            log.info("DEM karosu yok, atlanıyor: %s", kod)
+    return adresler
+
+
+def mozaikle_ve_yansit(
+    karolar: list[Path] | list[str], izgara: Izgara, sinirlar: BBox | None = None
+) -> np.ndarray:
+    """Karoları birleştirir ve ortak ızgaraya bilineer yöntemle oturtur (metre, float32).
+
+    `karolar` yerel yol ya da uzak COG adresi olabilir. `sinirlar` (WGS84) verilirse yalnızca o
+    pencere okunur: uzak karoda yalnızca gereken baytlar indirilir.
+    """
+    kaynaklar = [rasterio.open(k) for k in karolar]
     try:
         nodata = kaynaklar[0].nodata
-        mozaik, donusum = merge(kaynaklar, nodata=nodata)
+        mozaik, donusum = merge(kaynaklar, bounds=sinirlar, nodata=nodata)
         with MemoryFile() as bellek:
             with bellek.open(
                 driver="GTiff",
@@ -137,23 +154,32 @@ def _yaz(yol: Path, veri: np.ndarray, izgara: Izgara) -> None:
         ds.write(veri, 1)
 
 
-def hazirla(izgara: Izgara) -> dict[str, Path]:
+def hazirla(izgara: Izgara, uzaktan: bool = False) -> dict[str, Path]:
     """Karoları indirir, ızgaraya oturtur ve yükseklik, eğim, bakı katmanlarını yazar.
 
+    `uzaktan=True`: karolar indirilmez, uzak COG'dan yalnızca ızgaranın penceresi okunur
+    (senaryo modu: her yeni nokta için ~35 MB'lık karolar yerine birkaç MB).
     Döndürülen sözlük: {"yukseklik": ..., "egim": ..., "baki": ...} yolları.
     """
-    karo_dizini = HAM_VERI_DIZINI / izgara.ad / "dem"
-    karolar = []
-    for kod in karo_kodlari(izgara.wgs84_sinirlari()):
-        yol = karo_indir(kod, karo_dizini)
-        if yol is None:
-            log.info("DEM karosu yok, atlanıyor: %s", kod)
-        else:
-            karolar.append(yol)
+    sinirlar = izgara.wgs84_sinirlari()
+    if uzaktan:
+        bati, guney, dogu, kuzey = sinirlar
+        pay = 0.01  # derece; bilineer örnekleme kenarda komşu piksele ihtiyaç duyar
+        sinirlar = (bati - pay, guney - pay, dogu + pay, kuzey + pay)
+        karolar = uzak_karolar(sinirlar)
+    else:
+        karolar = []
+        for kod in karo_kodlari(sinirlar):
+            yol = karo_indir(kod, HAM_VERI_DIZINI / izgara.ad / "dem")
+            if yol is None:
+                log.info("DEM karosu yok, atlanıyor: %s", kod)
+            else:
+                karolar.append(yol)
+        sinirlar = None
     if not karolar:
         raise RuntimeError(f"{izgara.ad} için hiç DEM karosu bulunamadı")
 
-    yukseklik = mozaikle_ve_yansit(karolar, izgara)
+    yukseklik = mozaikle_ve_yansit(karolar, izgara, sinirlar)
     egim, baki = egim_ve_baki(yukseklik, izgara.cozunurluk)
 
     cikti_dizini = ISLENMIS_VERI_DIZINI / izgara.ad

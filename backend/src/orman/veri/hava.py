@@ -146,7 +146,12 @@ def hazirla(
     """
     ham_yol = HAM_VERI_DIZINI / izgara.ad / "open_meteo.json"
     # Önbellek: geçmiş veri değişmez; ama başka bir tarih aralığına aitse yeniden indirilir.
-    if ham_yol.exists() and _kapsiyor(ham_yol.read_text(encoding="utf-8"), baslangic, bitis):
+    # Tahmin her istekte tazelenir (birkaç saatte bir güncellenir).
+    if (
+        not tahmin
+        and ham_yol.exists()
+        and _kapsiyor(ham_yol.read_text(encoding="utf-8"), baslangic, bitis)
+    ):
         metin = ham_yol.read_text(encoding="utf-8")
     else:
         metin = _indir(
