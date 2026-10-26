@@ -25,7 +25,7 @@ import numpy as np
 import rasterio
 
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
-from orman.dogrulama.calistir import V3
+from orman.dogrulama.calistir import DENEYLER, GUNCEL_MODEL
 from orman.izgara import Izgara
 from orman.model.calistir import tutusma_hucresi
 from orman.model.yayilim import Arazi, Ruzgar, coklu_yayilim
@@ -39,8 +39,8 @@ CALISMA = 20
 ESIKLER = (0.1, 0.5, 0.9)  # olasılık bantları: düşük, orta, yüksek
 KIMLIK_HASSASIYETI = 2  # ondalık basamak (~1 km); yakın tıklamalar aynı paketi kullanır
 KENAR_PAYI_HUCRE = 33  # ~1 km; olası alan bu kadar kenara yaklaşırsa "sınıra ulaştı"
-PARAMETRELER = V3
-MODEL_ADI = "model_v3"
+MODEL_ADI = GUNCEL_MODEL
+PARAMETRELER = DENEYLER[GUNCEL_MODEL][1]
 
 
 def utm_crs(enlem: float, boylam: float) -> str:

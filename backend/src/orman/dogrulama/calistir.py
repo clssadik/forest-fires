@@ -1,4 +1,4 @@
-"""Model v1'i ve baseline'ları gerçek yangınla karşılaştırır; sonucu `dogrulama/` altına yazar.
+"""Model sürümlerini ve baseline'ları gerçek yangınla karşılaştırır; sonucu `dogrulama/` altına yazar.
 
     uv run orman-dogrula manavgat_2021              # 20 tohum
     uv run orman-dogrula manavgat_2021 --calisma 5
@@ -28,6 +28,7 @@ V2 = V2_YAKIT  # v1 + yakıt türü (Alexandridis tablosu)
 # v3: v2 + yakıt nemi, `orman-kalibre` ile Manavgat 2021'e ayarlı (2026-10-26, 200 deneme, en iyi
 # aday 20 yeni tohumla seçildi). Eğim etkisi ~0'a, rüzgâr yönü etkisi düştü; bkz. docs/05 Adım 6.
 V3 = replace(V2, hiz_olcegi=0.087, c1=0.126, c2=0.081, a=0.0, sonme_nemi=0.19)
+GUNCEL_MODEL = "model_v3"  # web simülasyonu ve senaryo modunun kullandığı model
 # Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz).
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
     "model_v1": ("Model v1 (rüzgâr + eğim)", V1),

@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from orman import api
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
+from orman.dogrulama.calistir import V3
 
 client = TestClient(api.app)
 AD = "manavgat_2021"
@@ -70,6 +71,7 @@ def test_simulasyon_kaydeder_ve_sonucu_verir(tmp_path, monkeypatch):
 
     kayit = client.post(f"/api/yanginlar/{AD}/simulasyon?calisma=2").json()
     assert kayit["calisma_sayisi"] == 2
+    assert kayit["model"] == "model_v3" and kayit["parametreler"]["c1"] == V3.c1
     assert 0 < kayit["olcutler"]["esit_alan"]["iou"] < 1
     assert len(kayit["buyume_ha"]) == len(kayit["buyume_saatleri"])
     assert client.get(f"/api/yanginlar/{AD}/sonuc").json() == kayit

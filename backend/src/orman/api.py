@@ -37,9 +37,15 @@ from fastapi.responses import Response
 
 from orman import __version__, gosterim, senaryo_modu
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
-from orman.dogrulama.calistir import BUYUME_SAATLERI, DENEYLER, V1, DeneyOrtami, model_deneyi
+from orman.dogrulama.calistir import (
+    BUYUME_SAATLERI,
+    DENEYLER,
+    GUNCEL_MODEL,
+    DeneyOrtami,
+    model_deneyi,
+)
 from orman.dogrulama.olcutler import buyume_egrisi
-from orman.model.calistir import MODEL_SURUMU, yaz_raster
+from orman.model.calistir import yaz_raster
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR, model_girdilerini_yukle
 
@@ -239,22 +245,23 @@ def sonuc(ad: str) -> dict:
 
 @app.post("/api/yanginlar/{ad}/simulasyon")
 def simulasyon(ad: str, calisma: int = Query(20, ge=1, le=EN_FAZLA_CALISMA)) -> dict:
-    """Model v1'i `calisma` tohumla çalıştırır, topluluk TOA'sını ve ölçütleri kaydeder."""
+    """Güncel modeli (`GUNCEL_MODEL`) `calisma` tohumla çalıştırır, topluluk TOA'sını ve ölçütleri kaydeder."""
     senaryo = _senaryo(ad)
     if not _simulasyon_kilidi.acquire(blocking=False):
         raise HTTPException(409, "Bir simülasyon zaten çalışıyor.")
     try:
         ortam = _ortam(ad)
         baslangic = time.perf_counter()
-        deney = model_deneyi(ortam, MODEL_SURUMU, DENEYLER[MODEL_SURUMU][0], V1, calisma)
+        aciklama, parametreler = DENEYLER[GUNCEL_MODEL]
+        deney = model_deneyi(ortam, GUNCEL_MODEL, aciklama, parametreler, calisma)
         sure = time.perf_counter() - baslangic
         referans = ortam.referans
         kayit = {
             "senaryo": ad,
-            "model": MODEL_SURUMU,
+            "model": GUNCEL_MODEL,
             "aciklama": deney.aciklama,
             "calisma_sayisi": calisma,
-            "parametreler": asdict(V1),
+            "parametreler": asdict(parametreler),
             "olusturma_utc": datetime.now(UTC).isoformat(timespec="seconds"),
             "sure_sn": round(sure, 1),
             "olcutler": asdict(deney.topluluk),
