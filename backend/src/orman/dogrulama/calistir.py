@@ -72,41 +72,67 @@ def _tohum_ozeti(olcutler: list[Olcutler]) -> dict[str, dict[str, float]]:
     return ozet
 
 
+@dataclass
+class DeneyOrtami:
+    """Bir senaryonun deneyler arasında ortak girdileri (paket, referans, arazi, rüzgâr)."""
+
+    paket: BolgePaketi
+    referans: Referans
+    arazi: Arazi
+    ruzgar: Ruzgar
+    tutusma: tuple[int, int]
+
+    @classmethod
+    def hazirla(cls, senaryo: Senaryo) -> "DeneyOrtami":
+        paket = yukle(senaryo)
+        ortam = cls(
+            paket=paket,
+            referans=Referans.paketten(paket),
+            arazi=Arazi.paketten(paket),
+            ruzgar=Ruzgar.hava_alanindan(paket.hava_alani(), senaryo.tutusma_utc),
+            tutusma=tutusma_hucresi(paket),
+        )
+        yayilim(ortam.arazi, ortam.ruzgar, [ortam.tutusma], V1, 0, 1.0)  # Numba derlemesi
+        return ortam
+
+
+def model_deneyi(
+    ortam: DeneyOrtami, ad: str, aciklama: str, parametreler: Parametreler, calisma: int
+) -> DeneySonucu:
+    """Modeli `calisma` tohumla çalıştırır; topluluk TOA'sını ve ölçütleri döndürür."""
+    referans = ortam.referans
+    sonuc = coklu_yayilim(
+        ortam.arazi, ortam.ruzgar, [ortam.tutusma], parametreler, range(calisma), referans.bitis_dk
+    )
+    tek_tek = [dogrula(t, referans) for t in sonuc.toalar]
+    return DeneySonucu(
+        ad=ad,
+        aciklama=aciklama,
+        topluluk=dogrula(sonuc.toa_topluluk, referans),
+        toa=sonuc.toa_topluluk,
+        tohumlar=_tohum_ozeti(tek_tek),
+        buyume_ha=buyume_egrisi(
+            sonuc.toa_topluluk, referans.kapsam, BUYUME_SAATLERI, referans.hucre_ha
+        ),
+    )
+
+
 def deneyleri_calistir(
     senaryo: Senaryo, calisma: int = 20
 ) -> tuple[list[DeneySonucu], Referans, BolgePaketi]:
-    paket = yukle(senaryo)
-    referans = Referans.paketten(paket)
-    arazi = Arazi.paketten(paket)
-    ruzgar = Ruzgar.hava_alanindan(paket.hava_alani(), senaryo.tutusma_utc)
-    hucre = tutusma_hucresi(paket)
-    yayilim(arazi, ruzgar, [hucre], V1, 0, 1.0)  # Numba derlemesi
-
+    ortam = DeneyOrtami.hazirla(senaryo)
     sonuclar = []
     for ad, (aciklama, parametreler) in DENEYLER.items():
         if parametreler is None:
-            toa = daire_toa(hucre, paket.yanabilir, senaryo.izgara.cozunurluk)
+            toa = daire_toa(ortam.tutusma, ortam.paket.yanabilir, senaryo.izgara.cozunurluk)
             sonuclar.append(
-                DeneySonucu(ad, aciklama, dogrula(toa, referans, zamanli=False), toa, {}, None)
+                DeneySonucu(
+                    ad, aciklama, dogrula(toa, ortam.referans, zamanli=False), toa, {}, None
+                )
             )
             continue
-        sonuc = coklu_yayilim(
-            arazi, ruzgar, [hucre], parametreler, range(calisma), referans.bitis_dk
-        )
-        tek_tek = [dogrula(t, referans) for t in sonuc.toalar]
-        sonuclar.append(
-            DeneySonucu(
-                ad=ad,
-                aciklama=aciklama,
-                topluluk=dogrula(sonuc.toa_topluluk, referans),
-                toa=sonuc.toa_topluluk,
-                tohumlar=_tohum_ozeti(tek_tek),
-                buyume_ha=buyume_egrisi(
-                    sonuc.toa_topluluk, referans.kapsam, BUYUME_SAATLERI, referans.hucre_ha
-                ),
-            )
-        )
-    return sonuclar, referans, paket
+        sonuclar.append(model_deneyi(ortam, ad, aciklama, parametreler, calisma))
+    return sonuclar, ortam.referans, ortam.paket
 
 
 def _tablo(sonuclar: list[DeneySonucu]) -> str:
