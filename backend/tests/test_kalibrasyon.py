@@ -31,7 +31,7 @@ def _referans(firms_toa: np.ndarray, gercek: np.ndarray | None = None) -> Refera
 
 
 def test_gecis_anlari_gruplar_ve_suzer():
-    # 3 sa'ten kısa aralıklı tespitler aynı geçiş; her geçişin son anı alınır. 72 sa'ten sonrası
+    # İlk tespitinden 2 sa içindeki tespitler aynı geçiş; her geçişin son anı alınır. 72 sa'ten sonrası
     # ve gerçek alanın %5'ine ulaşmamış ilk geçiş atlanır.
     # 8 hücre: ilk geçiş 2 hücre (%25), ikinci 4 hücre, üçüncü 1, sonuncusu 72 sa'ten sonra.
     firms = np.array([[60, 70, 600, 610], [620, 630, 900, 6000]], dtype=float)
@@ -40,6 +40,14 @@ def test_gecis_anlari_gruplar_ve_suzer():
     # %30 eşiğiyle ilk geçiş (2/8 = %25) atlanır.
     anlar = gecis_anlari(firms, kapsam, en_az_oran=0.3)
     assert list(anlar) == [630.0, 900.0]
+
+
+def test_gecis_anlari_zincirlemez():
+    # Aralıkları kısa ama toplam 4 sa süren tespitler tek geçiş sayılmamalı: bir küme ilk
+    # tespitinden en fazla 2 sa sürer. (Marmaris 2022'de 3,7 · 6,3 · 7,2 · 8,0 sa tek geçişti.)
+    firms = np.array([[60, 210, 300, 330]], dtype=float)
+    kapsam = np.ones((1, 4), dtype=bool)
+    assert list(gecis_anlari(firms, kapsam)) == [60.0, 330.0]
 
 
 def test_zamanli_iou_elle():

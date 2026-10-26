@@ -18,6 +18,7 @@ Kalibrasyon yalnızca ana yangında yapılır; genelleme ikinci yangında, hiç 
 """
 
 import argparse
+import itertools
 import json
 import math
 import time
@@ -40,7 +41,7 @@ ARALIKLAR: dict[str, tuple[float, float, str]] = {
     "a": (0.0, 0.1, "dogrusal"),  # eğim etkisi
     "sonme_nemi": (0.10, 0.40, "dogrusal"),  # yakıtın sönme nemi
 }
-GECIS_ARALIGI_DK = 180.0  # bundan kısa aralıklı tespitler aynı uydu geçişinden sayılır
+KUME_SURESI_DK = 120.0  # bir geçiş kümesi ilk tespitinden en fazla bu kadar sürer
 
 
 def gecis_anlari(
@@ -48,14 +49,24 @@ def gecis_anlari(
 ) -> np.ndarray:
     """Uydu geçiş anları (dk): FIRMS varış değerleri kümelenir, her kümenin son anı alınır.
 
+    Küme, ilk tespitinden `KUME_SURESI_DK` içindeki tespitlerdir (birbirine yakın uydular,
+    ör. VIIRS S-NPP / NOAA-20 / Aqua, tek geçiş sayılır). Aralıklara bakılmaz; yoksa kısa aralıklı
+    geçişler zincirlenip saatlerce süren tek bir "geçiş" olur.
+
     Gerçek alanın (FIRMS'in gördüğü kısmın) `en_az_oran`'ından azını görmüş ilk geçişler ve
     `en_gec_saat`'ten sonrakiler atlanır (çok küçük alanlar gürültülü, sonrası söndürme dönemi).
     """
     degerler = np.sort(firms_toa[kapsam & ~np.isnan(firms_toa)].astype(np.float64))
     if degerler.size == 0:
         return np.zeros(0)
-    son = np.append(np.diff(degerler) > GECIS_ARALIGI_DK, True)
-    anlar = np.unique(degerler[son])
+    sonlar = []
+    baslangic = degerler[0]
+    for onceki, deger in itertools.pairwise(degerler):
+        if deger - baslangic > KUME_SURESI_DK:
+            sonlar.append(onceki)
+            baslangic = deger
+    sonlar.append(degerler[-1])
+    anlar = np.unique(sonlar)
     oran = np.searchsorted(degerler, anlar, "right") / degerler.size
     return anlar[(oran >= en_az_oran) & (anlar <= en_gec_saat * 60.0)]
 
