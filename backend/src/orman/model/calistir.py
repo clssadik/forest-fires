@@ -4,9 +4,9 @@
     uv run orman-model manavgat_2021 --calisma 20 # 20 tohum: olasılık haritası + TOA ortancası
 
 Çıktılar: toa.tif (dakika, NaN = yanmadı), çoklu çalıştırmada olasilik.tif, ozet.json
-(parametreler, süre, zamana göre yanan alan, gerçek yanmış alanla kaba örtüşme) ve
+(parametreler, süre, zamana göre yanan alan, bitişte gerçek yanmış alanla örtüşme) ve
 onizleme_toa.png (12 saatlik izokronlar, camgöbeği: gerçek yanmış alan sınırı).
-Kaba örtüşme yalnızca ilk bakış içindir; doğrulama ölçütleri Adım 4'ün işi.
+Baseline'larla karşılaştırma ve alan eşitlenmiş ölçütler: `orman-dogrula`.
 """
 
 import argparse
@@ -20,6 +20,7 @@ import rasterio
 from pyproj import Transformer
 
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
+from orman.dogrulama.olcutler import mekansal_olcutler
 from orman.model.onizleme import onizleme_yaz
 from orman.model.yayilim import Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
 from orman.senaryo import Senaryo
@@ -46,20 +47,7 @@ def tutusma_hucresi(paket: BolgePaketi) -> tuple[int, int]:
     return r + int(dr[en_yakin]) - k, c + int(dc[en_yakin]) - k
 
 
-def kaba_ortusme(yanan: np.ndarray, gercek: np.ndarray) -> dict[str, float]:
-    """IoU ve alanlar (ha, 30 m hücre). Adım 4'teki doğrulama modülünün yerini tutmaz."""
-    kesisim = int((yanan & gercek).sum())
-    birlesim = int((yanan | gercek).sum())
-    ha = 0.09
-    return {
-        "model_ha": round(yanan.sum() * ha),
-        "gercek_ha": round(gercek.sum() * ha),
-        "kesisim_ha": round(kesisim * ha),
-        "iou": round(kesisim / birlesim, 3) if birlesim else 0.0,
-    }
-
-
-def _yaz(yol: Path, veri: np.ndarray, senaryo: Senaryo) -> None:
+def yaz_raster(yol: Path, veri: np.ndarray, senaryo: Senaryo) -> None:
     with rasterio.open(yol, "w", **senaryo.izgara.rasterio_profili("float32", np.nan)) as ds:
         ds.write(veri.astype("float32"), 1)
 
@@ -87,10 +75,10 @@ def calistir(
     d = ISLENMIS_VERI_DIZINI / senaryo.ad / MODEL_SURUMU
     d.mkdir(parents=True, exist_ok=True)
     yollar = {"toa": d / "toa.tif", "ozet": d / "ozet.json"}
-    _yaz(yollar["toa"], toa, senaryo)
+    yaz_raster(yollar["toa"], toa, senaryo)
     if olasilik is not None:
         yollar["olasilik"] = d / "olasilik.tif"
-        _yaz(yollar["olasilik"], olasilik, senaryo)
+        yaz_raster(yollar["olasilik"], olasilik, senaryo)
 
     # Çoklu çalıştırmada "yanan" = çalıştırmaların en az yarısında yanan hücre.
     yanan = ~np.isnan(toa) if olasilik is None else olasilik >= 0.5
@@ -108,7 +96,12 @@ def calistir(
         "yanan_alan_ha_saate_gore": {
             str(s): round(float(((toa <= s * 60.0) & yanan).sum()) * 0.09) for s in ALAN_SAATLERI
         },
-        "kaba_ortusme": kaba_ortusme(yanan, gercek),
+        "ortusme": {
+            k: round(v, 3)
+            for k, v in asdict(
+                mekansal_olcutler(yanan, gercek, paket.gecerli, senaryo.izgara.cozunurluk**2 / 1e4)
+            ).items()
+        },
     }
     yollar["ozet"].write_text(json.dumps(ozet, ensure_ascii=False, indent=2))
     yollar["onizleme"] = onizleme_yaz(
