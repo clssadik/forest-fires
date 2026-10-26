@@ -37,7 +37,7 @@ export function UstBar() {
       : olay
 
   return (
-    <header className="flex h-11 shrink-0 items-center overflow-hidden border-b border-cizgi bg-ust pr-2 pl-4 text-[13.5px] whitespace-nowrap [&>*]:shrink-0">
+    <header className="relative flex h-11 shrink-0 items-center overflow-hidden border-b border-cizgi bg-ust pr-2 pl-4 text-[13.5px] whitespace-nowrap [&>*]:shrink-0">
       <div className="flex items-center gap-2">
         <Logo boyut={19} />
         <h1 className="text-[19px] font-semibold tracking-[-0.015em]">{t('uygulama.ad')}</h1>
@@ -54,7 +54,7 @@ export function UstBar() {
         {baslik.ad}
         <IkonAsagi boyut={14} />
       </button>
-      <span className="ml-3 text-soluk">{baslik.konum}</span>
+      <span className="ml-3 text-soluk max-[1560px]:hidden">{baslik.konum}</span>
 
       <span className="ml-5 flex items-center gap-2">
         <IkonTakvim boyut={14} className="text-soluk" />
@@ -138,9 +138,10 @@ function KipSekmesi({
 
 function Menu({ ad, ikon }: { ad: string; ikon: ReactNode }) {
   return (
-    <button type="button" className="flex items-center gap-1.5 rounded px-2.5 py-1 hover:bg-black/5">
+    <button type="button" title={ad} className="flex items-center gap-1.5 rounded px-2.5 py-1 hover:bg-black/5">
       <span className="text-soluk">{ikon}</span>
-      {ad}
+      {/* Dar ekranda yalnızca simge: üst bar taşmasın. */}
+      <span className="max-[1700px]:sr-only">{ad}</span>
       <IkonAsagi boyut={11} className="text-soluk" />
     </button>
   )
