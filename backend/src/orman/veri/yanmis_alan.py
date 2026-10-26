@@ -86,6 +86,13 @@ SAHNELER: dict[str, SahneSecimi] = {
         sonra=(date(2021, 8, 14), date(2021, 8, 24), date(2021, 9, 3)),
         esik=0.10,
     ),
+    # Genelleme testi: Manavgat'taki kurallar aynen (eşik 0,10); tarihler aynı yörünge (S2B, 10 gün
+    # arayla). 18 Haz: yangından 3 gün önce; 28 Haz: kontrol altına alınmasından 3 gün sonra.
+    "marmaris_2022": SahneSecimi(
+        once=(date(2022, 6, 18), date(2022, 6, 8), date(2022, 6, 3)),
+        sonra=(date(2022, 6, 28), date(2022, 7, 8), date(2022, 7, 3)),
+        esik=0.10,
+    ),
 }
 
 

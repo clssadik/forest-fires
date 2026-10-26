@@ -11,7 +11,7 @@ ve görsel kontrol için onizleme/*.png.
 import argparse
 import warnings
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timedelta
 from pathlib import Path
 
 import numpy as np
@@ -21,12 +21,12 @@ from pyproj import Transformer
 from rasterio.errors import NotGeoreferencedWarning
 
 from orman.ayarlar import HAM_VERI_DIZINI, ISLENMIS_VERI_DIZINI
-from orman.senaryo import MANAVGAT_2021, Senaryo
+from orman.senaryo import MANAVGAT_2021, MARMARIS_2022, Senaryo
 from orman.veri import arazi_ortusu, dem, firms, hava, yanmis_alan
 from orman.veri import hava_alani as hava_alani_modulu
 from orman.veri.hava_alani import HavaAlani
 
-SENARYOLAR = {MANAVGAT_2021.ad: MANAVGAT_2021}
+SENARYOLAR = {s.ad: s for s in (MANAVGAT_2021, MARMARIS_2022)}
 
 # Önizleme renkleri (RGB): yakıt sınıfı kodu -> renk
 YAKIT_RENKLERI = {
@@ -55,7 +55,7 @@ SIDDET_RENKLERI = {
     6: (110, 20, 40),  # yüksek
 }
 SINIR_RENGI = (20, 20, 20)
-ONIZLEME_HAVA_ZAMANI = datetime(2021, 7, 28, 10, tzinfo=UTC)  # UTC; yerelde 13:00
+ONIZLEME_HAVA_GECIKMESI = timedelta(hours=1)  # hava önizlemesi tutuşmadan bu kadar sonra
 
 
 @dataclass
@@ -282,8 +282,9 @@ def onizlemeleri_yaz(paket: BolgePaketi) -> dict[str, Path]:
         yollar["onizleme_yanmis_alan"], siddet_rgb(paket.dnbr, paket.yanmis_alan, deniz, golge)
     )
 
-    alan = paket.hava_alani().alan(ONIZLEME_HAVA_ZAMANI)
-    yollar["onizleme_hava"] = d / f"hava_{ONIZLEME_HAVA_ZAMANI:%Y-%m-%dT%H}.png"
+    zaman = paket.senaryo.tutusma_utc + ONIZLEME_HAVA_GECIKMESI
+    alan = paket.hava_alani().alan(zaman)
+    yollar["onizleme_hava"] = d / f"hava_{zaman:%Y-%m-%dT%H}.png"
     _png_yaz(yollar["onizleme_hava"], hava_rgb(alan, deniz))
     return yollar
 

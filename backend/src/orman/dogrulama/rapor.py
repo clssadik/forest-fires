@@ -113,7 +113,7 @@ def _harita(sonuclar, referans, paket, yol: Path) -> Path:
             loc="upper left", bbox_to_anchor=(0, -0.07), frameon=False, fontsize=9,
         )  # fmt: skip
     sekil.suptitle(
-        f"Manavgat 2021: model ve gerçek yanmış alan (Sentinel-2, {_ha(referans.gercek_ha)})"
+        f"{paket.senaryo.baslik}: model ve gerçek yanmış alan (Sentinel-2, {_ha(referans.gercek_ha)})"
         "   ★ tutuşma noktası",
         x=0.01, ha="left", fontsize=13, fontweight="bold",
     )  # fmt: skip

@@ -22,8 +22,8 @@ def test_saglik():
 
 def test_yangin_listesi():
     yanginlar = client.get("/api/yanginlar").json()
-    assert [y["ad"] for y in yanginlar] == [AD]
-    assert yanginlar[0]["baslik"] == "Manavgat 2021"
+    basliklar = {y["ad"]: y["baslik"] for y in yanginlar}
+    assert basliklar == {AD: "Manavgat 2021", "marmaris_2022": "Marmaris 2022"}
 
 
 def test_bilinmeyen_yangin_404():

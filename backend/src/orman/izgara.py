@@ -107,3 +107,9 @@ def izgaraya_yansit(
 MANAVGAT_2021 = Izgara.bboxtan(
     "manavgat_2021", (31.20, 36.70, 31.80, 37.12), crs="EPSG:32636", cozunurluk=30.0
 )
+
+# Marmaris 2022: FIRMS tespitlerinin kapsadığı alan (28,05–28,20 D, 36,82–36,89 K) + ~5 km tampon;
+# UTM 35N (28° D, 35. dilimde), 30 m hücre.
+MARMARIS_2022 = Izgara.bboxtan(
+    "marmaris_2022", (27.99, 36.78, 28.26, 36.94), crs="EPSG:32635", cozunurluk=30.0
+)
