@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { gunAy, gunAySaat, saat } from '../../bicim'
 import { useZaman } from '../../durum/zaman'
 import { yayilmaHiziMDk } from '../../model/yayilim'
-import { onemliOlaylar } from '../../veri/ornekSenaryo'
+import { onemliOlaylar, type OnemliOlay } from '../../veri/ornekSenaryo'
 import { IkonAsagi, IkonDuraklat, IkonIleri, IkonOynat } from '../ikonlar'
 import { OlayIkonu } from '../OlayIkonu'
 
@@ -12,8 +12,15 @@ const HIZLAR = [1, 2, 5, 10, 30]
 /** 1× oynatma hızı: gerçek saniye başına simülasyon dakikası. */
 const TEMEL_HIZ = 60
 
+interface Ozellikler {
+  /** Kırmızı bandın yoğunluğu (ör. yayılma hızı); varsayılan: örnek senaryo. */
+  yogunluk?: (t: number) => number
+  /** Çubuk üzerindeki olay işaretleri; varsayılan: örnek senaryo. */
+  olaylar?: OnemliOlay[]
+}
+
 /** Zaman çubuğu: oynat/duraklat/ileri, hız, gün tikleri, olay işaretleri, sürüklenebilir imleç (docs/02 §8). */
-export function ZamanCubugu() {
+export function ZamanCubugu({ yogunluk = yayilmaHiziMDk, olaylar = onemliOlaylar }: Ozellikler) {
   const { t } = useTranslation()
   const { baslangic, bitis, oynatiliyor, hiz } = useZaman()
   const zaman = useZaman((d) => d.t)
@@ -58,7 +65,15 @@ export function ZamanCubugu() {
         <span className="absolute top-2 right-5 text-[12.5px]">
           {gunAySaat(baslangic)} – {gunAySaat(bitis)}
         </span>
-        <Iz baslangic={baslangic} bitis={bitis} zaman={zaman} yuzde={yuzde} oran={oran} />
+        <Iz
+          baslangic={baslangic}
+          bitis={bitis}
+          zaman={zaman}
+          yuzde={yuzde}
+          oran={oran}
+          yogunluk={yogunluk}
+          olaylar={olaylar}
+        />
       </div>
     </div>
   )
@@ -70,7 +85,11 @@ function Iz({
   zaman,
   yuzde,
   oran,
+  yogunluk,
+  olaylar,
 }: {
+  yogunluk: (t: number) => number
+  olaylar: OnemliOlay[]
   baslangic: number
   bitis: number
   zaman: number
@@ -98,7 +117,7 @@ function Iz({
     const n = 80
     let enBuyuk = 0
     const degerler = Array.from({ length: n + 1 }, (_, i) => {
-      const v = yayilmaHiziMDk(baslangic + ((bitis - baslangic) * i) / n)
+      const v = yogunluk(baslangic + ((bitis - baslangic) * i) / n)
       enBuyuk = Math.max(enBuyuk, v)
       return v
     })
@@ -107,7 +126,7 @@ function Iz({
       duraklar.push(`rgba(220,90,70,${a.toFixed(2)}) ${((i / n) * 100).toFixed(1)}%`)
     })
     return `linear-gradient(to right, ${duraklar.join(',')})`
-  }, [baslangic, bitis])
+  }, [baslangic, bitis, yogunluk])
 
   const sec = (e: PointerEvent) => {
     const r = ref.current?.getBoundingClientRect()
@@ -143,10 +162,10 @@ function Iz({
       <div className="absolute inset-x-0 top-[13px] h-[6px] opacity-45" style={{ background: bant }} />
       <div
         className="absolute left-0 top-[13px] h-[6px]"
-        style={{ background: bant, width: yuzde(zaman), backgroundSize: `${100 / Math.max(oran(zaman), 0.001)}% 100%` }}
+        style={{ backgroundImage: bant, width: yuzde(zaman), backgroundSize: `${100 / Math.max(oran(zaman), 0.001)}% 100%` }}
       />
       {/* Olay işaretleri */}
-      {onemliOlaylar.map((o) => (
+      {olaylar.map((o) => (
         <span
           key={o.tur}
           className={`absolute top-[18px] -translate-x-1/2 ${o.zaman > zaman ? 'opacity-60' : ''}`}
@@ -173,7 +192,11 @@ function Iz({
       })}
       {/* İmleç */}
       <div className="pointer-events-none absolute top-0 -translate-x-1/2" style={{ left: yuzde(zaman) }}>
-        <div className="absolute bottom-[calc(100%+4px)] left-1/2 -translate-x-1/2 rounded-[4px] bg-[#2f2c27] px-2 py-[3px] text-[12.5px] whitespace-nowrap text-white shadow">
+        {/* Etiket ortalanır; uçlara yaklaşınca çubuğun dışına taşmasın diye içeri kayar. */}
+        <div
+          className="absolute bottom-[calc(100%+4px)] left-1/2 rounded-[4px] bg-[#2f2c27] px-2 py-[3px] text-[12.5px] whitespace-nowrap text-white shadow"
+          style={{ transform: `translateX(-${etiketKaymasi(oran(zaman))}%)` }}
+        >
           {gunAySaat(zaman)}
         </div>
         <div className="size-[20px] rounded-full border-[3px] border-[#e9e5da] bg-[#4a463e] shadow-[0_1px_3px_rgba(0,0,0,0.35)]" />
@@ -181,6 +204,9 @@ function Iz({
     </div>
   )
 }
+
+/** İmleç etiketinin yatay kayması (%): ortada 50, uçlarda 0 / 100. */
+const etiketKaymasi = (o: number) => (o < 0.5 ? Math.min(o / 0.05, 1) * 50 : 100 - Math.min((1 - o) / 0.05, 1) * 50)
 
 function Dugme({
   etiket,
