@@ -228,7 +228,7 @@ def test_hava_alanindan_ornekleme_tam_alanla_ayni():
     ruzgar = Ruzgar.hava_alanindan(alan, t0)
     tam = alan.alan(t0 + timedelta(minutes=75))
     for r, c in [(0, 0), (2, 3), (4, 6)]:
-        u, v, hiz = ruzgar.ornekle(r, c, 75.0)
+        u, v, hiz, _ = ruzgar.ornekle(r, c, 75.0)
         assert u == pytest.approx(tam["ruzgar_u"][r, c], abs=1e-5)
         assert v == pytest.approx(tam["ruzgar_v"][r, c], abs=1e-5)
         assert hiz == pytest.approx(tam["ruzgar_hizi_ms"][r, c], abs=1e-5)

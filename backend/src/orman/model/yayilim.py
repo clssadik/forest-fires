@@ -24,6 +24,7 @@ from datetime import datetime
 import numpy as np
 from numba import njit
 
+from orman.model.nem import denge_nemi, nem_sonumu
 from orman.veri.hava import ruzgar_uv
 from orman.veri.hava_alani import HavaAlani
 
@@ -45,6 +46,8 @@ class Parametreler:
     # Yakıt sınıfı kodu -> p_veg / p_den. v1'de hepsi 0: yalnızca yanar / yanmaz ayrımı.
     p_veg: tuple[float, ...] = (0.0,) * YAKIT_SINIF_SAYISI
     p_den: tuple[float, ...] = (0.0,) * YAKIT_SINIF_SAYISI
+    # Ölü ince yakıtın sönme nemi (oran); 0 = nem etkisi kapalı (v1, v2). Bkz. model/nem.py
+    sonme_nemi: float = 0.0
 
 
 def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
@@ -87,10 +90,12 @@ def _bos_esleme() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 @dataclass
 class Ruzgar:
-    """Zamanla değişen rüzgar alanı, kaba ızgarada; sorgu anında hücreye bilineer indirilir.
+    """Zamanla değişen rüzgar ve yakıt nemi alanı, kaba ızgarada; sorgu anında hücreye bilineer
+    indirilir.
 
     `dakikalar`: tutuşmadan bu yana dakika (artan). `u`, `v`, `hiz`: (zaman, kaba_satır,
-    kaba_sütun) m/s; yön u/v'den, hız `hiz`'dan alınır. `satir_esleme` / `sutun_esleme`:
+    kaba_sütun) m/s; yön u/v'den, hız `hiz`'dan alınır. `nem`: aynı şekilde ölü ince yakıt nemi
+    (oran); verilmezse 0. `satir_esleme` / `sutun_esleme`:
     ince indeksten kaba indekse (alt, üst, üst ağırlığı); boşsa alan uzayda tek değerdir.
     """
 
@@ -98,15 +103,20 @@ class Ruzgar:
     u: np.ndarray
     v: np.ndarray
     hiz: np.ndarray
+    nem: np.ndarray | None = None
     satir_esleme: tuple[np.ndarray, np.ndarray, np.ndarray] = field(default_factory=_bos_esleme)
     sutun_esleme: tuple[np.ndarray, np.ndarray, np.ndarray] = field(default_factory=_bos_esleme)
 
+    def __post_init__(self):
+        if self.nem is None:
+            self.nem = np.zeros_like(self.hiz, dtype=np.float32)
+
     @classmethod
-    def sabit(cls, hiz: float, yon: float) -> "Ruzgar":
+    def sabit(cls, hiz: float, yon: float, nem: float = 0.0) -> "Ruzgar":
         """Her yerde ve her an aynı rüzgar. `yon`: geldiği yön (derece, kuzeyden saat yönünde)."""
         u, v = ruzgar_uv(hiz, yon)
         dizi = lambda x: np.full((1, 1, 1), x, dtype=np.float32)
-        return cls(np.zeros(1), dizi(u), dizi(v), dizi(hiz))
+        return cls(np.zeros(1), dizi(u), dizi(v), dizi(hiz), dizi(nem))
 
     @classmethod
     def hava_alanindan(cls, alan: HavaAlani, tutusma_utc: datetime) -> "Ruzgar":
@@ -116,6 +126,9 @@ class Ruzgar:
             u=alan.alanlar["ruzgar_u"],
             v=alan.alanlar["ruzgar_v"],
             hiz=alan.alanlar["ruzgar_hizi_ms"],
+            nem=denge_nemi(alan.alanlar["sicaklik_c"], alan.alanlar["bagil_nem"]).astype(
+                np.float32
+            ),
             satir_esleme=satir,
             sutun_esleme=sutun,
         )
@@ -126,17 +139,18 @@ class Ruzgar:
             np.ascontiguousarray(self.u, dtype=np.float32),
             np.ascontiguousarray(self.v, dtype=np.float32),
             np.ascontiguousarray(self.hiz, dtype=np.float32),
+            np.ascontiguousarray(self.nem, dtype=np.float32),
             *(np.ascontiguousarray(x) for x in self.satir_esleme),
             *(np.ascontiguousarray(x) for x in self.sutun_esleme),
         )
 
-    def ornekle(self, satir: int, sutun: int, dakika: float) -> tuple[float, float, float]:
-        """(u, v, hız) m/s; çekirdeğin kullandığı örneklemenin aynısı (test ve inceleme için)."""
+    def ornekle(self, satir: int, sutun: int, dakika: float) -> tuple[float, float, float, float]:
+        """(u, v, hız m/s, yakıt nemi); çekirdeğin kullandığı örneklemenin aynısı (test ve inceleme için)."""
         return _ruzgar_ornekle(satir, sutun, dakika, *self._diziler())
 
 
 @njit(cache=True, nogil=True)
-def _ruzgar_ornekle(r, c, t, dk, U, V, H, sa, su, so, ca, cu, co):
+def _ruzgar_ornekle(r, c, t, dk, U, V, H, M, sa, su, so, ca, cu, co):
     n = dk.shape[0]
     k0 = np.searchsorted(dk, t, side="right") - 1
     k0 = min(max(k0, 0), n - 1)
@@ -150,15 +164,15 @@ def _ruzgar_ornekle(r, c, t, dk, U, V, H, sa, su, so, ca, cu, co):
     else:
         r0, r1, wr = sa[r], su[r], so[r]
         c0, c1, wc = ca[c], cu[c], co[c]
-    sonuc = np.empty(3)
-    for i, F in enumerate((U, V, H)):
+    sonuc = np.empty(4)
+    for i, F in enumerate((U, V, H, M)):
         deger = 0.0
         for k, wk in ((k0, 1.0 - w), (k1, w)):
             ust = F[k, r0, c0] * (1.0 - wc) + F[k, r0, c1] * wc
             alt = F[k, r1, c0] * (1.0 - wc) + F[k, r1, c1] * wc
             deger += wk * (ust * (1.0 - wr) + alt * wr)
         sonuc[i] = deger
-    return sonuc[0], sonuc[1], sonuc[2]
+    return sonuc[0], sonuc[1], sonuc[2], sonuc[3]
 
 
 @njit(cache=True, nogil=True)
@@ -214,8 +228,8 @@ def _kuyruktan_al(zaman, hucre, n):
 @njit(cache=True, nogil=True)
 def _yayilim_cekirdegi(
     yukseklik, yanabilir, yakit, cozunurluk, tutusma_satir, tutusma_sutun,
-    p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, tohum, bitis_dk,
-    dk, U, V, H, sa, su, so, ca, cu, co,
+    p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, tohum, bitis_dk,
+    dk, U, V, H, M, sa, su, so, ca, cu, co,
 ):  # fmt: skip
     satir_n, sutun_n = yukseklik.shape
     toa = np.full((satir_n, sutun_n), np.nan, dtype=np.float32)
@@ -240,7 +254,8 @@ def _yayilim_cekirdegi(
         kesin[idx] = True
         r, c = idx // sutun_n, idx % sutun_n
         toa[r, c] = t
-        u, v, hiz = _ruzgar_ornekle(r, c, t, dk, U, V, H, sa, su, so, ca, cu, co)
+        u, v, hiz, nem = _ruzgar_ornekle(r, c, t, dk, U, V, H, M, sa, su, so, ca, cu, co)
+        eta_m = nem_sonumu(nem, sonme_nemi)
         vektor = math.hypot(u, v)
         z = yukseklik[r, c]
         for j in range(8):
@@ -263,7 +278,7 @@ def _yayilim_cekirdegi(
             teta_s = math.degrees(math.atan((yukseklik[rr, cc] - z) / (uzaklik * cozunurluk)))
             p_s = math.exp(a * teta_s)
             sinif = yakit[rr, cc]
-            p = p_h * (1.0 + p_veg[sinif]) * (1.0 + p_den[sinif]) * p_w * p_s
+            p = p_h * (1.0 + p_veg[sinif]) * (1.0 + p_den[sinif]) * p_w * p_s * eta_m
             if p <= 0.0:
                 continue
 
@@ -305,6 +320,7 @@ def yayilim(
         p.p_h, p.c1, p.c2, p.a, p.hiz_olcegi, p.yanma_suresi_dk,
         np.array(p.p_veg, dtype=np.float64),
         np.array(p.p_den, dtype=np.float64),
+        float(p.sonme_nemi),
         int(tohum),
         float(bitis_dk),
         *ruzgar._diziler(),
