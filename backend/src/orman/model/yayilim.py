@@ -300,6 +300,10 @@ def yayilim(
 class CokluSonuc:
     olasilik: np.ndarray  # hücrenin yandığı çalıştırma oranı (0–1), float32
     toa_ortanca: np.ndarray  # yandığı çalıştırmalardaki TOA ortancası (dk); hiç yanmadıysa NaN
+    toalar: np.ndarray  # (çalıştırma, satır, sütun) tek tek TOA'lar
+    # Topluluk TOA'sı: çalıştırmaların en az yarısında hücrenin yanmış olduğu en erken an.
+    # `toa_topluluk ≤ t` alanı, t anında "olasılık ≥ 0,5" alanıdır; NaN = yarısında bile yanmadı.
+    toa_topluluk: np.ndarray
 
 
 def coklu_yayilim(
@@ -324,4 +328,8 @@ def coklu_yayilim(
     ortanca = np.full(yigin.shape[1:], np.nan, dtype=np.float32)
     yandi = olasilik > 0
     ortanca[yandi] = np.nanmedian(yigin[:, yandi], axis=0)
-    return CokluSonuc(olasilik=olasilik, toa_ortanca=ortanca)
+    k = (len(tohumlar) + 1) // 2 - 1  # yarısı için gereken en az çalıştırma − 1
+    topluluk = np.full(yigin.shape[1:], np.nan, dtype=np.float32)
+    yarisi = olasilik >= 0.5
+    topluluk[yarisi] = np.partition(yigin[:, yarisi], k, axis=0)[k]  # NaN'lar sona dizilir
+    return CokluSonuc(olasilik, ortanca, yigin, topluluk)

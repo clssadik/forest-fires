@@ -209,3 +209,9 @@ def test_coklu_calistirma_olasilik_haritasi():
     assert ((sonuc.olasilik > 0) & (sonuc.olasilik < 1)).any()  # sınırda belirsizlik var
     assert sonuc.toa_ortanca[MERKEZ] == 0.0
     assert np.isnan(sonuc.toa_ortanca[sonuc.olasilik == 0]).all()
+    # Topluluk TOA'sı: t anında en az yarısında yanan alan = toa_topluluk ≤ t alanı.
+    assert sonuc.toalar.shape == (6, BOYUT, BOYUT)
+    for t in (10.0, 25.0, 40.0):
+        yarisinda = (np.nan_to_num(sonuc.toalar, nan=np.inf) <= t).sum(axis=0) >= 3
+        assert np.array_equal(yarisinda, sonuc.toa_topluluk <= t)
+    assert np.array_equal(~np.isnan(sonuc.toa_topluluk), sonuc.olasilik >= 0.5)
