@@ -214,6 +214,7 @@
       "adlar": {
         "model_v1": "Model v1 (rüzgâr + eğim)",
         "model_v2": "Model v2 (+ yakıt türü)",
+        "model_v3": "Model v3 (+ nem, kalibre)",
         "ruzgarsiz": "Rüzgârsız model",
         "egimsiz": "Eğimsiz model",
         "ruzgarsiz_egimsiz": "Rüzgârsız ve eğimsiz",
