@@ -60,6 +60,7 @@ class DeneySonucu:
     toa: np.ndarray  # topluluk TOA'sı (daire: uzaklık, m)
     tohumlar: dict[str, dict[str, float]]  # ölçüt -> {"ortalama", "sapma"}
     buyume_ha: list[float] | None
+    olasilik: np.ndarray | None = None  # hücrenin yandığı tohum oranı (yalnız model deneyleri)
 
     def sozluk(self) -> dict:
         return {
@@ -121,6 +122,7 @@ def model_deneyi(
         buyume_ha=buyume_egrisi(
             sonuc.toa_topluluk, referans.kapsam, BUYUME_SAATLERI, referans.hucre_ha
         ),
+        olasilik=sonuc.olasilik,
     )
 
 

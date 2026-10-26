@@ -14,6 +14,12 @@ Uç noktalar (`{ad}` = senaryo adı, ör. `manavgat_2021`):
     GET  /api/yanginlar/{ad}/sonuc           son simülasyonun ölçütleri
     POST /api/yanginlar/{ad}/simulasyon      modeli çalıştırır, ölçütleri döndürür
 
+Olay ekranı (3B; `olay.py`; simülasyon yoksa ilk istekte çalıştırılır):
+    GET  /api/yanginlar/{ad}/olay            kaba ızgara, saatlik seriler, eksen profili, olaylar
+    GET  /api/yanginlar/{ad}/olay/{bant}     yukseklik (float32 m) | ortu | gercek | olasilik
+                                             (uint8; son ikisi 0–255 oran) | model_toa | firms_toa
+                                             (uint16 dk)
+
 Senaryo modu ("şimdi burada yangın çıksa?", `senaryo_modu.py`; `{kimlik}` yanıttan gelir):
     POST /api/senaryo?enlem=..&boylam=..     paketi hazırlar, modeli çalıştırır, özeti döndürür
     GET  /api/senaryo/{kimlik}/raster        %10/%50/%90 olasılığa ulaşma anı (3 × uint16 dk)
@@ -35,7 +41,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response
 
-from orman import __version__, gosterim, senaryo_modu
+from orman import __version__, gosterim, olay, senaryo_modu
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.calistir import (
     BUYUME_SAATLERI,
@@ -62,6 +68,7 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 RASTER_KATMANLARI = ("model_toa", "firms_varis", "gercek")
+OLAY_BANTLARI = ("yukseklik", "ortu", "gercek", "olasilik", "model_toa", "firms_toa")
 EN_FAZLA_CALISMA = 50
 _simulasyon_kilidi = threading.Lock()
 
@@ -275,10 +282,69 @@ def simulasyon(ad: str, calisma: int = Query(20, ge=1, le=EN_FAZLA_CALISMA)) -> 
         d = _web_dizini(ad)
         d.mkdir(parents=True, exist_ok=True)
         yaz_raster(d / "model_toa.tif", deney.toa, senaryo)
+        yaz_raster(d / "model_olasilik.tif", deney.olasilik, senaryo)
         (d / "sonuc.json").write_text(json.dumps(kayit, ensure_ascii=False, indent=2))
         return kayit
     finally:
         _simulasyon_kilidi.release()
+
+
+@lru_cache(maxsize=2)
+def _olay_paketi(ad: str, surum: float) -> olay.OlayPaketi:
+    """`surum`: model_toa.tif zamanı; yeni simülasyondan sonra paket yeniden kurulur."""
+    d = _web_dizini(ad)
+    with rasterio.open(d / "model_toa.tif") as ds:
+        toa = ds.read(1)
+    with rasterio.open(d / "model_olasilik.tif") as ds:
+        olasilik = ds.read(1)
+    kayit = json.loads((d / "sonuc.json").read_text())
+    baseline = _baseline_ozeti(ad)
+    daire = next((x for x in (baseline or {}).get("deneyler", []) if x["ad"] == "daire"), None)
+    ozet = {
+        "ad": kayit["model"],
+        "aciklama": kayit["aciklama"],
+        "calisma_sayisi": kayit["calisma_sayisi"],
+        "esit_alan_iou": kayit["olcutler"]["esit_alan"]["iou"],
+        "daire_iou": daire["esit_alan_iou"] if daire else None,
+    }
+    return olay.olay_paketi(_ortam(ad), toa, olasilik, ozet)
+
+
+def _guncel_olay_paketi(ad: str) -> olay.OlayPaketi:
+    _senaryo(ad)
+    d = _web_dizini(ad)
+    # Olasılık rasterı Adım 7'de eklendi; eski simülasyonlarda yok, o zaman yeniden çalıştırılır.
+    if not all((d / f).exists() for f in ("model_toa.tif", "model_olasilik.tif", "sonuc.json")):
+        simulasyon(ad, calisma=20)
+    return _olay_paketi(ad, (d / "model_toa.tif").stat().st_mtime)
+
+
+@app.get("/api/yanginlar/{ad}/olay")
+def olay_bilgisi(ad: str) -> dict:
+    return _guncel_olay_paketi(ad).bilgi
+
+
+@app.get("/api/yanginlar/{ad}/olay/{bant}")
+def olay_bandi(ad: str, bant: str) -> Response:
+    """Kaba ızgarada ham dizi (satır sırasıyla, küçük-sonlu). Boyut: `/olay` → `izgara`."""
+    if bant not in OLAY_BANTLARI:
+        raise HTTPException(404, f"Bilinmeyen bant: {bant}")
+    veri = _guncel_olay_paketi(ad).bantlar[bant]
+    if bant in ("model_toa", "firms_toa"):
+        veri = gosterim.dakika_kodla(veri)
+    elif bant in ("gercek", "olasilik"):
+        veri = np.round(np.nan_to_num(veri, nan=0.0) * 255).astype(np.uint8)
+    elif bant == "yukseklik":
+        veri = veri.astype("<f4")
+    return Response(
+        np.ascontiguousarray(veri).tobytes(),
+        media_type="application/octet-stream",
+        headers={
+            "X-Veri-Turu": str(veri.dtype),
+            "X-Genislik": str(veri.shape[1]),
+            "X-Yukseklik": str(veri.shape[0]),
+        },
+    )
 
 
 def _senaryo_sonucu(kimlik: str) -> tuple[dict, Senaryo]:
