@@ -77,9 +77,17 @@ Sonuç tablosunu ekrana basar. `data/islenmis/manavgat_2021/dogrulama/` altına 
 `rapor.json` (IoU, Dice, kappa, karışıklık matrisi, zaman farkı, alan–zaman eğrileri),
 `firms_varis.tif` ve görseller (`harita.png`, `buyume.png`, `karsilastirma.png`, `zaman_farki.png`).
 
+Model v3'ün parametreleri `orman-kalibre manavgat_2021` ile bulundu (~5,5 dk). Bu parametreler
+±%20 oynatılınca iki yangında sonucun ne kadar değiştiği (~30 sn,
+`data/islenmis/duyarlilik/sonuc.json`):
+
+```bash
+uv --directory backend run orman-duyarlilik
+```
+
 ## Web API
 
-Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/manavgat_2021/simulasyon` model v1'i 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/manavgat_2021/web/` altına yazar. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
+Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/<ad>/simulasyon` model v3'ü 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/<ad>/web/` altına yazar. Doğrulama ekranında üst bardaki olay adından Manavgat 2021 ile Marmaris 2022 arasında geçilir. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
 
 ## Senaryo modu: "şimdi burada yangın çıksa?"
 
