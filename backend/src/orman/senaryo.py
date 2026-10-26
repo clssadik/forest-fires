@@ -15,6 +15,8 @@ class Senaryo:
     tutusma_utc: datetime
     tutusma_konumu: tuple[float, float]  # (enlem, boylam), WGS84
     model_bitis_utc: datetime | None = None  # simülasyonun duracağı an (yaklaşık söndürme)
+    baslik: str = ""  # arayüzde görünen ad
+    konum: str = ""  # arayüzde görünen yer adı
 
     @property
     def ad(self) -> str:
@@ -31,4 +33,6 @@ MANAVGAT_2021 = Senaryo(
     tutusma_konumu=(36.9313, 31.3838),
     # FIRMS tespitlerinin %94'ü bu andan önce; sonrası dağınık, söner hâldeki noktalar.
     model_bitis_utc=datetime(2021, 8, 4, 0, 0, tzinfo=UTC),
+    baslik="Manavgat 2021",
+    konum="Manavgat, Antalya",
 )
