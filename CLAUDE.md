@@ -4,12 +4,13 @@ Mersin Üniversitesi Bilgisayar Mühendisliği bitirme projesi (öğrenci: Sadı
 
 Sistemin özü: NASA FIRMS tespitlerinden başlayan, hava + DEM + bitki örtüsü füzyonuyla çalışan bir **hücresel otomat yayılım modeli**, sonucun **3B web haritasında** zaman kaydırıcısıyla gösterimi, **sanal İHA keşif rotası optimizasyonu** ve geçmiş yangınlarda (2021 Manavgat) Sentinel-2 yanmış alanıyla **sayısal doğrulama**.
 
-## Mevcut durum (2026-10-25)
+## Mevcut durum (2026-10-26)
 
 - **Adım 0, 1 ve 2 bitti.** Manavgat 2021 bölge paketi tek komutla üretiliyor (`uv --directory backend run orman-veri manavgat_2021`; ilk çalıştırma Sentinel-2 indirmesiyle ~6 dk, önbellekle ~20 sn): yükseklik, eğim, bakı, yakıt sınıfı, saatlik hava (ızgaraya yayılmış: `BolgePaketi.hava_alani().alan(zaman)`), FIRMS tespitleri ve Sentinel-2 dNBR ile **gerçek yanmış alan** (`BolgePaketi.yanmis_alan`, 53.385 ha; doğrulama referansı).
 - **Ön yüz:** FireTrace ana ekranının (Incident) Türkçe kopyası hazır, ama **tüm veri sahte** (`frontend/src/veri/ornekSenaryo.ts`, `frontend/src/model/*`). Kullanıcı bu ekranı daha sonra büyük ölçüde değiştirecek.
 - **Adım 3 bitti:** hücresel otomat model v1 (rüzgâr + eğim, kalibrasyonsuz): `uv --directory backend run orman-model manavgat_2021 [--calisma 20]` → `data/islenmis/manavgat_2021/model_v1/` (toa.tif, olasilik.tif, ozet.json, onizleme_toa.png). Tasarım ve ilk sonuçlar: `docs/model.md`.
-- **Sırada:** Adım 4 (doğrulama ölçütü).
+- **Adım 4 bitti:** doğrulama: `uv --directory backend run orman-dogrula manavgat_2021` → `data/islenmis/manavgat_2021/dogrulama/` (rapor.json + görseller). Model v1 alan eşitlenince IoU 0,400; aynı alanlı daire 0,442 → **model baseline'ı geçemiyor** (ERA5 rüzgârı yangının doğu koşusunu açıklamıyor). Ayrıntı: `docs/dogrulama.md`.
+- **Sırada:** Adım 5 (basit görselleştirme, uçtan uca v1).
 - Teknoloji kararları: [docs/04](docs/04-teknoloji-beyin-firtinasi.md) "Kararlar". Çalıştırma: kök [README.md](README.md).
 - Git deposu `main` dalında; uzak depo **herkese açık**: https://github.com/clssadik/forest-fires. Kullanıcı istemeden commit veya push yapmayın; commit mesajları İngilizce ve açıklayıcı olmalı.
 
@@ -30,6 +31,7 @@ Sistemin özü: NASA FIRMS tespitlerinden başlayan, hava + DEM + bitki örtüs�
   - `senaryo.py`: senaryo = ızgara + tarih aralığı + tutuşma zamanı/konumu
   - `veri/`: `firms.py`, `dem.py`, `arazi_ortusu.py`, `hava.py`, `hava_alani.py`, `yanmis_alan.py` (Sentinel-2 dNBR), `bolge_paketi.py` (`olustur`, `yukle -> BolgePaketi`, CLI `orman-veri`)
   - `model/`: `yayilim.py` (Numba çekirdeği: `yayilim`, `coklu_yayilim`, `Parametreler`, `Arazi`, `Ruzgar`), `calistir.py` (CLI `orman-model`), `onizleme.py` (TOA görseli)
+  - `dogrulama/`: `olcutler.py` (`dogrula(toa, Referans) -> Olcutler`: IoU, Dice, kappa, karışıklık matrisi, FIRMS zaman farkı, alan eşitleme), `calistir.py` (CLI `orman-dogrula`, baseline'lar), `rapor.py` (matplotlib görselleri)
   - `api.py`: FastAPI (şimdilik yalnızca `/api/saglik`)
 - `frontend/src/`: `durum/` (Zustand; `zaman.ts` tek zaman kaynağı), `bilesenler/` (üst bar, sağ panel, alt şerit, harita kontrolleri), `sahne/` (R3F: arazi, ağaçlar, yangın shader'ı, rüzgâr), `model/` + `veri/` (**sahte**, gerçek arka uç çıktısıyla değiştirilecek), `i18n/tr.json` (tüm metinler)
 - Kod stili: Türkçe tanımlayıcılar ve açıklamalar. Testler: `uv --directory backend run pytest`, `npm --prefix frontend test`.

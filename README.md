@@ -61,6 +61,19 @@ Her hücrenin varış zamanını (`toa.tif`, dakika), çoklu çalıştırmada ya
 (`olasilik.tif`), bir özet (`ozet.json`) ve önizlemeyi (`onizleme_toa.png`)
 `data/islenmis/manavgat_2021/model_v1/` altına yazar. Model v1 henüz kalibre edilmedi.
 
+## Doğrulama
+
+Modeli ve basit baseline'ları (rüzgârsız, eğimsiz, daire) gerçek yanmış alanla ve FIRMS
+tespitleriyle karşılaştırır (~30 sn):
+
+```bash
+uv --directory backend run orman-dogrula manavgat_2021
+```
+
+Sonuç tablosunu ekrana basar. `data/islenmis/manavgat_2021/dogrulama/` altına şunları yazar:
+`rapor.json` (IoU, Dice, kappa, karışıklık matrisi, zaman farkı, alan–zaman eğrileri),
+`firms_varis.tif` ve görseller (`harita.png`, `buyume.png`, `karsilastirma.png`, `zaman_farki.png`).
+
 ## Testler
 
 ```bash
