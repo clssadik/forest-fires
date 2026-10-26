@@ -1,17 +1,17 @@
 import type { WebGLProgramParametersWithUniforms } from 'three'
-import { YANMA_SURESI_SAAT } from '../model/yayilim'
 
 /**
  * Arazi ve ağaç malzemelerinin ortak yangın gölgelendiricisi. Her köşe/örnek
- * bir varış zamanı (aToa, tutuşmadan sonra saat) taşır; global zaman `uT`
+ * bir model varış zamanı (aToa, tutuşmadan sonra saat) taşır; global zaman `uT`
  * değiştikçe yalnızca uniform güncellenir, geometri yeniden kurulmaz.
+ *
+ * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR), modelin yanma
+ * olasılığını (aOlasilik), FIRMS varışını (aFirms) ve köşenin modelde hiç yanıp yanmadığını
+ * (aYandi) taşır.
  */
 
-/**
- * Son sınırın dışındaki (hiç yanmayacak) noktalar için süreklileştirilmiş varış
- * zamanı: sınırda kesintisiz kalır ki gölgelendiricide köşe enterpolasyonu bozulmasın.
- */
-export const disVarisZamani = (sinirOrani: number) => YANMA_SURESI_SAAT + Math.max(sinirOrani - 1, 0) * 400 + 1
+/** Yanmayan hücrelerin varış zamanı yerine yazılan değer (saat); hiçbir `uT` ona ulaşmaz. */
+export const YANMADI_SAAT = 10_000
 
 /** Tüm malzemelerin paylaştığı uniform nesnesi; Sahne her karede günceller. */
 export const yanginUniformlari = {
@@ -22,6 +22,8 @@ export const yanginUniformlari = {
   uGoruntu: { value: 1 },
   uArazi: { value: 1 },
   uKabartma: { value: 1 },
+  uFirms: { value: 1 },
+  uIzokron: { value: 1 },
 }
 
 const GURULTU_GLSL = /* glsl */ `
@@ -41,7 +43,11 @@ uniform float uOlasilik;
 uniform float uGoruntu;
 uniform float uArazi;
 uniform float uKabartma;
+uniform float uFirms;
+uniform float uIzokron;
 `
+
+const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'Olasilik', 'Firms', 'Orman']
 
 /** Arazi malzemesi için onBeforeCompile. */
 export function araziGolgelendirici(s: WebGLProgramParametersWithUniforms) {
@@ -51,19 +57,14 @@ export function araziGolgelendirici(s: WebGLProgramParametersWithUniforms) {
       '#include <common>',
       `#include <common>
 ${UNIFORM_GLSL}
-attribute float aToa;
-attribute float aSinir;
-attribute float aOrman;
-varying float vToa;
-varying float vSinir;
-varying float vOrman;
+${DEGISKENLER.map((d) => `attribute float a${d};\nvarying float v${d};`).join('\n')}
 varying vec3 vDunya;`,
     )
     .replace(
       '#include <begin_vertex>',
       `#include <begin_vertex>
 transformed.y *= uKabartma;
-vToa = aToa; vSinir = aSinir; vOrman = aOrman;
+${DEGISKENLER.map((d) => `v${d} = a${d};`).join(' ')}
 vDunya = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
     )
 
@@ -73,9 +74,7 @@ vDunya = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
       `#include <common>
 ${UNIFORM_GLSL}
 ${GURULTU_GLSL}
-varying float vToa;
-varying float vSinir;
-varying float vOrman;
+${DEGISKENLER.map((d) => `varying float v${d};`).join('\n')}
 varying vec3 vDunya;`,
     )
     .replace(
@@ -87,39 +86,45 @@ float n2 = yGurultu(yp * 33.0);
 float n3 = yGurultu(yp * 90.0);
 vec3 renk = diffuseColor.rgb;
 
-// Bitki örtüsü benekleri (hava görüntüsü katmanı)
-float agac = smoothstep(0.66, 0.9, n1 * 0.4 + n2 * 0.35 + n3 * 0.35 + vOrman * 0.3);
-vec3 orman = vec3(0.07, 0.085, 0.04);
-renk = mix(renk, mix(renk, orman, agac * 0.72), uGoruntu);
+// Bitki örtüsü benekleri (WorldCover orman / maki)
+float agac = smoothstep(0.6, 0.9, n1 * 0.35 + n2 * 0.35 + n3 * 0.3 + vOrman * 0.35) * step(0.05, vOrman);
+renk = mix(renk, mix(renk, vec3(0.07, 0.085, 0.04), agac * 0.65), uGoruntu);
 renk = mix(vec3(0.6, 0.5, 0.36), renk, uArazi);
 
-float toa = vToa + (n1 - 0.5) * 1.6 + (n3 - 0.5) * 0.5;
+float toa = vToa + (n1 - 0.5) * 0.6;
 float yas = uT - toa;
+float modelde = step(0.999, vYandi);
 
-// Yanık izi (dNBR): son sınırın içi, henüz yanmamış kısım kızıl tonlu
-float icerde = 1.0 - smoothstep(0.985, 1.0, vSinir + (n2 - 0.5) * 0.02);
-float leke = smoothstep(0.45, 0.8, yGurultu(yp * 1.3 + 9.1) * 0.7 + n2 * 0.3);
-if (yas < 0.0) renk = mix(renk, vec3(0.5, 0.09, 0.05) * (0.75 + 0.5 * n3), uYanikIzi * (0.12 + 0.45 * leke) * icerde);
+// Yanık izi: Sentinel-2'nin gördüğü gerçek yanmış alan (zamandan bağımsız, yangın sonrası)
+float gercekIc = smoothstep(0.35, 0.65, vGercek + (n2 - 0.5) * 0.2);
+renk = mix(renk, vec3(0.45, 0.13, 0.07) * (0.8 + 0.4 * n3), uYanikIzi * gercekIc * 0.55);
 
-// Tutuşma olasılığı: cephenin hemen önü
+// Tutuşma olasılığı: modelin önümüzdeki 12 saatte yakması beklenen yer, tohum oranıyla
 float ileri = -yas;
-if (ileri > 0.0 && ileri < 9.0) renk = mix(renk, vec3(0.8, 0.12, 0.05), uOlasilik * (0.2 + 0.6 * leke) * pow(1.0 - ileri / 9.0, 1.5));
+if (ileri > 0.0 && ileri < 12.0) renk = mix(renk, vec3(0.86, 0.3, 0.08), uOlasilik * modelde * vOlasilik * 0.75 * pow(1.0 - ileri / 12.0, 1.2));
 
 // Yanmış alan (model)
-float yandi = step(0.0, yas);
+float yandi = step(0.0, yas) * modelde;
 vec3 kara = mix(vec3(0.03, 0.025, 0.022), vec3(0.11, 0.09, 0.08), n2 * 0.7 + n3 * 0.3);
 kara = mix(kara, vec3(0.2, 0.06, 0.03), smoothstep(10.0, 0.0, yas) * 0.6);
 renk = mix(renk, kara, yandi * uYayilim);
 
-// İzokronlar (12 saatte bir) ve son sınır çizgisi
-float f = vToa / 12.0;
+// İzokronlar: ilk 48 saatte 6 saatte bir, sonra 24 saatte bir
+float f = vToa < 48.0 ? vToa / 6.0 : 8.0 + (vToa - 48.0) / 24.0;
 float w = fwidth(f);
 float iso = 1.0 - smoothstep(0.0, w * 1.3, abs(fract(f - 0.5) - 0.5));
-renk = mix(renk, vec3(0.85, 0.35, 0.12), iso * 0.4 * yandi * uYayilim * step(0.5, vToa));
-float sw = fwidth(vSinir);
-float sinir = 1.0 - smoothstep(0.0, sw * 1.4, abs(vSinir - 1.0));
+renk = mix(renk, vec3(0.95, 0.55, 0.15), iso * 0.6 * yandi * uYayilim * uIzokron * step(0.5, vToa));
+
+// FIRMS: uydunun t anına kadar gördüğü yanan pikseller; yeni olanlar parlak
+float firmsYas = uT - vFirms;
+float benek = step(0.78, yGurultu(yp * 16.0));
+if (firmsYas >= 0.0) renk = mix(renk, mix(vec3(1.0, 0.3, 0.12), vec3(0.6, 0.12, 0.08), smoothstep(0.0, 24.0, firmsYas)), benek * uFirms * 0.9);
+
+// Gerçek alanın sınırı (beyaz kesikli)
+float gs = fwidth(vGercek);
+float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercek - 0.5));
 float kesik = step(0.5, fract((yp.x + yp.y) * 2.2));
-renk = mix(renk, vec3(0.95, 0.94, 0.9), sinir * kesik * 0.85 * max(uYanikIzi, uYayilim));
+renk = mix(renk, vec3(0.97, 0.96, 0.92), sinir * kesik * 0.9 * uYanikIzi);
 
 diffuseColor.rgb = renk;`,
     )

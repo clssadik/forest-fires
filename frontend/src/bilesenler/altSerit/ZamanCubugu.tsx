@@ -2,8 +2,7 @@ import { useMemo, useRef, type PointerEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAy, gunAySaat, saat } from '../../bicim'
 import { useZaman } from '../../durum/zaman'
-import { yayilmaHiziMDk } from '../../model/yayilim'
-import { onemliOlaylar, type OnemliOlay } from '../../veri/ornekSenaryo'
+import type { OnemliOlay } from '../../olay/veri'
 import { IkonAsagi, IkonDuraklat, IkonIleri, IkonOynat } from '../ikonlar'
 import { OlayIkonu } from '../OlayIkonu'
 
@@ -13,14 +12,14 @@ const HIZLAR = [1, 2, 5, 10, 30]
 const TEMEL_HIZ = 60
 
 interface Ozellikler {
-  /** Kırmızı bandın yoğunluğu (ör. yayılma hızı); varsayılan: örnek senaryo. */
-  yogunluk?: (t: number) => number
-  /** Çubuk üzerindeki olay işaretleri; varsayılan: örnek senaryo. */
-  olaylar?: OnemliOlay[]
+  /** Kırmızı bandın yoğunluğu (ör. yayılma hızı). */
+  yogunluk: (t: number) => number
+  /** Çubuk üzerindeki olay işaretleri. */
+  olaylar: OnemliOlay[]
 }
 
 /** Zaman çubuğu: oynat/duraklat/ileri, hız, gün tikleri, olay işaretleri, sürüklenebilir imleç (docs/02 §8). */
-export function ZamanCubugu({ yogunluk = yayilmaHiziMDk, olaylar = onemliOlaylar }: Ozellikler) {
+export function ZamanCubugu({ yogunluk, olaylar }: Ozellikler) {
   const { t } = useTranslation()
   const { baslangic, bitis, oynatiliyor, hiz } = useZaman()
   const zaman = useZaman((d) => d.t)
@@ -167,7 +166,7 @@ function Iz({
       {/* Olay işaretleri */}
       {olaylar.map((o) => (
         <span
-          key={o.tur}
+          key={`${o.tur}-${o.zaman}`}
           className={`absolute top-[18px] -translate-x-1/2 ${o.zaman > zaman ? 'opacity-60' : ''}`}
           style={{ left: yuzde(o.zaman) }}
         >

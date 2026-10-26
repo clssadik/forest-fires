@@ -7,11 +7,9 @@ export type KatmanKimligi =
   | 'yanikIzi'
   | 'yayilim'
   | 'olasilik'
+  | 'izokron'
+  | 'firms'
   | 'ruzgar'
-  | 'mudahale'
-  | 'yapilar'
-  | 'yollar'
-  | 'sinirlar'
 
 export interface Katman {
   kimlik: KatmanKimligi
@@ -25,12 +23,10 @@ export const VARSAYILAN_KATMANLAR: Katman[] = [
   { kimlik: 'goruntu', acik: true, opaklik: 1 },
   { kimlik: 'yanikIzi', acik: true, opaklik: 0.9 },
   { kimlik: 'yayilim', acik: true, opaklik: 1 },
-  { kimlik: 'olasilik', acik: true, opaklik: 0.8 },
+  { kimlik: 'olasilik', acik: false, opaklik: 0.8 },
+  { kimlik: 'izokron', acik: true, opaklik: 1 },
+  { kimlik: 'firms', acik: true, opaklik: 1 },
   { kimlik: 'ruzgar', acik: false, opaklik: 0.7 },
-  { kimlik: 'mudahale', acik: true, opaklik: null },
-  { kimlik: 'yapilar', acik: false, opaklik: null },
-  { kimlik: 'yollar', acik: false, opaklik: null },
-  { kimlik: 'sinirlar', acik: false, opaklik: null },
 ]
 
 interface KatmanDurumu {

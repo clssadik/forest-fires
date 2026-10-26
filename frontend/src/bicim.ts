@@ -1,6 +1,6 @@
-import { SAAT_DILIMI } from './veri/ornekSenaryo'
-
 /** Türkçe sayı ve tarih biçimleyicileri (tr-TR, 24 saat, Europe/Istanbul). */
+
+export const SAAT_DILIMI = 'Europe/Istanbul'
 
 const sayiBicimleri = [0, 1, 2].map((d) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: d }))
 const yuzde = new Intl.NumberFormat('tr-TR', { style: 'percent', maximumFractionDigits: 0 })

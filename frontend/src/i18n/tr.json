@@ -45,7 +45,8 @@
     "eg": "Eğ (ufka bak)",
     "dik": "Dikleş (tepeden bak)",
     "ipucu3B": "Sürükle: kaydır · ⇧ Shift + sürükle: döndür / eğ · iki parmak, tekerlek: yakınlaş",
-    "ipucu2B": "Sürükle: kaydır · iki parmak, tekerlek: yakınlaş"
+    "ipucu2B": "Sürükle: kaydır · iki parmak, tekerlek: yakınlaş",
+    "izokron": "+{{saat}} sa"
   },
   "sagPanel": {
     "sekmeler": {
@@ -58,16 +59,14 @@
   },
   "katmanlar": {
     "arazi": "Arazi (3B)",
-    "goruntu": "Hava Görüntüsü",
-    "yanikIzi": "Yanık İzi (dNBR)",
-    "yayilim": "Yayılım (Model)",
-    "olasilik": "Tutuşma Olasılığı",
+    "goruntu": "Bitki Örtüsü (WorldCover)",
+    "yanikIzi": "Yanık İzi (Sentinel-2)",
+    "yayilim": "Yayılım (Model v3)",
+    "olasilik": "Tutuşma Olasılığı (12 sa)",
     "ruzgar": "Rüzgâr (Vektörler)",
-    "mudahale": "Müdahale (Atış ve Hat)",
-    "yapilar": "Yapılar",
-    "yollar": "Yollar ve Patikalar",
-    "sinirlar": "İdari Sınırlar",
-    "opaklik": "{{ad}} saydamlığı"
+    "opaklik": "{{ad}} saydamlığı",
+    "izokron": "İzokronlar",
+    "firms": "FIRMS Tespitleri"
   },
   "olayOzeti": {
     "baslik": "Olay Özeti",
@@ -76,8 +75,8 @@
     "kimlik": "Olay No",
     "konum": "Konum",
     "baslangic": "Başlangıç (tah.)",
-    "bitis": "Bitiş",
-    "toplamAlan": "Toplam Alan",
+    "bitis": "Model bitişi",
+    "toplamAlan": "Gerçek alan",
     "neden": "Neden (ön)",
     "durum": "Analiz Durumu",
     "hektar": "{{deger}} ha",
@@ -89,7 +88,12 @@
     "durumlar": {
       "suruyor": "Analiz sürüyor",
       "tamamlandi": "Tamamlandı"
-    }
+    },
+    "model": "Model",
+    "modelDeger": "{{ad}}, {{sayi}} tohum",
+    "iou": "IoU (eş. alan)",
+    "daireyiGeciyor": "daire {{deger}}'ü geçiyor",
+    "daireyiGecemiyor": "daire {{deger}}'ü geçemiyor"
   },
   "hava": {
     "baslik": "Hava ve Yangın Davranışı",
@@ -106,7 +110,11 @@
     "derece": "{{deger}} °C",
     "aralikM": "{{min}}–{{max}} m",
     "sondu": "Söndü",
-    "baslamadi": "—"
+    "baslamadi": "—",
+    "kaynakTutusma": "(tutuşma noktasında)",
+    "cepheHizi": "Cephe Hızı",
+    "modelAlan": "Yanan Alan (model)",
+    "mDk": "{{deger}} m/dk"
   },
   "zaman": {
     "baslik": "Zaman Çizelgesi",
@@ -122,19 +130,25 @@
     "yayilmaHizi": "Yayılma Hızı",
     "yayilmaHiziBirim": "(m/dk)",
     "profil": "Yükseklik Profili",
-    "profilAlt": "(seçili yol)",
+    "profilAlt": "(ana yayılım ekseni)",
     "secenekler": "Grafik seçenekleri",
     "km": "{{deger}} km"
   },
   "olaylar": {
     "baslik": "Önemli Olaylar",
-    "ekle": "Ekle",
+    "otomatik": "otomatik tespit",
+    "git": "Bu ana ve yere git",
+    "saat": "+{{saat}} sa",
     "turler": {
-      "tutusma": "Tutuşma (tah.)",
-      "hizliBuyume": "Hızlı Büyüme",
-      "sicramaAtesi": "Sıçrama Ateşi (olası)",
-      "sirtGecisi": "Sırt Geçişi",
-      "kontrolAltinda": "Kontrol Altında (tah.)"
+      "tutusma": "Tutuşma",
+      "uyduGecisi": "Uydu geçişi (FIRMS)",
+      "hizliBuyume": "Hızlı büyüme (model)",
+      "sirtaUlasma": "Sırta ulaşma (model)"
+    },
+    "ayrinti": {
+      "uyduGecisi": "FIRMS {{firms}} ha · model {{model}} ha",
+      "hizliBuyume": "{{deger}} ha/sa",
+      "sirtaUlasma": "Sırt zirvesi {{deger}} m"
     }
   },
   "dogrulama": {
@@ -298,6 +312,37 @@
       "yon": "Yön tahmini kabadır; rüzgâr verisi ~25 km çözünürlüklü tahminden gelir. Tek bir çizgi yerine olasılık bantları bu yüzden gösterilir.",
       "hava": "Hava tahmin edildiği gibi gelmezse sonuç değişir.",
       "bantlar": "Bantlar yalnızca modelin kendi rastlantısallığını gösterir; hava tahminindeki belirsizliği içermez. Bu yüzden birbirine yakın çıkarlar."
+    }
+  },
+  "olay": {
+    "yukleniyor": "Olay verisi yükleniyor… (ilk açılışta model çalıştırılır, ~10 sn)",
+    "yuklenemedi": "Olay verisi yüklenemedi"
+  },
+  "imlec": {
+    "baslik": "İmleçteki hücre",
+    "koordinat": "Koordinat",
+    "yukseklik": "Yükseklik",
+    "egimBaki": "Eğim · bakı",
+    "duz": "düz",
+    "ortu": "Örtü",
+    "model": "Model",
+    "yanmiyor": "Yanmıyor",
+    "yandi": "{{saat}} sa önce yandı",
+    "yanacak": "{{saat}} sa sonra yanacak",
+    "olasilik": "Olasılık",
+    "gercek": "Gerçek alan",
+    "icinde": "İçinde",
+    "disinda": "Dışında",
+    "firms": "FIRMS ilk",
+    "yok": "—",
+    "ortuler": {
+      "diger": "Çıplak / diğer",
+      "orman": "Orman",
+      "maki": "Maki / çalı",
+      "ot": "Otlak",
+      "tarim": "Tarım",
+      "su": "Su",
+      "yerlesim": "Yerleşim"
     }
   }
 }

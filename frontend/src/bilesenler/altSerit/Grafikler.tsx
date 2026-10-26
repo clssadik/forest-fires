@@ -2,15 +2,17 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAy, sayi } from '../../bicim'
 import { useZaman } from '../../durum/zaman'
-import { PROFIL_UZUNLUK_KM, yukseklikProfili } from '../../model/profil'
-import { cepheMesafesiM, yananAlanHa, yayilmaHiziMDk } from '../../model/yayilim'
+import type { OlayVerisi } from '../../olay/veri'
 import { CizgiGrafigi } from './CizgiGrafigi'
 import { TEMALAR } from './grafikTemalari'
 
 const SAAT = 3_600_000
 
-/** Üç küçük grafik: yanan alan, yayılma hızı, yükseklik profili (docs/02 §5.5). */
-export function Grafikler() {
+/**
+ * Üç küçük grafik (docs/02 §5.5): modelin yanan alanı, baş cephe yayılma hızı ve ana yayılım
+ * ekseni boyunca yükseklik profili (imleç: cephenin eksende vardığı yer).
+ */
+export function Grafikler({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const baslangic = useZaman((d) => d.baslangic)
   const bitis = useZaman((d) => d.bitis)
@@ -20,8 +22,8 @@ export function Grafikler() {
     const alan: { x: number; y: number }[] = []
     const hiz: { x: number; y: number }[] = []
     for (let x = baslangic; x <= bitis; x += SAAT / 2) {
-      alan.push({ x, y: yananAlanHa(x) })
-      hiz.push({ x, y: yayilmaHiziMDk(x) })
+      alan.push({ x, y: veri.yananAlanHa(x) })
+      hiz.push({ x, y: veri.hizMDk(x) })
     }
     // Her iki günde bir gün etiketi (yerel 00:00).
     const gunTikleri: { x: number; etiket: string }[] = []
@@ -30,12 +32,15 @@ export function Grafikler() {
     const alanUst = yuvarlaYukari(Math.max(...alan.map((p) => p.y)) * 1.05)
     const hizUst = yuvarlaYukari(Math.max(...hiz.map((p) => p.y)) * 1.1)
     return { alan, hiz, gunTikleri, alanUst, hizUst }
-  }, [baslangic, bitis])
+  }, [baslangic, bitis, veri])
 
-  const profil = useMemo(() => yukseklikProfili().map((p) => ({ x: p.km, y: p.hM })), [])
+  const profil = useMemo(() => veri.profil.map((p) => ({ x: p.km, y: p.hM })), [veri])
+  const profilKm = Math.max(veri.bilgi.eksen?.uzunluk_km ?? 1, 1)
   const profilAlan = useMemo<[number, number]>(() => {
     const ys = profil.map((p) => p.y)
-    return [Math.floor(Math.min(...ys) / 100) * 100, Math.ceil(Math.max(...ys) / 100) * 100]
+    if (!ys.length) return [0, 100]
+    const alt = Math.floor(Math.min(...ys) / 100) * 100
+    return [alt, Math.max(Math.ceil(Math.max(...ys) / 100) * 100, alt + 100)]
   }, [profil])
 
   const ucluTik = (ust: number, alt = 0) =>
@@ -78,18 +83,25 @@ export function Grafikler() {
           </>
         }
         veri={profil}
-        xAlan={[0, PROFIL_UZUNLUK_KM]}
+        xAlan={[0, profilKm]}
         yAlan={profilAlan}
-        xTikler={[0, 5, 10, 15, 20, 25]
-          .filter((k) => k <= PROFIL_UZUNLUK_KM)
-          .map((k) => ({ x: k, etiket: k === 25 ? t('grafikler.km', { deger: k }) : String(k) }))}
+        xTikler={profilTikleri(profilKm).map((k, i, d) => ({
+          x: k,
+          etiket: i === d.length - 1 ? t('grafikler.km', { deger: k }) : String(k),
+        }))}
         yTikler={ucluTik(profilAlan[1], profilAlan[0])}
-        imlec={cepheMesafesiM(zaman) / 1000}
+        imlec={veri.eksendeCepheKm(zaman)}
         tema={TEMALAR.profil}
         kirmiziNokta
       />
     </div>
   )
+}
+
+/** Profil ekseninde en fazla ~6 km tiki (5 ya da 10 km'de bir). */
+function profilTikleri(uzunluk: number) {
+  const adim = uzunluk > 30 ? 10 : 5
+  return Array.from({ length: Math.floor(uzunluk / adim) + 1 }, (_, i) => i * adim)
 }
 
 /** Eksen üst sınırı için "güzel" yuvarlama (1, 2, 2.5, 5 × 10^n). */

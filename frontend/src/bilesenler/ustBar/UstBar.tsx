@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { gunAyYil } from '../../bicim'
 import { bitisMs, tutusmaMs, useDogrulama } from '../../durum/dogrulama'
 import { useEkran } from '../../durum/ekran'
+import { useOlay } from '../../durum/olay'
 import { bitisMs as senaryoBitisMs, tutusmaMs as senaryoTutusmaMs, useSenaryo } from '../../durum/senaryo'
 import { useZaman } from '../../durum/zaman'
-import { olay } from '../../veri/ornekSenaryo'
 import {
   IkonAlev,
   IkonArac,
@@ -35,22 +35,27 @@ export function UstBar() {
   const ekranAyarla = useEkran((d) => d.ekranAyarla)
   const bilgi = useDogrulama((d) => d.bilgi)
   const senaryo = useSenaryo((d) => d.ozet)
+  const olay = useOlay((d) => d.veri)
   // Senaryo sonucu yokken zaman çubuğunun boş aralığı (şimdi → +48 sa) gösterilir.
   const zamanBaslangic = useZaman((d) => d.baslangic)
   const zamanBitis = useZaman((d) => d.bitis)
-  // Doğrulama ekranı gerçek yangının, senaryo ekranı seçilen yerin, olay ekranı (şimdilik)
-  // örnek verinin bilgisini gösterir.
+  // Olay ve doğrulama ekranı seçili geçmiş yangının, senaryo ekranı seçilen yerin bilgisini gösterir.
+  const bos = { ad: t('ustBar.olayYukleniyor'), konum: '', baslangic: zamanBaslangic, bitis: zamanBitis }
   const baslik =
-    ekran === 'dogrulama' && bilgi
-      ? { ad: bilgi.baslik, konum: bilgi.konum, baslangic: tutusmaMs(bilgi), bitis: bitisMs(bilgi) }
-      : ekran === 'senaryo'
-        ? {
-            ad: t('senaryo.baslik'),
-            konum: t('senaryo.konum'),
-            baslangic: senaryo ? senaryoTutusmaMs(senaryo) : zamanBaslangic,
-            bitis: senaryo ? senaryoBitisMs(senaryo) : zamanBitis,
-          }
-        : olay
+    ekran === 'senaryo'
+      ? {
+          ad: t('senaryo.baslik'),
+          konum: t('senaryo.konum'),
+          baslangic: senaryo ? senaryoTutusmaMs(senaryo) : zamanBaslangic,
+          bitis: senaryo ? senaryoBitisMs(senaryo) : zamanBitis,
+        }
+      : ekran === 'olay'
+        ? olay
+          ? { ad: olay.bilgi.baslik, konum: olay.bilgi.konum, baslangic: olay.tutusmaMs, bitis: olay.bitisMs }
+          : bos
+        : bilgi
+          ? { ad: bilgi.baslik, konum: bilgi.konum, baslangic: tutusmaMs(bilgi), bitis: bitisMs(bilgi) }
+          : bos
 
   return (
     <header className="relative flex h-11 shrink-0 items-center overflow-hidden border-b border-cizgi bg-ust pr-2 pl-4 text-[13.5px] whitespace-nowrap [&>*]:shrink-0">
@@ -62,7 +67,7 @@ export function UstBar() {
       <span className="text-soluk max-[1600px]:hidden">{t('uygulama.altBaslik')}</span>
       <Ayirici noktali />
 
-      <OlaySecici ad={baslik.ad} secilebilir={ekran === 'dogrulama'} />
+      <OlaySecici ad={baslik.ad} secilebilir={ekran !== 'senaryo'} />
       <span className="ml-3 text-soluk max-[1560px]:hidden">{baslik.konum}</span>
 
       <span className="ml-5 flex items-center gap-2">

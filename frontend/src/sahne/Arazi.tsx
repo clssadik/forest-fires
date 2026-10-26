@@ -1,69 +1,80 @@
+import type { ThreeEvent } from '@react-three/fiber'
 import { useMemo } from 'react'
 import { BufferAttribute, BufferGeometry, Color } from 'three'
-import { ARAZI_BOYUT_KM, ARAZI_MERKEZ_Z, ormanYogunlugu, sahneY, yukseklikM } from '../model/arazi'
-import { sinirOrani, varisZamaniSaat } from '../model/yayilim'
-import { araziGolgelendirici, disVarisZamani } from './yanginMalzemesi'
+import { useOlay } from '../durum/olay'
+import { YOK } from '../olay/api'
+import { ORTU_SIRASI, sahneY, type OlayVerisi, type OrtuSinifi } from '../olay/veri'
+import { araziGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
 
-const BOLUM = 520
-
-/** Yükseklik ve eğime göre sıcak bej/kahve zemin rengi. */
-const kiyi = new Color('#d2b88c')
-const orta = new Color('#c4a273')
-const yuksek = new Color('#b19a7e')
+/** Örtü sınıfına göre zemin rengi (soluk; yangın katmanlarının önüne geçmesin). */
+const ORTU_RENGI: Record<OrtuSinifi, Color> = {
+  diger: new Color('#b8ab95'),
+  orman: new Color('#6f7446'),
+  maki: new Color('#8f8c5c'),
+  ot: new Color('#c4b486'),
+  tarim: new Color('#cdb78a'),
+  su: new Color('#6f93a6'),
+  yerlesim: new Color('#a9a198'),
+}
 const kaya = new Color('#a39a8c')
-const yesil = new Color('#7d7a4c')
+const yuksek = new Color('#b19a7e')
 
-function zeminRengi(hM: number, egim: number, orman: number, hedef: Color) {
-  if (hM < 400) hedef.copy(kiyi).lerp(orta, hM / 400)
-  else hedef.copy(orta).lerp(yuksek, Math.min((hM - 400) / 1300, 1))
-  hedef.lerp(kaya, Math.min(Math.max((egim - 22) / 25, 0), 1) * 0.6)
-  hedef.lerp(yesil, orman * 0.35)
-  return hedef
+/** Orman yoğunluğu (bitki örtüsü benekleri ve ağaçlar için). */
+export const ORMAN_YOGUNLUGU: Record<OrtuSinifi, number> = {
+  diger: 0,
+  orman: 1,
+  maki: 0.55,
+  ot: 0.1,
+  tarim: 0.05,
+  su: 0,
+  yerlesim: 0,
 }
 
-/** Prosedürel arazi örgüsü; köşe başına varış zamanı ve orman yoğunluğu taşır. */
-export function Arazi() {
+/** Gerçek DEM'den arazi örgüsü; köşe başına model varışı, gerçek yanık, olasılık, FIRMS taşır. */
+export function Arazi({ veri }: { veri: OlayVerisi }) {
+  const imlecAyarla = useOlay((d) => d.imlecAyarla)
   const geometri = useMemo(() => {
-    const n = BOLUM + 1
-    const konum = new Float32Array(n * n * 3)
-    const renk = new Float32Array(n * n * 3)
-    const toa = new Float32Array(n * n)
-    const sinir = new Float32Array(n * n)
-    const orman = new Float32Array(n * n)
+    const { satir, sutun, r } = veri
+    const n = satir * sutun
+    const konum = new Float32Array(n * 3)
+    const renk = new Float32Array(n * 3)
+    const toa = new Float32Array(n)
+    const yandi = new Float32Array(n)
+    const gercek = new Float32Array(n)
+    const olasilik = new Float32Array(n)
+    const firms = new Float32Array(n)
+    const orman = new Float32Array(n)
     const c = new Color()
-    const yarim = ARAZI_BOYUT_KM / 2
-    const adim = ARAZI_BOYUT_KM / BOLUM
-    // Önce yükseklikler; eğim komşu köşelerden (her köşede gürültüyü yeniden hesaplamamak için).
-    const yuk = new Float32Array(n * n)
-    for (let j = 0; j < n; j++)
-      for (let i = 0; i < n; i++) yuk[j * n + i] = yukseklikM(-yarim + i * adim, ARAZI_MERKEZ_Z - yarim + j * adim)
-    const h0 = (i: number, j: number) => yuk[Math.min(Math.max(j, 0), BOLUM) * n + Math.min(Math.max(i, 0), BOLUM)]
-    for (let j = 0; j < n; j++) {
-      for (let i = 0; i < n; i++) {
-        const k = j * n + i
-        const x = -yarim + i * adim
-        const z = ARAZI_MERKEZ_Z - yarim + j * adim
-        const h = yuk[k]
-        const gx = (h0(i + 1, j) - h0(i - 1, j)) / (2 * adim * 1000)
-        const gz = (h0(i, j + 1) - h0(i, j - 1)) / (2 * adim * 1000)
-        const egim = (Math.atan(Math.hypot(gx, gz)) * 180) / Math.PI
-        const o = ormanYogunlugu(x, z, h, egim)
-        konum.set([x, sahneY(h), z], k * 3)
-        zeminRengi(h, egim, o, c).toArray(renk, k * 3)
-        const oran = sinirOrani(x, z)
-        const v = varisZamaniSaat(x, z)
-        toa[k] = Number.isFinite(v) ? v : disVarisZamani(oran)
-        sinir[k] = oran
-        orman[k] = o
+    for (let i = 0; i < satir; i++) {
+      for (let j = 0; j < sutun; j++) {
+        const k = i * sutun + j
+        const { x, z } = veri.hucreKonumu(i, j)
+        const h = r.yukseklik[k]
+        const ortu = ORTU_SIRASI[r.ortu[k]] ?? 'diger'
+        konum.set([x, ortu === 'su' ? Math.max(sahneY(h), 0) : sahneY(h), z], k * 3)
+        const { egim } = veri.egimVeBaki(x, z)
+        c.copy(ORTU_RENGI[ortu])
+        if (ortu !== 'su') {
+          c.lerp(yuksek, Math.min(Math.max((h - 800) / 1200, 0), 1) * 0.5)
+          c.lerp(kaya, Math.min(Math.max((egim - 25) / 20, 0), 1) * 0.5)
+        }
+        c.toArray(renk, k * 3)
+        const model = r.modelToa[k]
+        toa[k] = model === YOK ? YANMADI_SAAT : model / 60
+        yandi[k] = model === YOK ? 0 : 1
+        gercek[k] = r.gercek[k] / 255
+        olasilik[k] = r.olasilik[k] / 255
+        firms[k] = r.firmsToa[k] === YOK ? YANMADI_SAAT : r.firmsToa[k] / 60
+        orman[k] = ORMAN_YOGUNLUGU[ortu]
       }
     }
-    const indis = new Uint32Array(BOLUM * BOLUM * 6)
+    const indis = new Uint32Array((satir - 1) * (sutun - 1) * 6)
     let p = 0
-    for (let j = 0; j < BOLUM; j++) {
-      for (let i = 0; i < BOLUM; i++) {
-        const a = j * n + i
+    for (let i = 0; i < satir - 1; i++) {
+      for (let j = 0; j < sutun - 1; j++) {
+        const a = i * sutun + j
         const b = a + 1
-        const d = a + n
+        const d = a + sutun
         const e = d + 1
         indis.set([a, d, b, b, d, e], p)
         p += 6
@@ -74,15 +85,20 @@ export function Arazi() {
     g.setAttribute('position', new BufferAttribute(konum, 3))
     g.setAttribute('color', new BufferAttribute(renk, 3))
     g.setAttribute('aToa', new BufferAttribute(toa, 1))
-    g.setAttribute('aSinir', new BufferAttribute(sinir, 1))
+    g.setAttribute('aYandi', new BufferAttribute(yandi, 1))
+    g.setAttribute('aGercek', new BufferAttribute(gercek, 1))
+    g.setAttribute('aOlasilik', new BufferAttribute(olasilik, 1))
+    g.setAttribute('aFirms', new BufferAttribute(firms, 1))
     g.setAttribute('aOrman', new BufferAttribute(orman, 1))
     g.computeVertexNormals()
     g.computeBoundingSphere()
     return g
-  }, [])
+  }, [veri])
+
+  const imlec = (e: ThreeEvent<PointerEvent>) => imlecAyarla({ x: e.point.x, z: e.point.z })
 
   return (
-    <mesh geometry={geometri} receiveShadow>
+    <mesh geometry={geometri} receiveShadow onPointerMove={imlec} onPointerOut={() => imlecAyarla(null)}>
       <meshStandardMaterial
         vertexColors
         roughness={1}

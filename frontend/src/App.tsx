@@ -5,26 +5,23 @@ import { Harita } from './bilesenler/harita/Harita'
 import { SagPanel } from './bilesenler/sagPanel/SagPanel'
 import { SenaryoEkrani } from './bilesenler/senaryo/SenaryoEkrani'
 import { UstBar } from './bilesenler/ustBar/UstBar'
+import { useDogrulama } from './durum/dogrulama'
 import { useEkran } from './durum/ekran'
-import { useZaman } from './durum/zaman'
+import { useOlay } from './durum/olay'
 import { useOynatici } from './kancalar/useOynatici'
-import { zamanAraligi } from './veri/ornekSenaryo'
 
-const olayZamaniniKur = () =>
-  useZaman.getState().aralikAyarla(zamanAraligi.baslangic, zamanAraligi.bitis, zamanAraligi.acilis)
-
-// Senaryonun zaman aralığı ilk çizimden önce kurulur (etiketler ilk karede doğru zamanla açılsın).
-olayZamaniniKur()
-
-/** Ana ekran: üst bar + seçili kip (olay: 3B örnek veri; doğrulama ve senaryo: 2B gerçek veri). */
+/** Ana ekran: üst bar + seçili kip (olay: 3B; doğrulama ve senaryo: 2B; hepsi gerçek veri). */
 function App() {
   useOynatici()
   const ekran = useEkran((d) => d.ekran)
+  // Olay ve doğrulama ekranları aynı geçmiş yangını gösterir (üst bardaki seçici).
+  const yangin = useDogrulama((d) => d.ad)
+  const veri = useOlay((d) => d.veri)
 
-  // Doğrulama ekranı kendi zaman aralığını kurar; olaya dönünce örnek senaryonunki geri gelir.
+  // Her ekran kendi zaman aralığını kurar; olaya dönünce olayınki geri gelir.
   useEffect(() => {
-    if (ekran === 'olay') olayZamaniniKur()
-  }, [ekran])
+    if (ekran === 'olay') void useOlay.getState().yukle(yangin)
+  }, [ekran, yangin])
 
   return (
     <div className="flex h-full flex-col">
@@ -35,7 +32,7 @@ function App() {
             <Harita />
             <AltSerit />
           </main>
-          <SagPanel />
+          <SagPanel veri={veri} />
         </div>
       ) : ekran === 'dogrulama' ? (
         <DogrulamaEkrani />

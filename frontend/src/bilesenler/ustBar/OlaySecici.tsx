@@ -6,8 +6,9 @@ import * as api from '../../dogrulama/api'
 import { IkonAsagi } from '../ikonlar'
 
 /**
- * Üst bardaki olay adı. Doğrulama ekranında açılır menüdür: bölge paketi hazır olan geçmiş
- * yangınlar arasında geçiş yapar. Diğer ekranlarda yalnızca adı gösterir.
+ * Üst bardaki olay adı. Olay ve doğrulama ekranlarında açılır menüdür: bölge paketi hazır olan
+ * geçmiş yangınlar arasında geçiş yapar (iki ekran aynı seçimi paylaşır). Senaryo ekranında
+ * yalnızca adı gösterir.
  */
 export function OlaySecici({ ad, secilebilir }: { ad: string; secilebilir: boolean }) {
   const { t } = useTranslation()

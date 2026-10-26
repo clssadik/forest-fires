@@ -1,27 +1,27 @@
 import { MapControls, OrthographicCamera, PerspectiveCamera } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { OrthographicCamera as OrtoKamera, PerspectiveCamera as PerspektifKamera, Spherical, Vector3 } from 'three'
 import { useHarita } from '../durum/harita'
-import { ARAZI_BOYUT_KM, ARAZI_MERKEZ_Z, araziY } from '../model/arazi'
+import type { OlayVerisi } from '../olay/veri'
 
 /**
  * 3B: eğik perspektif kamera. 2B: aynı sahneye tepeden ortografik bakış.
  * Fare, Google Haritalar'daki gibi: sol tuşla sürükleme zeminde kaydırır, sağ tuş (ya da
  * ⇧ Shift / ⌘ / Ctrl + sol tuş; trackpad için kolay yol) 3B'de döndürüp eğer, tekerlek ve
  * iki parmak imlecin olduğu yere yakınlaşır. Döndürme düğmeleri ve pusula `donme` isteği verir.
- * Bakılan nokta arazinin dışına çıkamaz. "Tutuşmaya git" isteği yumuşak bir uçuşla uygulanır.
+ * Açılışta tutuşma ile ana yayılım ekseni arasına bakılır. Bakılan nokta arazinin dışına çıkamaz. "Tutuşmaya git" isteği yumuşak bir uçuşla uygulanır.
  * Her karede pusula yönü, yakınlaştırma ve ölçek harita durumuna yazılır
  * (yalnızca belirgin değişimde, gereksiz yeniden çizimi önlemek için).
  */
 
-export const HEDEF = new Vector3(-1, 0.8, -5.5)
-const BASLANGIC_3B = new Vector3(-19.5, 22.5, -24)
+/** Açılışta kameranın bakılan noktaya göre konumu (km): kuzeybatıdan, eğik. */
+const BASLANGIC_KAYMA = new Vector3(-11, 13, -11)
 const FOV = 38
-const VARSAYILAN_UZAKLIK = BASLANGIC_3B.distanceTo(HEDEF)
+const VARSAYILAN_UZAKLIK = BASLANGIC_KAYMA.length()
 const VARSAYILAN_ORTO_ZOOM = 14
-/** Bakılan noktanın arazi kenarına en fazla yaklaşabileceği yer (km, merkezden). */
-const SINIR_KM = ARAZI_BOYUT_KM / 2 - 8
+/** Bakılan noktanın arazi kenarına en fazla yaklaşabileceği uzaklık (km). */
+const KENAR_PAYI_KM = 2
 /** Odaklanınca yakınlaştırma (varsayılana oran) ve uçuş süresi. */
 const ODAK_ZOOM = 1.8
 const UCUS_MS = 1200
@@ -55,8 +55,17 @@ interface ControlsBenzeri {
   update: () => void
 }
 
-export function KameraKontrol() {
+export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
   const kip = useHarita((d) => d.kip)
+  const acilisHedefi = useMemo(() => {
+    const t = veri.bilgi.tutusma
+    const e = veri.bilgi.eksen?.son ?? t
+    const x = t.x + (e.x - t.x) * 0.35
+    const z = t.z + (e.z - t.z) * 0.35
+    return new Vector3(x, veri.araziY(x, z), z)
+  }, [veri])
+  const sinirX = veri.genislikKm / 2 - KENAR_PAYI_KM
+  const sinirZ = veri.yukseklikKm / 2 - KENAR_PAYI_KM
   const son = useRef({ zoom: 0, yon: 0, pikselBasinaM: 0 })
   const yon = useRef(new Vector3())
   const ucus = useRef<Ucus | null>(null)
@@ -66,12 +75,12 @@ export function KameraKontrol() {
 
   useFrame(({ camera, size, controls }) => {
     const kontrol = controls as unknown as ControlsBenzeri | null
-    const hedef = kontrol?.target ?? HEDEF
+    const hedef = kontrol?.target ?? acilisHedefi
     const d = useHarita.getState()
 
     // "Tutuşmaya git": bakış yönü korunur, bakılan nokta ve uzaklık yumuşakça değişir.
     if (d.odak && kontrol) {
-      const hedef1 = new Vector3(d.odak.x, araziY(d.odak.x, d.odak.z), d.odak.z)
+      const hedef1 = new Vector3(d.odak.x, veri.araziY(d.odak.x, d.odak.z), d.odak.z)
       const kamera1 = camera.position.clone().sub(hedef)
       if (camera instanceof PerspektifKamera) kamera1.setLength(VARSAYILAN_UZAKLIK / ODAK_ZOOM)
       kamera1.add(hedef1)
@@ -122,9 +131,9 @@ export function KameraKontrol() {
       // Arazi sınırı: bakılan nokta dışarı taşarsa kamera da aynı kadar geri alınır.
       const t = kontrol.target
       kayma.current.set(
-        Math.min(Math.max(t.x, -SINIR_KM), SINIR_KM) - t.x,
+        Math.min(Math.max(t.x, -sinirX), sinirX) - t.x,
         0,
-        Math.min(Math.max(t.z, ARAZI_MERKEZ_Z - SINIR_KM), ARAZI_MERKEZ_Z + SINIR_KM) - t.z,
+        Math.min(Math.max(t.z, -sinirZ), sinirZ) - t.z,
       )
       if (kayma.current.lengthSq() > 0) {
         t.add(kayma.current)
@@ -175,14 +184,14 @@ export function KameraKontrol() {
       <>
         <OrthographicCamera
           makeDefault
-          position={[HEDEF.x, 200, HEDEF.z + 0.001]}
+          position={[acilisHedefi.x, 200, acilisHedefi.z + 0.001]}
           zoom={VARSAYILAN_ORTO_ZOOM}
           near={1}
           far={600}
         />
         <MapControls
           makeDefault
-          target={[HEDEF.x, 0, HEDEF.z]}
+          target={[acilisHedefi.x, 0, acilisHedefi.z]}
           enableRotate={false}
           screenSpacePanning
           zoomToCursor
@@ -194,18 +203,18 @@ export function KameraKontrol() {
   }
   return (
     <>
-      <PerspectiveCamera makeDefault position={BASLANGIC_3B.toArray()} fov={FOV} near={0.1} far={900} />
+      <PerspectiveCamera makeDefault position={acilisHedefi.clone().add(BASLANGIC_KAYMA).toArray()} fov={FOV} near={0.1} far={900} />
       {/* MapControls: sol tuş kaydırır, sağ tuş döndürür; kaydırma zemin düzleminde. */}
       <MapControls
         makeDefault
-        target={HEDEF.toArray()}
+        target={acilisHedefi.toArray()}
         enableDamping
         dampingFactor={0.12}
         screenSpacePanning={false}
         zoomToCursor
         maxPolarAngle={Math.PI * 0.46}
-        minDistance={3}
-        maxDistance={120}
+        minDistance={2}
+        maxDistance={80}
       />
     </>
   )

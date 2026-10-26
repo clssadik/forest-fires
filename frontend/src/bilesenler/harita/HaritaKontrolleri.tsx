@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { sayi } from '../../bicim'
 import { useHarita, type GorunumKipi } from '../../durum/harita'
-import { yayilimParametreleri } from '../../veri/ornekSenaryo'
+import type { OlayVerisi } from '../../olay/veri'
 import { IkonAsagi, IkonHedef, IkonTamEkran } from '../ikonlar'
 import { OlcekCubugu } from './OlcekCubugu'
 
@@ -9,10 +9,10 @@ const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10]
 const koyuKutu = 'rounded-[5px] bg-[#2a2723]/80 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm'
 
 /** Sağ alttaki harita kontrolleri: ölçek, 2B/3B, tutuşmaya git, yakınlaştırma, tam ekran. */
-export function HaritaKontrolleri({ tamEkran }: { tamEkran: () => void }) {
+export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkran: () => void }) {
   const { t } = useTranslation()
   const { kip, zoom, kipAyarla, zoomIste, odaklanIste } = useHarita()
-  const { tutusma } = yayilimParametreleri
+  const { tutusma } = veri.bilgi
 
   return (
     <div className="absolute right-5 bottom-4 flex items-end gap-2.5">

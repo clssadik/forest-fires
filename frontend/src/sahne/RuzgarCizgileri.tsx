@@ -2,19 +2,17 @@ import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { AdditiveBlending, BufferAttribute, Color, InstancedMesh, Matrix4, PlaneGeometry, Quaternion, Vector3 } from 'three'
 import { useZaman } from '../durum/zaman'
-import { araziY } from '../model/arazi'
 import { rastgeleUreteci } from '../model/gurultu'
-import { havaDurumu } from '../model/hava'
+import type { OlayVerisi } from '../olay/veri'
 import { yanginUniformlari } from './yanginMalzemesi'
 
 /**
  * Rüzgâr vektörleri katmanı: arazinin üzerinde rüzgâr yönünde akan beyaz
- * çizgiler. Yön ve hız global zamandaki hava durumundan gelir (yer tutucu:
- * gerçekte Open-Meteo rüzgâr alanı).
+ * çizgiler. Yön ve hız global zamanda tutuşma noktasındaki saatlik rüzgârdan gelir
+ * (hava verisi ~25 km çözünürlüklü; bölge içinde değişim küçük).
  */
 
 const ADET = 900
-const BOLGE = { x0: -38, x1: 38, z0: -44, z1: 24 }
 
 interface Cizgi {
   x: number
@@ -23,7 +21,11 @@ interface Cizgi {
   yas: number
 }
 
-export function RuzgarCizgileri({ opaklik }: { opaklik: number }) {
+export function RuzgarCizgileri({ veri, opaklik }: { veri: OlayVerisi; opaklik: number }) {
+  const bolge = useMemo(
+    () => ({ x0: -veri.genislikKm / 2, x1: veri.genislikKm / 2, z0: -veri.yukseklikKm / 2, z1: veri.yukseklikKm / 2 }),
+    [veri],
+  )
   const ref = useRef<InstancedMesh>(null)
   const r = useMemo(() => rastgeleUreteci(5), [])
   const geometri = useMemo(() => {
@@ -57,18 +59,18 @@ export function RuzgarCizgileri({ opaklik }: { opaklik: number }) {
   useFrame((_, dt) => {
     const mesh = ref.current
     if (!mesh || !mesh.visible) return
-    const h = havaDurumu(useZaman.getState().t)
+    const h = veri.hava(useZaman.getState().t)
     // Rüzgârın estiği yön = geldiği yön + 180°
     const yon = ((h.ruzgarYonu + 180) * Math.PI) / 180
     const dx = Math.sin(yon)
     const dz = -Math.cos(yon)
-    const hiz = 0.8 + h.ruzgarKmSa * 0.09 // km/s (sahne), görsel ölçek
+    const hiz = 0.5 + h.ruzgarKmSa * 0.06 // km/s (sahne), görsel ölçek
     const { m, q, v, s, c, y } = yardimci
     q.setFromAxisAngle(y, Math.atan2(-dz, dx))
     const adim = Math.min(dt, 0.05)
     cizgiler.current ??= Array.from({ length: ADET }, () => ({
-      x: BOLGE.x0 + r() * (BOLGE.x1 - BOLGE.x0),
-      z: BOLGE.z0 + r() * (BOLGE.z1 - BOLGE.z0),
+      x: bolge.x0 + r() * (bolge.x1 - bolge.x0),
+      z: bolge.z0 + r() * (bolge.z1 - bolge.z0),
       omur: 1.6 + r() * 2.2,
       yas: r() * 3,
     }))
@@ -76,15 +78,15 @@ export function RuzgarCizgileri({ opaklik }: { opaklik: number }) {
       const p = cizgiler.current[i]
       p.yas += adim
       if (p.yas > p.omur) {
-        p.x = BOLGE.x0 + r() * (BOLGE.x1 - BOLGE.x0)
-        p.z = BOLGE.z0 + r() * (BOLGE.z1 - BOLGE.z0)
+        p.x = bolge.x0 + r() * (bolge.x1 - bolge.x0)
+        p.z = bolge.z0 + r() * (bolge.z1 - bolge.z0)
         p.yas = 0
         p.omur = 1.6 + r() * 2.2
       }
       p.x += dx * hiz * adim
       p.z += dz * hiz * adim
       const parlaklik = Math.sin((p.yas / p.omur) * Math.PI) * opaklik
-      v.set(p.x, araziY(p.x, p.z) * yanginUniformlari.uKabartma.value + 0.3, p.z)
+      v.set(p.x, veri.araziY(p.x, p.z) * yanginUniformlari.uKabartma.value + 0.3, p.z)
       m.compose(v, q, s)
       mesh.setMatrixAt(i, m)
       mesh.setColorAt(i, c.setScalar(parlaklik))

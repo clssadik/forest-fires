@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { OlayVerisi } from '../../olay/veri'
 import { useTranslation } from 'react-i18next'
 import { HavaPaneli } from './HavaPaneli'
 import { KatmanListesi } from './KatmanListesi'
@@ -8,7 +9,7 @@ const SEKMELER = ['katmanlar', 'analiz', 'kanitlar', 'notlar'] as const
 type Sekme = (typeof SEKMELER)[number]
 
 /** Sağ panel (Olay kipi): sekmeli katman kartı + olay özeti + hava kartı. */
-export function SagPanel() {
+export function SagPanel({ veri }: { veri: OlayVerisi | null }) {
   const { t } = useTranslation()
   const [sekme, setSekme] = useState<Sekme>('katmanlar')
 
@@ -38,8 +39,8 @@ export function SagPanel() {
           <p className="px-4 py-6 text-center text-[12.5px] text-soluk">{t('sagPanel.yakinda')}</p>
         )}
       </section>
-      <OlayOzeti />
-      <HavaPaneli />
+      {veri && <OlayOzeti veri={veri} />}
+      {veri && <HavaPaneli veri={veri} />}
     </aside>
   )
 }

@@ -3,8 +3,8 @@ import type { KatmanKimligi } from '../../durum/katmanlar'
 import { rastgeleUreteci } from '../../model/gurultu'
 
 /**
- * Katman satırındaki küçük önizleme resmi. Gerçek katman verisi gelene kadar
- * her katmanın görünümünü taklit eden küçük bir prosedürel desen çizer.
+ * Katman satırındaki küçük önizleme resmi: her katmanın sahnedeki görünümünü
+ * taklit eden küçük bir prosedürel desen.
  */
 
 const BOYUT = 52 // piksel (2x yoğunluk için CSS boyutunun iki katı)
@@ -57,57 +57,24 @@ const cizimler: Record<KatmanKimligi, Ciz> = {
       c.stroke()
     }
   },
-  mudahale: (c, r) => {
-    benekli('#b79a74', ['#a88b66', '#c7ab85', '#9a7d5a'], 300, 2)(c, r)
-    c.strokeStyle = '#c8302a'
-    c.lineWidth = 2.2
-    c.beginPath()
-    c.moveTo(4, 40)
-    c.bezierCurveTo(16, 30, 30, 36, 48, 18)
-    c.stroke()
-  },
-  yapilar: (c, r) => {
-    benekli('#8f8d88', ['#a3a19b', '#7a7873', '#9a9892'], 400, 1.8)(c, r)
-    c.fillStyle = '#f2efe8'
-    for (let i = 0; i < 6; i++) c.fillRect(6 + r() * 38, 6 + r() * 38, 3, 3)
-  },
-  yollar: (c) => {
-    c.fillStyle = '#d3cfc6'
+  izokron: (c) => {
+    c.fillStyle = '#2a2420'
     c.fillRect(0, 0, BOYUT, BOYUT)
-    c.strokeStyle = '#6c675e'
-    c.lineWidth = 1.3
-    for (const [x1, y1, x2, y2] of [
-      [4, 8, 48, 44],
-      [6, 46, 46, 6],
-      [0, 28, 52, 24],
-      [26, 0, 22, 52],
-    ]) {
+    c.strokeStyle = '#f08c2a'
+    c.lineWidth = 1.4
+    for (const r of [8, 16, 26, 38]) {
       c.beginPath()
-      c.moveTo(x1, y1)
-      c.lineTo(x2, y2)
+      c.ellipse(14, 40, r * 1.2, r * 0.8, -0.5, 0, Math.PI * 2)
       c.stroke()
     }
   },
-  sinirlar: (c) => {
-    c.fillStyle = '#d6d2c9'
+  firms: (c, r) => {
+    c.fillStyle = '#6e6a5e'
     c.fillRect(0, 0, BOYUT, BOYUT)
-    c.strokeStyle = '#6c675e'
-    c.setLineDash([2, 3])
-    c.lineWidth = 1.2
-    c.beginPath()
-    c.moveTo(6, 10)
-    c.lineTo(26, 26)
-    c.lineTo(46, 14)
-    c.moveTo(26, 26)
-    c.lineTo(24, 48)
-    c.stroke()
-    c.fillStyle = '#4a463e'
-    for (const [x, y] of [
-      [6, 10],
-      [46, 14],
-      [24, 48],
-    ])
-      c.fillRect(x - 1.5, y - 1.5, 3, 3)
+    for (let i = 0; i < 40; i++) {
+      c.fillStyle = r() < 0.5 ? '#ff5a28' : '#9a2216'
+      c.fillRect(r() * BOYUT, r() * BOYUT, 4, 4)
+    }
   },
 }
 
