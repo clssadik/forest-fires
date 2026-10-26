@@ -157,7 +157,7 @@ def _karsilastirma(sonuclar, yol: Path) -> Path:
     ]):  # fmt: skip
         degerler = [olcut(s.topluluk) for s in sonuclar][::-1]
         sapmalar = [s.tohumlar.get(anahtar, {}).get("sapma", 0.0) for s in sonuclar][::-1]
-        renkler = [SERILER[0] if s.ad == "model_v1" else "#9ec5f4" for s in sonuclar][::-1]
+        renkler = [SERILER[0] if s.ad.startswith("model_") else "#9ec5f4" for s in sonuclar][::-1]
         y = np.arange(len(adlar))
         ax.barh(y, np.nan_to_num(degerler), height=0.6, color=renkler, xerr=sapmalar,
                 error_kw={"ecolor": METIN, "lw": 1, "capsize": 3})  # fmt: skip

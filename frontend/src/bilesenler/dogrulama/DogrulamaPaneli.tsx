@@ -214,24 +214,25 @@ function BaselineKarti() {
   if (!baseline) return null
   const deneyler = baseline.deneyler
   const enBuyuk = Math.max(...deneyler.map((d) => d.esit_alan_iou))
-  const model = deneyler.find((d) => d.ad === 'model_v1')
-  const enIyi = deneyler.filter((d) => d.ad !== 'model_v1').reduce((a, b) => (b.esit_alan_iou > a.esit_alan_iou ? b : a))
+  const modelMi = (ad: string) => ad.startsWith('model_')
+  const enIyiBul = (liste: typeof deneyler) => liste.reduce((a, b) => (b.esit_alan_iou > a.esit_alan_iou ? b : a))
+  const model = enIyiBul(deneyler.filter((d) => modelMi(d.ad)))
+  const enIyi = enIyiBul(deneyler.filter((d) => !modelMi(d.ad)))
 
   return (
     <Kart baslik={t('dogrulama.baseline.baslik')} ek={t('dogrulama.baseline.olcut')}>
       <ul className="flex flex-col gap-1.5 px-3 pt-2.5 pb-1.5">
         {deneyler.map((d) => {
-          const modelMi = d.ad === 'model_v1'
           return (
             <li key={d.ad} className="text-[12px]">
               <div className="flex">
-                <span className={modelMi ? 'font-semibold' : ''}>{t(`dogrulama.baseline.adlar.${d.ad}`, d.aciklama)}</span>
+                <span className={modelMi(d.ad) ? 'font-semibold' : ''}>{t(`dogrulama.baseline.adlar.${d.ad}`, d.aciklama)}</span>
                 <span className="ml-auto font-medium tabular-nums">{oran(d.esit_alan_iou)}</span>
               </div>
               <div className="mt-0.5 h-[7px] rounded-[2px] bg-[#cfc9b9]/60">
                 <div
                   className="h-full rounded-[2px]"
-                  style={{ width: `${(d.esit_alan_iou / (enBuyuk * 1.05)) * 100}%`, background: modelMi ? MODEL_RENGI : BASELINE_RENGI }}
+                  style={{ width: `${(d.esit_alan_iou / (enBuyuk * 1.05)) * 100}%`, background: modelMi(d.ad) ? MODEL_RENGI : BASELINE_RENGI }}
                 />
               </div>
             </li>
@@ -241,6 +242,7 @@ function BaselineKarti() {
       {model && model.esit_alan_iou < enIyi.esit_alan_iou && (
         <p className="mx-3 mb-2 rounded-[4px] bg-[#e8d9c4] px-2 py-1.5 text-[11.5px] leading-[15px]">
           {t('dogrulama.baseline.gecemiyor', {
+            modelAd: t(`dogrulama.baseline.adlar.${model.ad}`, model.aciklama),
             model: oran(model.esit_alan_iou),
             en: oran(enIyi.esit_alan_iou),
             ad: t(`dogrulama.baseline.adlar.${enIyi.ad}`, enIyi.aciklama).toLocaleLowerCase('tr-TR'),

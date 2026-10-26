@@ -213,12 +213,13 @@
       "olcut": "alan eşitlenmiş IoU",
       "adlar": {
         "model_v1": "Model v1 (rüzgâr + eğim)",
+        "model_v2": "Model v2 (+ yakıt türü)",
         "ruzgarsiz": "Rüzgârsız model",
         "egimsiz": "Eğimsiz model",
         "ruzgarsiz_egimsiz": "Rüzgârsız ve eğimsiz",
         "daire": "Aynı alanlı daire"
       },
-      "gecemiyor": "Model v1 ({{model}}) şimdilik {{ad}} yönteminin ({{en}}) gerisinde. Ana neden rüzgâr verisi: yangın doğuya koştu, ERA5 rüzgârı onu batıya itiyor. Adım 6'nın hedefi bu farkı kapatmak.",
+      "gecemiyor": "En iyi model, {{modelAd}}, {{model}} ile şimdilik {{ad}} yönteminin ({{en}}) gerisinde. Yangın kuzey rüzgârına rağmen doğuya koştu; model bunu henüz açıklayamıyor. Adım 6'nın hedefi bu farkı kapatmak.",
       "kaynak": "Kaynak: orman-dogrula raporu ({{calisma}} çalıştırma)."
     },
     "grafik": {

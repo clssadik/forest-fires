@@ -3,7 +3,7 @@
     uv run orman-dogrula manavgat_2021              # 20 tohum
     uv run orman-dogrula manavgat_2021 --calisma 5
 
-Deneyler: model v1 ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
+Deneyler: model v1, model v2 (+ yakıt türü) ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
 daire). Her deney için topluluk (çalıştırmaların en az yarısında yanan alan) ölçütleri ve
 tohumlar arası ortalama ± sapma. Çıktılar `data/islenmis/<ad>/dogrulama/`: rapor.json,
 firms_varis.tif ve görseller (rapor.py).
@@ -19,14 +19,16 @@ import numpy as np
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.olcutler import Olcutler, Referans, buyume_egrisi, daire_toa, dogrula
 from orman.model.calistir import tutusma_hucresi, yaz_raster
-from orman.model.yayilim import Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
+from orman.model.yayilim import V2_YAKIT, Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR, BolgePaketi, yukle
 
 V1 = Parametreler()
+V2 = V2_YAKIT  # v1 + yakıt türü (Alexandridis tablosu)
 # Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz).
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
     "model_v1": ("Model v1 (rüzgâr + eğim)", V1),
+    "model_v2": ("Model v2 (+ yakıt türü)", V2),
     "ruzgarsiz": ("Rüzgârsız model", replace(V1, c1=0.0, c2=0.0)),
     "egimsiz": ("Eğimsiz model", replace(V1, a=0.0)),
     "ruzgarsiz_egimsiz": ("Rüzgârsız ve eğimsiz model", replace(V1, c1=0.0, c2=0.0, a=0.0)),
