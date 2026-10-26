@@ -31,7 +31,10 @@ npm --prefix frontend install && npm --prefix frontend run dev
 
 Ardından http://localhost:5173 adresini açın. Ön yüz `/api` isteklerini arka uca (127.0.0.1:8000) yönlendirir; üst bardaki küçük nokta arka uç bağlantısını gösterir.
 
-> Analiz ekranındaki veriler şimdilik **örnek veridir** (`frontend/src/veri/ornekSenaryo.ts`); yayılım modeli tamamlanınca gerçek çıktılarla değiştirilecek.
+Üst bardaki iki sekme:
+
+- **Doğrulama** (2B, gerçek veri): MapLibre haritasında model tahmini, gerçek yanmış alan sınırı ve FIRMS tespitleri; zaman kaydırıcısı, "Simülasyonu çalıştır" düğmesi ve ölçüt paneli. Önce bölge paketi gerekir (aşağıda "Veri"). Doğrudan açmak için: http://localhost:5173/#dogrulama
+- **Olay** (3B): FireTrace'ten esinlenen sahne. Buradaki veriler şimdilik **örnek veridir** (`frontend/src/veri/ornekSenaryo.ts`).
 
 ## Veri
 
@@ -73,6 +76,10 @@ uv --directory backend run orman-dogrula manavgat_2021
 Sonuç tablosunu ekrana basar. `data/islenmis/manavgat_2021/dogrulama/` altına şunları yazar:
 `rapor.json` (IoU, Dice, kappa, karışıklık matrisi, zaman farkı, alan–zaman eğrileri),
 `firms_varis.tif` ve görseller (`harita.png`, `buyume.png`, `karsilastirma.png`, `zaman_farki.png`).
+
+## Web API
+
+Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/manavgat_2021/simulasyon` model v1'i 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/manavgat_2021/web/` altına yazar. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
 
 ## Testler
 
