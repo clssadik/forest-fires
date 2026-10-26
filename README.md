@@ -81,6 +81,21 @@ Sonuç tablosunu ekrana basar. `data/islenmis/manavgat_2021/dogrulama/` altına 
 
 Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/manavgat_2021/simulasyon` model v1'i 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/manavgat_2021/web/` altına yazar. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
 
+## Senaryo modu: "şimdi burada yangın çıksa?"
+
+Ön yüzde **Senaryo** sekmesi (`http://localhost:5173/#senaryo`): haritada herhangi bir yere
+tıklayın. Arka uç noktanın çevresinde 40 × 40 km'lik bir ızgara kurar; Copernicus DEM (GLO-90,
+uzaktan pencereyle), ESA WorldCover ve Open-Meteo **tahminini** indirir, model v3'ü 20 tohumla
+48 saat çalıştırır (`POST /api/senaryo?enlem=..&boylam=..`; yeni bir yer için ~10–25 sn, yakın
+bir noktaya tekrar ~1 sn). Sonuç: yanma olasılığının %10 / %50 / %90'a ulaştığı anlar;
+tarayıcı bunları zaman kaydırıcısıyla oynatır. Çıktılar `data/islenmis/senaryolar/<kimlik>/`.
+
+Aynı ayarların geçmiş yangınlarda ne kadar isabetli olduğu (~1 dk):
+
+```bash
+uv --directory backend run orman-senaryo-olc
+```
+
 ## Testler
 
 ```bash
