@@ -28,6 +28,10 @@ from orman.izgara import BBox, Izgara, izgaraya_yansit
 log = logging.getLogger(__name__)
 
 KAYNAK_URL = "https://copernicus-dem-30m.s3.amazonaws.com"
+# GLO-90: uzaktan okumada (senaryo modu) kullanılır. 30 m karodan bir senaryo penceresi ~20 MB
+# ve bu kaynaktan dakikalar sürüyor; 90 m'de ~3 sn. Kalibre model (v3) eğimi kullanmadığı için
+# (a = 0) kayıp küçük: yükseklik yalnızca hava alanının sıcaklık düzeltmesine girer.
+KAYNAK_URL_90 = "https://copernicus-dem-90m.s3.amazonaws.com"
 NODATA = -9999.0
 DUZ_ESIK_DERECE = 0.5  # bu eğimin altındaki hücreler düz kabul edilir
 
@@ -50,10 +54,10 @@ def karo_kodlari(bbox: BBox) -> list[str]:
     ]
 
 
-def karo_url(kod: str) -> str:
-    """Karonun S3 adresi. Dosya ve klasör adı aynıdır."""
-    ad = f"Copernicus_DSM_COG_10_{kod}_DEM"
-    return f"{KAYNAK_URL}/{ad}/{ad}.tif"
+def karo_url(kod: str, glo90: bool = False) -> str:
+    """Karonun S3 adresi (GLO-30 ya da GLO-90). Dosya ve klasör adı aynıdır."""
+    ad = f"Copernicus_DSM_COG_{30 if glo90 else 10}_{kod}_DEM"
+    return f"{KAYNAK_URL_90 if glo90 else KAYNAK_URL}/{ad}/{ad}.tif"
 
 
 def karo_indir(kod: str, hedef_dizin: Path) -> Path | None:
@@ -75,11 +79,12 @@ def karo_indir(kod: str, hedef_dizin: Path) -> Path | None:
 
 
 def uzak_karolar(bbox: BBox) -> list[str]:
-    """Kutuyu kaplayan ve kaynakta bulunan karoların adresleri (olmayanlar genelde deniz)."""
+    """Kutuyu kaplayan ve kaynakta bulunan GLO-90 karolarının adresleri (olmayanlar genelde
+    deniz)."""
     adresler = []
     for kod in karo_kodlari(bbox):
-        if requests.head(karo_url(kod), timeout=30).status_code == 200:
-            adresler.append(karo_url(kod))
+        if requests.head(karo_url(kod, glo90=True), timeout=30).status_code == 200:
+            adresler.append(karo_url(kod, glo90=True))
         else:
             log.info("DEM karosu yok, atlanıyor: %s", kod)
     return adresler
@@ -157,8 +162,8 @@ def _yaz(yol: Path, veri: np.ndarray, izgara: Izgara) -> None:
 def hazirla(izgara: Izgara, uzaktan: bool = False) -> dict[str, Path]:
     """Karoları indirir, ızgaraya oturtur ve yükseklik, eğim, bakı katmanlarını yazar.
 
-    `uzaktan=True`: karolar indirilmez, uzak COG'dan yalnızca ızgaranın penceresi okunur
-    (senaryo modu: her yeni nokta için ~35 MB'lık karolar yerine birkaç MB).
+    `uzaktan=True` (senaryo modu): karolar indirilmez; GLO-90 uzak COG'dan yalnızca ızgaranın
+    penceresi okunur (~3 sn) ve 30 m ızgaraya bilineer örneklenir.
     Döndürülen sözlük: {"yukseklik": ..., "egim": ..., "baki": ...} yolları.
     """
     sinirlar = izgara.wgs84_sinirlari()
