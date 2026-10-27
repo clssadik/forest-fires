@@ -70,25 +70,12 @@
   },
   "olayOzeti": {
     "baslik": "Olay Özeti",
-    "duzenle": "Düzenle",
     "ad": "Olay Adı",
-    "kimlik": "Olay No",
     "konum": "Konum",
     "baslangic": "Başlangıç (tah.)",
     "bitis": "Model bitişi",
     "toplamAlan": "Gerçek alan",
-    "neden": "Neden (ön)",
-    "durum": "Analiz Durumu",
     "hektar": "{{deger}} ha",
-    "nedenler": {
-      "arastiriliyor": "Araştırılıyor",
-      "insan": "İnsan kaynaklı",
-      "dogal": "Doğal"
-    },
-    "durumlar": {
-      "suruyor": "Analiz sürüyor",
-      "tamamlandi": "Tamamlandı"
-    },
     "model": "Model",
     "modelDeger": "{{ad}}, {{sayi}} tohum",
     "iou": "IoU (eş. alan)",
@@ -96,24 +83,18 @@
     "daireyiGecemiyor": "daire {{deger}}'ü geçemiyor"
   },
   "hava": {
-    "baslik": "Hava ve Yangın Davranışı",
-    "kaynakCephe": "(cephede)",
-    "secenekler": "Seçenekler",
+    "baslik": "Hava ve Yangın",
     "ruzgar": "Rüzgâr",
     "sicaklik": "Sıcaklık",
     "nem": "Nem",
     "yakitNemi": "Yakıt Nemi",
-    "erc": "ERC",
-    "alevBoyu": "Alev Boyu",
     "kmSa": "{{deger}} km/sa",
     "yon": "{{yon}} ({{derece}}°)",
     "derece": "{{deger}} °C",
-    "aralikM": "{{min}}–{{max}} m",
-    "sondu": "Söndü",
     "baslamadi": "—",
-    "kaynakTutusma": "(tutuşma noktasında)",
-    "cepheHizi": "Cephe Hızı",
-    "modelAlan": "Yanan Alan (model)",
+    "kaynakTutusma": "(tutuşmada)",
+    "cepheHizi": "Cephe",
+    "modelAlan": "Model alan",
     "mDk": "{{deger}} m/dk"
   },
   "zaman": {

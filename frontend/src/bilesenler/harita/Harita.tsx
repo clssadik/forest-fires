@@ -23,7 +23,8 @@ export function Harita() {
     <div ref={ref} className="relative min-h-0 flex-1 overflow-hidden bg-[#d6d1c3] [&_canvas]:cursor-grab [&_canvas:active]:cursor-grabbing">
       {veri ? (
         <>
-          <Sahne veri={veri} />
+          {/* Yangın değişince sahne (kamera dahil) yeni bölgeye göre baştan kurulur. */}
+          <Sahne key={veri.bilgi.ad} veri={veri} />
           <ImlecBilgisi veri={veri} />
           <Pusula />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />

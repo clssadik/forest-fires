@@ -1,8 +1,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Color, ConeGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three'
 import { rastgeleUreteci } from '../model/gurultu'
-import type { OlayVerisi } from '../olay/veri'
-import { ORMAN_YOGUNLUGU } from './Arazi'
+import { ORMAN_YOGUNLUGU, type OlayVerisi } from '../olay/veri'
 import { agacGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
 
 /**

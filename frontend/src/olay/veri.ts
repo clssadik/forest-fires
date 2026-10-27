@@ -20,6 +20,17 @@ export type OrtuSinifi = 'diger' | 'orman' | 'maki' | 'ot' | 'tarim' | 'su' | 'y
 /** `ortu` rasterındaki kodların sırası (backend `olay.ORTU_SINIFLARI`). */
 export const ORTU_SIRASI: OrtuSinifi[] = ['diger', 'orman', 'maki', 'ot', 'tarim', 'su', 'yerlesim']
 
+/** Orman yoğunluğu (bitki örtüsü benekleri ve ağaçlar için). */
+export const ORMAN_YOGUNLUGU: Record<OrtuSinifi, number> = {
+  diger: 0,
+  orman: 1,
+  maki: 0.55,
+  ot: 0.1,
+  tarim: 0.05,
+  su: 0,
+  yerlesim: 0,
+}
+
 export interface OnemliOlay {
   tur: OlayTuru
   /** Unix ms. */

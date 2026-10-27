@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { BufferAttribute, BufferGeometry, Color } from 'three'
 import { useOlay } from '../durum/olay'
 import { YOK } from '../olay/api'
-import { ORTU_SIRASI, sahneY, type OlayVerisi, type OrtuSinifi } from '../olay/veri'
+import { ORMAN_YOGUNLUGU, ORTU_SIRASI, sahneY, type OlayVerisi, type OrtuSinifi } from '../olay/veri'
 import { araziGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
 
 /** Örtü sınıfına göre zemin rengi (soluk; yangın katmanlarının önüne geçmesin). */
@@ -18,17 +18,6 @@ const ORTU_RENGI: Record<OrtuSinifi, Color> = {
 }
 const kaya = new Color('#a39a8c')
 const yuksek = new Color('#b19a7e')
-
-/** Orman yoğunluğu (bitki örtüsü benekleri ve ağaçlar için). */
-export const ORMAN_YOGUNLUGU: Record<OrtuSinifi, number> = {
-  diger: 0,
-  orman: 1,
-  maki: 0.55,
-  ot: 0.1,
-  tarim: 0.05,
-  su: 0,
-  yerlesim: 0,
-}
 
 /** Gerçek DEM'den arazi örgüsü; köşe başına model varışı, gerçek yanık, olasılık, FIRMS taşır. */
 export function Arazi({ veri }: { veri: OlayVerisi }) {

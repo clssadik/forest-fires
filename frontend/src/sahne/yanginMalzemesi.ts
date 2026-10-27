@@ -97,7 +97,8 @@ float modelde = step(0.999, vYandi);
 
 // Yanık izi: Sentinel-2'nin gördüğü gerçek yanmış alan (zamandan bağımsız, yangın sonrası)
 float gercekIc = smoothstep(0.35, 0.65, vGercek + (n2 - 0.5) * 0.2);
-renk = mix(renk, vec3(0.45, 0.13, 0.07) * (0.8 + 0.4 * n3), uYanikIzi * gercekIc * 0.55);
+// Soluk kül kahvesi: FIRMS'in kırmızısı ve modelin karası üstünde okunabilsin.
+renk = mix(renk, vec3(0.38, 0.3, 0.26) * (0.85 + 0.3 * n3), uYanikIzi * gercekIc * 0.6);
 
 // Tutuşma olasılığı: modelin önümüzdeki 12 saatte yakması beklenen yer, tohum oranıyla
 float ileri = -yas;
@@ -117,8 +118,8 @@ renk = mix(renk, vec3(0.95, 0.55, 0.15), iso * 0.6 * yandi * uYayilim * uIzokron
 
 // FIRMS: uydunun t anına kadar gördüğü yanan pikseller; yeni olanlar parlak
 float firmsYas = uT - vFirms;
-float benek = step(0.78, yGurultu(yp * 16.0));
-if (firmsYas >= 0.0) renk = mix(renk, mix(vec3(1.0, 0.3, 0.12), vec3(0.6, 0.12, 0.08), smoothstep(0.0, 24.0, firmsYas)), benek * uFirms * 0.9);
+float benek = step(0.7, yGurultu(yp * 10.0));
+if (firmsYas >= 0.0) renk = mix(renk, mix(vec3(1.0, 0.22, 0.08), vec3(0.62, 0.1, 0.07), smoothstep(0.0, 24.0, firmsYas)), benek * uFirms);
 
 // Gerçek alanın sınırı (beyaz kesikli)
 float gs = fwidth(vGercek);

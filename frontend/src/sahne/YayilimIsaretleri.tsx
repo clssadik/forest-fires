@@ -15,7 +15,9 @@ import { Etiket } from './Etiket'
 const YUKSELTI = 0.12
 const SAAT = 3_600_000
 /** Etiketlenen izokronlar (tutuşmadan sonra saat). */
-const IZOKRON_SAATLERI = [6, 12, 24, 36, 48, 72, 96]
+const IZOKRON_SAATLERI = [6, 12, 24, 48, 96]
+/** Eksen üzerinde iki etiket arasındaki en az uzaklık (km). */
+const ETIKET_ARALIGI_KM = 3
 
 export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabartma: number }) {
   const { t } = useTranslation()
@@ -37,13 +39,18 @@ export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabart
       gelecek: cephe < uzunluk - 0.2 ? noktalar(cephe, uzunluk) : null,
     }
   }, [cephe, kabartma, veri, uzunluk])
-  const izokronlar = useMemo(
-    () =>
-      IZOKRON_SAATLERI.filter((s) => s < veri.bitisSaat)
-        .map((s) => ({ saat: s, p: veri.eksenIzokronu(s) }))
-        .filter((i): i is { saat: number; p: { x: number; z: number } } => i.p !== null),
-    [veri],
-  )
+  // Tutuşmaya ya da bir öncekine çok yakın etiketler atlanır (üst üste binmesinler).
+  const izokronlar = useMemo(() => {
+    const secilen: { saat: number; p: { x: number; z: number } }[] = []
+    let onceki = veri.bilgi.tutusma
+    for (const saat of IZOKRON_SAATLERI.filter((s) => s < veri.bitisSaat)) {
+      const p = veri.eksenIzokronu(saat)
+      if (!p || Math.hypot(p.x - onceki.x, p.z - onceki.z) < ETIKET_ARALIGI_KM) continue
+      secilen.push({ saat, p })
+      onceki = p
+    }
+    return secilen
+  }, [veri])
   const tutusma = veri.bilgi.tutusma
   const basladi = zaman >= veri.tutusmaMs
 
