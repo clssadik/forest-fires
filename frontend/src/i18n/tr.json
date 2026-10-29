@@ -421,7 +421,6 @@
     "daireGecemiyor": "aynı alanlı daire {{deger}} · geçemiyor",
     "profil": "Yükseklik profili",
     "profilAlt": "ana eksen, {{km}} km",
-    "geri": "Bir saat geri",
     "olayKarti": {
       "grup": "{{sayi}} olay · {{aralik}}",
       "kapat": "Kapat"
