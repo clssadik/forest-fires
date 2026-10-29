@@ -421,7 +421,9 @@
     "geri": "Bir saat geri",
     "lejant": {
       "model": "model",
-      "firms": "FIRMS"
+      "firms": "FIRMS",
+      "hava": "hava",
+      "yakit": "yakıt"
     },
     "olayKarti": {
       "grup": "{{sayi}} olay · {{aralik}}",
@@ -433,7 +435,7 @@
       "cepheHizi": "Cephe hızı",
       "ruzgar": "Rüzgâr",
       "sicaklik": "Sıcaklık",
-      "nem": "Nem · yakıt nemi"
+      "nem": "Nem"
     }
   }
 }

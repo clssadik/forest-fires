@@ -10,16 +10,10 @@ import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
 import { olayOzeti } from '../altSerit/OnemliOlaylar'
 import { OlayIkonu } from '../OlayIkonu'
 import {
-  IkonAlev,
   IkonAsagi,
-  IkonBayrak,
-  IkonDamla,
   IkonDuraklat,
   IkonIleri,
   IkonOynat,
-  IkonRuzgar,
-  IkonSimsek,
-  IkonTermometre,
 } from '../ikonlar'
 
 const SAAT = 3_600_000
@@ -41,14 +35,15 @@ interface Seri {
   renk: string
   dolgu?: string
   kesik?: boolean
+  /** Seçili andaki değer; etiket sütununda serinin çizgi örneğiyle yazılır. */
+  deger: string
+  /** Birden çok serili şeritte ikincil serinin kısa adı. */
+  etiket?: string
 }
 
 interface Serit {
   kimlik: string
-  ikon: ReactNode
   ad: string
-  deger: string
-  lejant?: ReactNode
   yuk: number
   ust: number
   seriler: Seri[]
@@ -164,63 +159,59 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const tire = t('hava.baslamadi')
   const alan: Serit = {
     kimlik: 'alan',
-    ikon: <IkonAlev boyut={14} />,
     ad: t('olayDuzeni.seritler.yananAlan'),
-    deger: basladi ? `${sayi(veri.yananAlanHa(an))} ha` : tire,
-    lejant: (
-      <>
-        <Lejant renk="#f06a45">{t('olayDuzeni.lejant.model')}</Lejant>
-        <Lejant renk="#f2b84a" kesik>
-          {t('olayDuzeni.lejant.firms')}
-        </Lejant>
-      </>
-    ),
     yuk: 60,
     ust: s.alanUst,
     seriler: [
-      { ys: s.model, renk: '#f06a45', dolgu: 'rgba(236,90,58,0.24)' },
-      { ys: s.firms, renk: '#f2b84a', kesik: true },
+      {
+        ys: s.model,
+        renk: '#f06a45',
+        dolgu: 'rgba(236,90,58,0.24)',
+        deger: basladi ? `${sayi(veri.yananAlanHa(an))} ha` : tire,
+        etiket: t('olayDuzeni.lejant.model'),
+      },
+      {
+        ys: s.firms,
+        renk: '#f2b84a',
+        kesik: true,
+        deger: basladi ? `${sayi(veri.firmsAlanHa(an))} ha` : tire,
+        etiket: t('olayDuzeni.lejant.firms'),
+      },
     ],
   }
   const seritler: Serit[] = [
     alan,
     {
       kimlik: 'hiz',
-      ikon: <IkonSimsek boyut={14} />,
       ad: t('olayDuzeni.seritler.cepheHizi'),
-      deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire,
       yuk: 34,
       ust: s.hizUst,
-      seriler: [{ ys: s.hiz, renk: '#f06a45' }],
+      seriler: [{ ys: s.hiz, renk: '#f06a45', deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire }],
     },
     {
       kimlik: 'ruzgar',
-      ikon: <IkonRuzgar boyut={14} />,
       ad: t('olayDuzeni.seritler.ruzgar'),
-      deger: `${t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })} ${pusulaYonu(h.ruzgarYonu)}`,
       yuk: 34,
       ust: s.ruzgarUst,
-      seriler: [{ ys: s.ruzgar, renk: '#9fc7ef' }],
+      seriler: [
+        { ys: s.ruzgar, renk: '#9fc7ef', deger: `${t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })} ${pusulaYonu(h.ruzgarYonu)}` },
+      ],
     },
     {
       kimlik: 'sicaklik',
-      ikon: <IkonTermometre boyut={14} />,
       ad: t('olayDuzeni.seritler.sicaklik'),
-      deger: t('hava.derece', { deger: Math.round(h.sicaklik) }),
       yuk: 28,
       ust: s.sicaklikUst,
-      seriler: [{ ys: s.sicaklik, renk: '#e8a04a' }],
+      seriler: [{ ys: s.sicaklik, renk: '#e8a04a', deger: t('hava.derece', { deger: Math.round(h.sicaklik) }) }],
     },
     {
       kimlik: 'nem',
-      ikon: <IkonDamla boyut={14} />,
       ad: t('olayDuzeni.seritler.nem'),
-      deger: `${yuzdeBicim(h.nem / 100)} · ${yuzdeBicim(h.yakitNemi / 100)}`,
       yuk: 28,
       ust: s.nemUst,
       seriler: [
-        { ys: s.nem, renk: '#5f9fdc' },
-        { ys: s.yakit, renk: '#7cc46e' },
+        { ys: s.nem, renk: '#5f9fdc', deger: yuzdeBicim(h.nem / 100), etiket: t('olayDuzeni.lejant.hava') },
+        { ys: s.yakit, renk: '#7cc46e', deger: yuzdeBicim(h.yakitNemi / 100), etiket: t('olayDuzeni.lejant.yakit') },
       ],
     },
   ]
@@ -288,7 +279,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       )}
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
       <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.05]">
-        <SeritAdi ikon={<IkonBayrak boyut={14} />} ad={t('olayDuzeni.seritler.olaylar')} deger={String(veri.olaylar.length)} />
+        <div className="flex items-baseline gap-2 px-3.5 text-[11.5px] text-soluk">
+          {t('olayDuzeni.seritler.olaylar')}
+          <span className="text-metin/70 tabular-nums">{veri.olaylar.length}</span>
+        </div>
         <div ref={olayRef} className="relative h-full" style={{ marginRight: SAG }}>
           {gruplar.map((g) => {
             const ilk = g[0]
@@ -331,7 +325,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.05]"
           style={{ height: sr.yuk + 10 }}
         >
-          <SeritAdi ikon={sr.ikon} ad={sr.ad} deger={sr.deger} lejant={sr.lejant} />
+          <SeritAdi ad={sr.ad} seriler={sr.seriler} />
           <div style={{ marginRight: SAG, height: sr.yuk }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
           </div>
@@ -497,27 +491,27 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
   )
 }
 
-function SeritAdi({ ikon, ad, deger, lejant }: { ikon: ReactNode; ad: string; deger: string; lejant?: ReactNode }) {
+/**
+ * Şeridin etiket hücresi: üstte silik ad, altta her serinin çizgi örneği ve seçili andaki değeri.
+ * Çizgi örneği grafikteki çizgiyle aynı renk ve desende; ayrı bir lejant gerekmez.
+ */
+function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
+  const coklu = seriler.length > 1
   return (
-    <div className="min-w-0 px-3.5 text-[12px] whitespace-nowrap">
-      <div className="flex items-center gap-2">
-        <span className="shrink-0 text-soluk">{ikon}</span>
-        <span className="truncate text-soluk">{ad}</span>
-        <span className="ml-auto font-semibold">{deger}</span>
+    <div className="min-w-0 px-3.5 whitespace-nowrap">
+      <div className="text-[11.5px] leading-[14px] text-soluk">{ad}</div>
+      <div className="mt-1 flex items-center gap-3.5">
+        {seriler.map((sr) => (
+          <span key={sr.renk} className="flex items-center gap-1.5">
+            <svg width="10" height="4" aria-hidden className="shrink-0">
+              <line x1="0" x2="10" y1="2" y2="2" stroke={sr.renk} strokeWidth="2" strokeDasharray={sr.kesik ? '3 2' : undefined} />
+            </svg>
+            {coklu && sr.etiket && <span className="text-[11px] text-silik">{sr.etiket}</span>}
+            <span className="text-[13px] leading-[16px] font-medium text-metin/90 tabular-nums">{sr.deger}</span>
+          </span>
+        ))}
       </div>
-      {lejant && <div className="mt-1.5 flex items-center gap-3 pl-[22px] text-[11px] text-silik">{lejant}</div>}
     </div>
-  )
-}
-
-function Lejant({ renk, kesik = false, children }: { renk: string; kesik?: boolean; children: ReactNode }) {
-  return (
-    <span className="flex items-center gap-1.5">
-      <svg width="14" height="4" aria-hidden>
-        <line x1="0" x2="14" y1="2" y2="2" stroke={renk} strokeWidth="2" strokeDasharray={kesik ? '3 2' : undefined} />
-      </svg>
-      {children}
-    </span>
   )
 }
 
