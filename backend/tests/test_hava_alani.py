@@ -14,6 +14,7 @@ from orman.veri.hava_alani import (
     kaba_alan_hesapla,
     kaba_izgara,
     kaba_ortalama,
+    topluluk_hazirla,
 )
 
 T0 = datetime(2021, 7, 28, 9, tzinfo=UTC)
@@ -207,3 +208,43 @@ def test_kaydet_ve_oku_ayni_sonucu_verir(tmp_path):
     baska = Izgara(ad="baska", crs=izgara.crs, transform=izgara.transform, genislik=6, yukseklik=5)
     with pytest.raises(ValueError):
         HavaAlani.oku(yol, baska)
+
+
+def test_topluluk_hazirla_her_uye_icin_ayri_alan():
+    import pandas as pd
+
+    izgara = _kucuk_izgara()
+    u5, v5 = ruzgar_uv(5.0, 0.0)
+    u10, v10 = ruzgar_uv(10.0, 0.0)
+    satirlar = []
+    for uye, (hiz, u, v, sicaklik) in enumerate([(5.0, u5, v5, 20.0), (10.0, u10, v10, 30.0)]):
+        for saat, saat_metni in enumerate(["2021-07-28T09:00:00Z", "2021-07-28T10:00:00Z"]):
+            satirlar.append(
+                {
+                    "uye": uye,
+                    "zaman_utc": saat_metni,
+                    "nokta": 0,
+                    "enlem": 36.9,
+                    "boylam": 31.4,
+                    "rakim": 100.0,
+                    "sicaklik_c": sicaklik,
+                    "bagil_nem": 40.0,
+                    "ruzgar_hizi_ms": hiz,
+                    "ruzgar_yonu": 0.0,
+                    "ruzgar_esinti_ms": hiz + 1.0,
+                    "yagis_mm": 0.0,
+                    "ruzgar_u": u,
+                    "ruzgar_v": v,
+                }
+            )
+    alanlar = topluluk_hazirla(izgara, np.zeros(izgara.sekil), pd.DataFrame(satirlar), carpan=2)
+
+    assert sorted(alanlar) == [0, 1]
+    # Nokta 100 m'de, hücre 0 m: sıcaklık deniz seviyesine çıkar (+0,65 °C), üyeler arasındaki
+    # 10 °C fark korunur.
+    sicaklik0 = alanlar[0].alan(T0)["sicaklik_c"][0, 0]
+    sicaklik1 = alanlar[1].alan(T0)["sicaklik_c"][0, 0]
+    assert sicaklik0 == pytest.approx(20.65, abs=1e-3)
+    assert sicaklik1 - sicaklik0 == pytest.approx(10.0, abs=1e-3)
+    assert alanlar[0].alan(T0)["ruzgar_hizi_ms"][0, 0] == pytest.approx(5.0, abs=1e-3)
+    assert alanlar[1].alan(T0)["ruzgar_hizi_ms"][0, 0] == pytest.approx(10.0, abs=1e-3)

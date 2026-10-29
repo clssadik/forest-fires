@@ -2,8 +2,8 @@
 
 Haritadan seçilen bir nokta için bölge paketi istek üzerine üretilir: noktanın çevresinde
 `YARICAP_KM` yarıçaplı kare ızgara (noktanın UTM diliminde, 30 m), Copernicus DEM, WorldCover
-ve Open-Meteo **tahmini** (önümüzdeki saatler). FIRMS ve Sentinel-2 gerekmez. Güncel model
-`CALISMA` tohumla `SURE_SA` saat çalışır.
+ve Open-Meteo **topluluk tahmini** (her çalıştırma farklı bir üye; erişilemezse tekil tahmin).
+FIRMS ve Sentinel-2 gerekmez. Güncel model `CALISMA` tohumla `SURE_SA` saat çalışır.
 
 Sonuç tek bir çizgi değil, olasılıktır: her hücre için çalıştırmaların %10, %50 ve %90'ında
 yandığı en erken an (`ESIKLER`). Bir t anında "olasılık ≥ q" alanı, q eşiğinin TOA'sı ≤ t
@@ -30,7 +30,10 @@ from orman.izgara import Izgara
 from orman.model.calistir import tutusma_hucresi
 from orman.model.yayilim import Arazi, Ruzgar, coklu_yayilim
 from orman.senaryo import Senaryo
-from orman.veri.bolge_paketi import BolgePaketi, model_girdilerini_olustur, model_girdilerini_yukle
+from orman.veri import hava as hava_modulu
+from orman.veri import hava_alani as hava_alani_modulu
+from orman.veri.bolge_paketi import model_girdilerini_olustur, model_girdilerini_yukle
+from orman.veri.hava_alani import HavaAlani
 
 YARICAP_KM = 20.0  # ızgara: nokta merkezli 40 × 40 km
 COZUNURLUK_M = 30.0
@@ -41,6 +44,7 @@ KIMLIK_HASSASIYETI = 2  # ondalık basamak (~1 km); yakın tıklamalar aynı pak
 KENAR_PAYI_HUCRE = 33  # ~1 km; olası alan bu kadar kenara yaklaşırsa "sınıra ulaştı"
 MODEL_ADI = GUNCEL_MODEL
 PARAMETRELER = DENEYLER[GUNCEL_MODEL][1]
+TOPLULUK_MODEL = hava_modulu.TOPLULUK_MODEL
 
 
 def utm_crs(enlem: float, boylam: float) -> str:
@@ -127,22 +131,84 @@ def kenara_ulasma_saati(toa: np.ndarray, pay: int = KENAR_PAYI_HUCRE) -> float |
     return round(float(degerler.min()) / 60.0, 1) if degerler.size else None
 
 
-def hava_ozeti(paket: BolgePaketi, hucre: tuple[int, int], saatler: list[int]) -> dict:
-    """Tutuşma hücresinde saat saat rüzgâr (hız, geldiği yön), sıcaklık, bağıl nem."""
-    alan = paket.hava_alani()
-    r, c = hucre[0] // alan.carpan, hucre[1] // alan.carpan
-    t0 = paket.senaryo.tutusma_utc.timestamp()
-    zaman = (alan.saatler - t0) / 3600.0
-    oku = lambda ad: np.interp(saatler, zaman, alan.alanlar[ad][:, r, c])
-    u, v = oku("ruzgar_u"), oku("ruzgar_v")
+def hava_ozeti(
+    alanlar: list[HavaAlani], tutusma_utc: datetime, hucre: tuple[int, int], saatler: list[int]
+) -> dict:
+    """Tutuşma hücresinde saat saat üyelerin ortalama havası ve rüzgâr yayılımı.
+
+    Mevcut alanlar (ön yüzün okuduğu) üyelerin ortalamasıdır: rüzgâr vektörü (u, v) ayrı ayrı
+    ortalanır, yön buradan çıkar (350° ile 10° ortalaması 0° olur); hız, sıcaklık ve nem
+    skaler ortalamadır. `*_yayilim` alanları %10–%90 aralığıdır; yön yayılımı ortalama yöne
+    göre ±180° sarmalanarak hesaplanır. Tek üye varsa yayılım sıfırdır.
+    """
+    if not alanlar:
+        raise ValueError("Hava özeti için en az bir alan gerekli.")
+    u_dizi, v_dizi, hiz_dizi, sicaklik_dizi, nem_dizi = [], [], [], [], []
+    yon_dizi = []
+    for alan in alanlar:
+        r, c = hucre[0] // alan.carpan, hucre[1] // alan.carpan
+        zaman = (alan.saatler - tutusma_utc.timestamp()) / 3600.0
+
+        def oku(ad, zaman=zaman, alan=alan, r=r, c=c):
+            return np.interp(saatler, zaman, alan.alanlar[ad][:, r, c])
+
+        u, v = oku("ruzgar_u"), oku("ruzgar_v")
+        u_dizi.append(u)
+        v_dizi.append(v)
+        hiz_dizi.append(oku("ruzgar_hizi_ms"))
+        sicaklik_dizi.append(oku("sicaklik_c"))
+        nem_dizi.append(oku("bagil_nem"))
+        yon_dizi.append((np.degrees(np.arctan2(-u, -v)) + 360.0) % 360.0)
+
+    u, v = np.mean(u_dizi, axis=0), np.mean(v_dizi, axis=0)
     yon = (np.degrees(np.arctan2(-u, -v)) + 360.0) % 360.0  # geldiği yön (bkz. hava.ruzgar_uv)
+    hiz = np.mean(hiz_dizi, axis=0)
+    # Yön yayılımı: ortalama yöne göre fark, 360° çevresinde sarmalanır (350° → -10°).
+    fark = (np.array(yon_dizi) - yon + 180.0) % 360.0 - 180.0
+    hiz_p10, hiz_p90 = np.percentile(hiz_dizi, [10, 90], axis=0)
+    yon_p10, yon_p90 = np.percentile(fark, [10, 90], axis=0)
     return {
         "saatler": saatler,
-        "ruzgar_hizi_ms": np.round(oku("ruzgar_hizi_ms"), 1).tolist(),
+        "ruzgar_hizi_ms": np.round(hiz, 1).tolist(),
         "ruzgar_yonu": np.round(yon).tolist(),
-        "sicaklik_c": np.round(oku("sicaklik_c"), 1).tolist(),
-        "bagil_nem": np.round(oku("bagil_nem")).tolist(),
+        "sicaklik_c": np.round(np.mean(sicaklik_dizi, axis=0), 1).tolist(),
+        "bagil_nem": np.round(np.mean(nem_dizi, axis=0)).tolist(),
+        "ruzgar_hizi_ms_yayilim": {
+            "p10": np.round(hiz_p10, 1).tolist(),
+            "p90": np.round(hiz_p90, 1).tolist(),
+        },
+        "ruzgar_yonu_yayilim": {
+            "p10": np.round((yon + yon_p10) % 360.0).tolist(),
+            "p90": np.round((yon + yon_p90) % 360.0).tolist(),
+        },
     }
+
+
+def uye_secimi(uye_sayisi: int, calisma: int) -> list[int]:
+    """Her çalıştırmaya bir üye: üye sayısı azsa döngüyle, çoksa eşit aralıkla seçilir.
+
+    Kontrol üyesi (0) her zaman seçilir. Üye sayısı çalıştırma sayısından fazlaysa
+    `np.linspace(0, üye-1, çalışma)` yuvarlanır; böylece 51 üyeden 20'si tüm aralığa yayılır.
+    """
+    if uye_sayisi <= 0:
+        raise ValueError("Üye sayısı pozitif olmalı.")
+    if uye_sayisi <= calisma:
+        return [i % uye_sayisi for i in range(calisma)]
+    return np.rint(np.linspace(0, uye_sayisi - 1, calisma)).astype(int).tolist()
+
+
+def topluluk_alanlari(
+    senaryo: Senaryo, yukseklik: np.ndarray
+) -> tuple[dict[int, HavaAlani] | None, str | None]:
+    """Topluluk tahminini indirip her üye için hava alanı üretir; hata olursa (None, neden)."""
+    try:
+        veri = hava_modulu.topluluk_hazirla(senaryo.izgara, senaryo.baslangic, senaryo.bitis)
+        alanlar = hava_alani_modulu.topluluk_hazirla(senaryo.izgara, yukseklik, veri["tablo"])
+        if not alanlar:
+            raise ValueError("Topluluk yanıtında kullanılabilir üye yok.")
+        return alanlar, None
+    except Exception as e:  # noqa: BLE001 - topluluk isteğe bağlı; her hatada tekil tahmine düşülür
+        return None, f"{type(e).__name__}: {e}"
 
 
 @dataclass
@@ -157,9 +223,18 @@ def simdiki_saat() -> datetime:
 
 
 def calistir(
-    enlem: float, boylam: float, tutusma_utc: datetime | None = None, calisma: int = CALISMA
+    enlem: float,
+    boylam: float,
+    tutusma_utc: datetime | None = None,
+    calisma: int = CALISMA,
+    topluluk: bool = True,
+    is_parcacigi: int | None = None,
 ) -> SenaryoSonucu:
     """Paketi hazırlar (önbellekli arazi + güncel tahmin), modeli çalıştırır, sonucu yazar.
+
+    `topluluk=True` (varsayılan): her çalıştırma farklı bir topluluk üyesinin havasıyla koşar.
+    Topluluk indirilemezse tekil tahmine düşülür ve `sonuc.json` içindeki `hava_kaynagi`
+    bunu bildirir ("topluluk:<model>:<üye sayısı>" ya da "tahmin").
 
     Tutuşma noktası yanmaz bir hücredeyse (deniz, şehir, kaya) ve çevresinde yanabilir
     bitki yoksa `ValueError` yükselir.
@@ -173,15 +248,32 @@ def calistir(
     paket = model_girdilerini_yukle(senaryo)
     sureler["veri_sn"] = round(time.perf_counter() - bas, 1)
 
+    alanlar, topluluk_hatasi = (None, None)
+    if topluluk:
+        bas = time.perf_counter()
+        alanlar, topluluk_hatasi = topluluk_alanlari(senaryo, paket.yukseklik)
+        sureler["topluluk_sn"] = round(time.perf_counter() - bas, 1)
+
     hucre = tutusma_hucresi(paket)
+    if alanlar:
+        # Üye sayısı çalıştırmadan fazlaysa eşit aralıklı seçilir; tohum i → i. üye.
+        hava_alanlari = [alanlar[u] for u in uye_secimi(len(alanlar), calisma)]
+        hava_kaynagi = f"topluluk:{TOPLULUK_MODEL}:{len(alanlar)}"
+        ozet_alanlari = list(alanlar.values())
+    else:
+        hava_alanlari = [paket.hava_alani()]
+        hava_kaynagi = "tahmin"
+        ozet_alanlari = hava_alanlari
+
     bas = time.perf_counter()
     sonuc = coklu_yayilim(
         Arazi.paketten(paket),
-        Ruzgar.hava_alanindan(paket.hava_alani(), tutusma_utc),
+        [Ruzgar.hava_alanindan(alan, tutusma_utc) for alan in hava_alanlari],
         [hucre],
         PARAMETRELER,
         range(calisma),
         SURE_SA * 60.0,
+        is_parcacigi=is_parcacigi,
     )
     esik_toa = esik_toalari(sonuc.toalar)
     sureler["model_sn"] = round(time.perf_counter() - bas, 1)
@@ -203,12 +295,15 @@ def calistir(
         "saatler": saatler,
         "buyume_ha": buyume(esik_toa, saatler, hucre_ha),
         "kenar_saat": kenara_ulasma_saati(esik_toa[0]),
-        "hava": hava_ozeti(paket, hucre, saatler),
+        "hava_kaynagi": hava_kaynagi,
+        "hava": hava_ozeti(ozet_alanlari, tutusma_utc, hucre, saatler),
         "tutusma_yakiti": int(paket.yakit[hucre]),
         "yakit_payi": {
             str(k): round(float(np.mean(yakit == k)), 3) for k in range(5)
         },  # ızgaradaki pay
     }
+    if topluluk_hatasi:
+        ozet["hava_topluluk_hatasi"] = topluluk_hatasi
     d = senaryo_dizini(ozet["kimlik"])
     profil = izgara.rasterio_profili("float32", np.nan) | {"count": len(ESIKLER)}
     with rasterio.open(d / "esik_toa.tif", "w", **profil) as ds:

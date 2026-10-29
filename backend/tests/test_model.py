@@ -252,6 +252,35 @@ def test_coklu_calistirma_olasilik_haritasi():
     assert np.array_equal(~np.isnan(sonuc.toa_topluluk), sonuc.olasilik >= 0.5)
 
 
+def test_coklu_yayilim_tohum_basina_farkli_ruzgar():
+    arazi = _duz_arazi(81)
+    merkez = (40, 40)
+    doguya = Ruzgar.sabit(8.0, 270.0)  # batıdan esen: doğuya
+    batiya = Ruzgar.sabit(8.0, 90.0)  # doğudan esen: batıya
+    tohumlar = range(6)
+
+    tek_doguya = coklu_yayilim(arazi, doguya, [merkez], HIZLI, tohumlar, bitis_dk=20)
+    tek_batiya = coklu_yayilim(arazi, batiya, [merkez], HIZLI, tohumlar, bitis_dk=20)
+    karisik = coklu_yayilim(arazi, [doguya, batiya], [merkez], HIZLI, tohumlar, bitis_dk=20)
+
+    # Tohum i → ruzgarlar[i % 2]: çift tohumlar doğuya, tek tohumlar batıya.
+    for i in range(6):
+        beklenen = tek_doguya.toalar[i] if i % 2 == 0 else tek_batiya.toalar[i]
+        np.testing.assert_array_equal(karisik.toalar[i], beklenen)
+
+
+def test_coklu_yayilim_tek_ruzgar_eski_davranisla_ayni():
+    arazi = _duz_arazi(61)
+    merkez = (30, 30)
+    ruzgar = Ruzgar.sabit(6.0, 200.0)
+    tohumlar = range(4)
+
+    coklu = coklu_yayilim(arazi, ruzgar, [merkez], HIZLI, tohumlar, bitis_dk=20)
+    for i in tohumlar:
+        tek = yayilim(arazi, ruzgar, [merkez], HIZLI, tohum=i, bitis_dk=20)
+        np.testing.assert_array_equal(coklu.toalar[i], tek)
+
+
 def test_engel_gecisi_yavaslatir_ve_tam_guc_durdurur():
     """Ortadan geçen dikey bir engel: etki 0'da yok sayılır, tam güçte ateş öbür yakaya geçemez."""
     arazi = _duz_arazi(41)
