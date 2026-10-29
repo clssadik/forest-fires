@@ -10,7 +10,6 @@ import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
 import { olayOzeti } from '../altSerit/OnemliOlaylar'
 import { OlayIkonu } from '../OlayIkonu'
 import {
-  IkonAsagi,
   IkonDuraklat,
   IkonIleri,
   IkonOynat,
@@ -18,9 +17,6 @@ import {
 
 const SAAT = 3_600_000
 const DAKIKA = 60_000
-const HIZLAR = [1, 2, 5, 10, 30]
-/** 1× oynatma hızı: gerçek saniye başına simülasyon dakikası. */
-const TEMEL_HIZ = 60
 /** Şerit adlarının sütunu ve grafiklerin sağ boşluğu (px). */
 const ETIKET = 192
 const SAG = 16
@@ -73,18 +69,19 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
         <Seritler veri={veri} />
       ) : (
         <div className="flex h-[50px] items-center gap-2 border-b border-cizgi px-3.5 whitespace-nowrap">
-          <Denetimler />
+          <Denetimler saatSonra={null} />
         </div>
       )}
     </section>
   )
 }
 
-function Denetimler() {
+/** Oynat/duraklat, bir saat geri/ileri ve yangının kaç saattir sürdüğü (veri yokken gizli). */
+function Denetimler({ saatSonra }: { saatSonra: number | null }) {
   const { t } = useTranslation()
-  const { bitis, oynatiliyor, hiz } = useZaman()
+  const { bitis, oynatiliyor } = useZaman()
   const an = useZaman((d) => Math.floor(d.t / DAKIKA) * DAKIKA)
-  const { oynatDuraklat, zamanaGit, hizAyarla } = useZaman.getState()
+  const { oynatDuraklat, zamanaGit } = useZaman.getState()
   return (
     <>
       <button
@@ -102,21 +99,14 @@ function Denetimler() {
       <KucukDugme etiket={t('zaman.ileri')} onClick={() => zamanaGit(useZaman.getState().t + SAAT)} pasif={an >= bitis}>
         <IkonIleri boyut={13} />
       </KucukDugme>
-      <label className="relative">
-        <span className="sr-only">{t('zaman.hiz')}</span>
-        <select
-          value={Math.round(hiz / TEMEL_HIZ)}
-          onChange={(e) => hizAyarla(Number(e.target.value) * TEMEL_HIZ)}
-          className="h-[30px] w-[56px] appearance-none rounded-[7px] border border-cizgi bg-yuzey pl-2.5 text-[12.5px]"
+      {saatSonra !== null && (
+        <span
+          title={t('olayDuzeni.sureAciklama')}
+          className="ml-1 grid h-[30px] min-w-[56px] place-items-center rounded-[7px] border border-cizgi bg-yuzey px-2 text-[12.5px] font-medium tabular-nums"
         >
-          {HIZLAR.map((h) => (
-            <option key={h} value={h}>
-              {h}×
-            </option>
-          ))}
-        </select>
-        <IkonAsagi boyut={11} className="pointer-events-none absolute top-[10px] right-2 text-soluk" />
-      </label>
+          {t('olayDuzeni.saatSayaci', { saat: saatSonra })}
+        </span>
+      )}
     </>
   )
 }
@@ -284,7 +274,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       {/* Denetimler ve gün ekseni aynı satırda */}
       <div className="grid h-[50px] grid-cols-[192px_1fr] items-center border-b border-cizgi">
         <div className="flex items-center gap-1.5 px-2.5 whitespace-nowrap">
-          <Denetimler />
+          <Denetimler saatSonra={saatSonra} />
         </div>
         <div ref={eksenRef} className="relative h-full text-[11.5px] whitespace-nowrap text-soluk" style={{ marginRight: SAG }}>
           <span className="absolute top-1/2 left-0 -translate-y-1/2">{gunAySaat(baslangic)}</span>
@@ -300,9 +290,8 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       </div>
 
       {/* Seçili an */}
-      <div className="flex h-[38px] items-baseline gap-2 border-b border-white/[0.12] px-2.5 pt-[9px] whitespace-nowrap">
+      <div className="flex h-[38px] items-center border-b border-white/[0.12] px-2.5 whitespace-nowrap">
         <span className="text-[17px] leading-[20px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-        <span className="text-[12.5px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
       </div>
 
       {seritler.map((sr) => (
