@@ -25,10 +25,13 @@ const TEMEL_HIZ = 60
 const ETIKET = 212
 const SAG = 16
 
-/** Olaylar şeridi: tutuşma turuncu, diğerleri gri; bu kadar pikselden yakın olaylar tek işarette toplanır. */
-const ONEMLI_RENK = '#ec5a3a'
-const OLAY_RENGI = '#8c8c8c'
-const TOPLAMA_PX = 14
+/** Yanan alan grafiğindeki olay noktalarının renkleri: uydu gözlemi FIRMS çizgisinde, model olayı model eğrisinde. */
+const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
+  tutusma: '#ec5a3a',
+  uyduGecisi: '#5f9fdc',
+  hizliBuyume: '#f2b84a',
+  sirtaUlasma: '#f2b84a',
+}
 
 interface Seri {
   ys: number[]
@@ -44,6 +47,8 @@ interface Seri {
 interface Serit {
   kimlik: string
   ad: string
+  /** Etiket hücresinde serilerin üstüne konan içerik (yanan alanda seçili an). */
+  baslik?: ReactNode
   yuk: number
   ust: number
   seriler: Seri[]
@@ -51,9 +56,10 @@ interface Serit {
 
 /**
  * Olay ekranının alt paneli: oynatma denetimleri ve aynı zaman ekseninde alt alta şeritler.
- * Şeritler her zaman açık: olaylar, yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi.
- * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an, tarihi
- * olaylar satırının solunda. Birbirine yakın olaylar tek işarette toplanır. Şeritler
+ * Şeritler her zaman açık: yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi. Olaylar
+ * yanan alan grafiğinin içinde noktalardır: uydu gözlemi FIRMS çizgisinde, model olayı model
+ * eğrisinde, tutuşma tabanda. Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür;
+ * beyaz çizgi seçili an, tarihi yanan alan satırının solunda. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
@@ -157,10 +163,17 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const basladi = an >= veri.tutusmaMs
   const h = veri.hava(an)
   const tire = t('hava.baslamadi')
+  const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
   const alan: Serit = {
     kimlik: 'alan',
     ad: t('olayDuzeni.seritler.yananAlan'),
-    yuk: 60,
+    baslik: (
+      <div className="mb-1 flex items-baseline gap-2">
+        <span className="text-[13px] font-semibold text-metin tabular-nums">{gunAySaat(an)}</span>
+        <span className="text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
+      </div>
+    ),
+    yuk: 86,
     ust: s.alanUst,
     seriler: [
       {
@@ -221,7 +234,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     const o = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1)
     zamanaGit(baslangic + o * (bitis - baslangic))
   }
-  // Tıklanan olay işaretinin kartı (anahtar: grubun ilk olayının zamanı). Dışarı tıklamak yalnızca
+  // Tıklanan olay noktasının kartı (anahtar: olayın zamanı). Dışarı tıklamak yalnızca
   // kartı kapatır, haritadaki işaret kalır; Esc ve × ikisini birden kaldırır.
   const [acik, setAcik] = useState<number | null>(null)
   const olaySec = useOlay((d) => d.olaySec)
@@ -253,81 +266,61 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     if (o.x !== undefined && o.z !== undefined) odaklanIste(o.x, o.z)
   }
   const imlec = oran(zaman)
-  const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
-  // Zaman sırasıyla; bir öncekinden TOPLAMA_PX'ten yakın olay aynı gruba girer.
-  const gruplar: OnemliOlay[][] = []
-  for (const o of [...veri.olaylar].sort((a, b) => a.zaman - b.zaman)) {
-    const son = gruplar.at(-1)
-    const onceki = son?.at(-1)
-    if (son && onceki && (oran(o.zaman) - oran(onceki.zaman)) * olayGen < TOPLAMA_PX) son.push(o)
-    else gruplar.push([o])
+  const acikOlay = veri.olaylar.find((o) => o.zaman === acik)
+  // Olay noktasının grafikteki yüksekliği (px, üstten); SeritGrafigi ile aynı ölçek.
+  const olayY = (o: OnemliOlay) => {
+    const v = o.tur === 'tutusma' ? 0 : o.tur === 'uyduGecisi' ? veri.firmsAlanHa(o.zaman) : veri.yananAlanHa(o.zaman)
+    return alan.yuk - 1 - (Math.min(Math.max(v, 0), alan.ust) / alan.ust) * (alan.yuk - 3)
   }
-
-  const acikGrup = gruplar.find((g) => g[0].zaman === acik)
 
   return (
     <div className="relative select-none">
-      {acikGrup && (
+      {acikOlay && (
         <OlayKarti
           kartRef={kartRef}
-          olaylar={acikGrup}
-          oran={oran(acikGrup[0].zaman)}
+          olaylar={[acikOlay]}
+          oran={oran(acikOlay.zaman)}
           git={git}
           kapat={kapat}
         />
       )}
-      {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
-      <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.12]">
-        {/* Seçili an: olay işaretleriyle aynı satırda, şerit adlarının üstünde. */}
-        <div className="flex items-baseline gap-2 px-3.5 whitespace-nowrap">
-          <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-          <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
-        </div>
-        <div ref={olayRef} className="relative h-full" style={{ marginRight: SAG }}>
-          {gruplar.map((g) => {
-            const ilk = g[0]
-            const onemli = g.some((o) => o.tur === 'tutusma')
-            const metin = g.map((o) => `${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`).join('\n')
-            const secili = acik === ilk.zaman
-            return (
-              <button
-                key={`${ilk.tur}-${ilk.zaman}`}
-                type="button"
-                // Kartın dışına tıklama onu kapatır; işaretin kendisi kapatıp yeniden açmasın.
-                onPointerDown={(e) => e.nativeEvent.stopImmediatePropagation()}
-                onClick={() => {
-                  if (secili) return kapat()
-                  git(ilk)
-                  setAcik(ilk.zaman)
-                }}
-                title={secili ? undefined : metin}
-                aria-label={metin}
-                aria-expanded={secili}
-                className="group absolute top-1/2 z-20 flex h-[16px] -translate-y-1/2 items-center gap-1 pl-[4.5px]"
-                style={{ left: `calc(${oran(ilk.zaman) * 100}% - 8px)` }}
-              >
-                <span
-                  className={`size-[7px] rotate-45 rounded-[1px] transition-transform group-hover:scale-150 ${secili ? 'scale-150 ring-2 ring-metin' : ''}`}
-                  style={{ background: onemli ? ONEMLI_RENK : OLAY_RENGI }}
-                />
-                {g.length > 1 && (
-                  <span className={`text-[10.5px] leading-none font-medium ${secili ? 'text-metin' : 'text-soluk'}`}>{g.length}</span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
       {seritler.map((sr) => (
         <div
           key={sr.kimlik}
           className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.12]"
           style={{ height: sr.yuk + 10 }}
         >
-          <SeritAdi ad={sr.ad} seriler={sr.seriler} />
-          <div style={{ marginRight: SAG, height: sr.yuk }}>
+          <SeritAdi ad={sr.ad} seriler={sr.seriler} baslik={sr.baslik} />
+          <div ref={sr.kimlik === 'alan' ? olayRef : undefined} className="relative" style={{ marginRight: SAG, height: sr.yuk }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
+            {sr.kimlik === 'alan' &&
+              veri.olaylar.map((o) => {
+                const metin = `${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`
+                const secili = acik === o.zaman
+                return (
+                  <button
+                    key={`${o.tur}-${o.zaman}`}
+                    type="button"
+                    // Kartın dışına tıklama onu kapatır; noktanın kendisi kapatıp yeniden açmasın.
+                    onPointerDown={(e) => e.nativeEvent.stopImmediatePropagation()}
+                    onClick={() => {
+                      if (secili) return kapat()
+                      git(o)
+                      setAcik(o.zaman)
+                    }}
+                    title={secili ? undefined : metin}
+                    aria-label={metin}
+                    aria-expanded={secili}
+                    className="group absolute z-20 grid size-[14px] -translate-1/2 place-items-center"
+                    style={{ left: `${oran(o.zaman) * 100}%`, top: olayY(o) }}
+                  >
+                    <span
+                      className={`size-[7px] rounded-full ring-[1.5px] ring-olaylar transition-transform group-hover:scale-150 ${secili ? 'scale-150 !ring-metin' : ''}`}
+                      style={{ background: OLAY_RENGI[o.tur] }}
+                    />
+                  </button>
+                )
+              })}
           </div>
         </div>
       ))}
@@ -351,7 +344,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       {/* Tıkla / sürükle katmanı ve seçili an çizgisi */}
       <div
         ref={ref}
-        className="absolute top-[30px] bottom-0 z-10 cursor-pointer touch-none"
+        className="absolute top-0 bottom-0 z-10 cursor-pointer touch-none"
         style={{ left: ETIKET, right: SAG }}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId)
@@ -371,7 +364,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         }}
       >
         <div
-          className="pointer-events-none absolute -top-[30px] bottom-[28px] w-[1.5px] -translate-x-1/2 bg-metin"
+          className="pointer-events-none absolute top-0 bottom-[28px] w-[1.5px] -translate-x-1/2 bg-metin"
           style={{ left: `${imlec * 100}%` }}
         />
       </div>
@@ -484,9 +477,10 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 }
 
 /** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
-function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
+function SeritAdi({ ad, seriler, baslik }: { ad: string; seriler: Seri[]; baslik?: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5 px-3.5 text-[12px] leading-[15px] whitespace-nowrap">
+      {baslik}
       {seriler.map((sr) => (
         <div key={sr.renk} className="flex items-center gap-2">
           <svg width="10" height="4" aria-hidden className="shrink-0">
