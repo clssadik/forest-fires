@@ -32,8 +32,8 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   }
 
   return (
-    <aside className="flex w-[264px] shrink-0 flex-col border-l border-cizgi bg-olaylar">
-      <header className="flex h-[36px] shrink-0 items-baseline gap-2 px-3 pt-2.5">
+    <section className="flex min-h-0 flex-1 flex-col border-t border-cizgi">
+      <header className="flex h-[36px] shrink-0 items-baseline gap-2 px-[18px] pt-2.5">
         <h2 className="text-[14px] font-semibold">{t('olaylar.baslik')}</h2>
         <span className="text-[11.5px] text-soluk">{t('olaylar.otomatik')}</span>
       </header>
@@ -57,7 +57,7 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
               >
                 <span
                   className={`relative z-10 mt-[1px] grid size-[18px] shrink-0 place-items-center rounded-full ${
-                    seciliMi ? 'bg-zemin' : 'bg-olaylar'
+                    seciliMi ? 'bg-zemin' : 'bg-panel'
                   }`}
                 >
                   <OlayIkonu tur={o.tur} boyut={13} />
@@ -67,18 +67,19 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                     {t('olaylar.saat', { saat: sayi(saat, 1) })} · {gunAySaat(o.zaman)}
                   </span>
                   <span className="block font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
-                  <Ayrinti olay={o} />
+                  <OlayAyrintisi olay={o} />
                 </span>
               </button>
             </li>
           )
         })}
       </ul>
-    </aside>
+    </section>
   )
 }
 
-function Ayrinti({ olay }: { olay: OnemliOlay }) {
+/** Olayın bir satırlık ayrıntısı (FIRMS ve model alanı, büyüme hızı, sırt yüksekliği). */
+export function OlayAyrintisi({ olay }: { olay: OnemliOlay }) {
   const { t } = useTranslation()
   const h = olay.ham
   if (!h) return null

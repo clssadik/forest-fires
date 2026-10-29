@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
-import { AltSerit } from './bilesenler/altSerit/AltSerit'
 import { DogrulamaEkrani } from './bilesenler/dogrulama/DogrulamaEkrani'
 import { Harita } from './bilesenler/harita/Harita'
-import { SagPanel } from './bilesenler/sagPanel/SagPanel'
+import { AnSutunu } from './bilesenler/olay/AnSutunu'
+import { SolCekmece, SolRay } from './bilesenler/olay/SolRay'
+import { ZamanPaneli } from './bilesenler/olay/ZamanPaneli'
 import { SenaryoEkrani } from './bilesenler/senaryo/SenaryoEkrani'
 import { UstBar } from './bilesenler/ustBar/UstBar'
 import { useDogrulama } from './durum/dogrulama'
@@ -27,12 +28,17 @@ function App() {
     <div className="flex h-full flex-col">
       <UstBar />
       {ekran === 'olay' ? (
-        <div className="flex min-h-0 flex-1">
-          <main className="flex min-w-0 flex-1 flex-col">
-            <Harita />
-            <AltSerit />
-          </main>
-          <SagPanel veri={veri} />
+        // Paneller sabit; sahne aralarında kendi alanında durur, hiçbir şey üstüne binmez.
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1">
+            <SolRay />
+            <SolCekmece veri={veri} />
+            <main className="flex min-w-0 flex-1 flex-col">
+              <Harita />
+            </main>
+            {veri && <AnSutunu veri={veri} />}
+          </div>
+          <ZamanPaneli veri={veri} />
         </div>
       ) : ekran === 'dogrulama' ? (
         <DogrulamaEkrani />

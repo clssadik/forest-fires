@@ -292,6 +292,41 @@ export function IkonDaire(p: IkonOzellik) {
   )
 }
 
+export function IkonKatman(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="m12 3.5 9 4.75-9 4.75-9-4.75z" />
+      <path d="m3 12.5 9 4.75 9-4.75M3 16.75l9 4.75 9-4.75" />
+    </Ikon>
+  )
+}
+
+export function IkonBelge(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-10z" />
+      <path d="M14 3.5v5h5M9 13h6M9 16.5h4" />
+    </Ikon>
+  )
+}
+
+export function IkonNot(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16z" />
+      <path d="m13.5 6.5 4 4" />
+    </Ikon>
+  )
+}
+
+export function IkonKapat(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </Ikon>
+  )
+}
+
 export function IkonTik(p: IkonOzellik) {
   return (
     <Ikon {...p}>

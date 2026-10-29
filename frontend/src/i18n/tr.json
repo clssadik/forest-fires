@@ -398,5 +398,40 @@
       "su": "Su",
       "yerlesim": "Yerleşim"
     }
+  },
+  "olayDuzeni": {
+    "ray": "Olay ekranı panelleri",
+    "kapat": "Kapat",
+    "seciliAn": "Seçili an",
+    "saatSayaci": "+{{saat}} / {{toplam}} sa",
+    "saatEtiketi": "+{{saat}} sa",
+    "sonOlay": "Son olay",
+    "olayYok": "Henüz olay yok",
+    "modelAlani": "Model alanı",
+    "firmsGordugu": "FIRMS'in gördüğü",
+    "cepheUzakligi": "Cephe uzaklığı",
+    "km": "{{deger}} km",
+    "uyum": "Bitişte uyum (Sørensen)",
+    "daireGeciyor": "aynı alanlı daire {{deger}} · geçiyor",
+    "daireGecemiyor": "aynı alanlı daire {{deger}} · geçemiyor",
+    "profil": "Yükseklik profili",
+    "profilAlt": "ana eksen, {{km}} km",
+    "geri": "Bir saat geri",
+    "seritleriAc": "Şeritleri aç",
+    "seritleriKapat": "Şeritleri kapat",
+    "seritAciklama": "Her şerit aynı zaman ekseninde · tıkla ya da sürükle: o ana git",
+    "lejant": {
+      "model": "model yanan alan",
+      "firms": "FIRMS'in gördüğü",
+      "olaylar": "olaylar"
+    },
+    "seritler": {
+      "olaylar": "Olaylar",
+      "yananAlan": "Yanan alan",
+      "cepheHizi": "Cephe hızı",
+      "ruzgar": "Rüzgâr",
+      "sicaklik": "Sıcaklık",
+      "nem": "Nem · yakıt nemi"
+    }
   }
 }

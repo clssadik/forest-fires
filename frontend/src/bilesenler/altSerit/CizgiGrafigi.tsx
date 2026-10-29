@@ -21,6 +21,8 @@ interface Ozellikler {
   tema: GrafikTemasi
   /** İmlecin grafikle kesiştiği yerde kırmızı nokta (profil). */
   kirmiziNokta?: boolean
+  /** Başlıktaki seçenek düğmesini gizler. */
+  seceneksiz?: boolean
 }
 
 const SOL = 46
@@ -28,7 +30,7 @@ const SAG = 12
 const UST = 6
 const ALT = 18
 
-export function CizgiGrafigi({ baslik, veri, xAlan, yAlan, xTikler, yTikler, imlec, tema, kirmiziNokta }: Ozellikler) {
+export function CizgiGrafigi({ baslik, veri, xAlan, yAlan, xTikler, yTikler, imlec, tema, kirmiziNokta, seceneksiz }: Ozellikler) {
   const { t } = useTranslation()
   const [ref, { gen, yuk }] = useBoyut<HTMLDivElement>()
   const kimlik = useId().replace(/:/g, '')
@@ -46,9 +48,11 @@ export function CizgiGrafigi({ baslik, veri, xAlan, yAlan, xTikler, yTikler, iml
     <div className="flex min-w-0 flex-1 flex-col border-r border-cizgi px-3 pt-1.5 pb-1 last:border-r-0">
       <div className="flex h-[20px] items-center">
         <h3 className="text-[12.5px] font-medium">{baslik}</h3>
-        <button type="button" className="ml-auto grid size-5 place-items-center rounded text-soluk hover:bg-white/[0.07]" title={t('grafikler.secenekler')}>
-          <IkonUcNokta boyut={13} />
-        </button>
+        {!seceneksiz && (
+          <button type="button" className="ml-auto grid size-5 place-items-center rounded text-soluk hover:bg-white/[0.07]" title={t('grafikler.secenekler')}>
+            <IkonUcNokta boyut={13} />
+          </button>
+        )}
       </div>
       <div ref={ref} className="relative min-h-0 flex-1">
         {gen > 0 && (

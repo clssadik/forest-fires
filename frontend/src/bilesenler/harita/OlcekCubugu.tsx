@@ -15,7 +15,7 @@ export function OlcekCubugu() {
     toplam >= 1000 ? t('harita.olcekKm', { deger: sayi(m / 1000, 2) }) : t('harita.olcekM', { deger: sayi(m) })
 
   return (
-    <div className="relative mr-4 h-[30px] select-none text-[11.5px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,.7)]" style={{ width: gen }}>
+    <div className="relative mr-2 h-[30px] select-none text-[11.5px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,.7)]" style={{ width: gen }}>
       <span className="absolute top-0 left-0 -translate-x-1/2">0</span>
       <span className="absolute top-0 left-1/2 -translate-x-1/2">{etiket(toplam / 2).replace(/ (km|m)$/, '')}</span>
       <span className="absolute top-0 left-full -translate-x-1/2 whitespace-nowrap">{etiket(toplam)}</span>
