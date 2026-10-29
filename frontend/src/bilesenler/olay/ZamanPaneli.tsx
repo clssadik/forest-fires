@@ -14,7 +14,7 @@ import { IkonDuraklat, IkonOynat } from '../ikonlar'
 const SAAT = 3_600_000
 const DAKIKA = 60_000
 /** Şerit adlarının sütunu ve grafiklerin sağ boşluğu (px). */
-const ETIKET = 192
+const ETIKET = 236
 const SAG = 16
 /**
  * Şerit satırının yüksekliği (px): her seri 15 px'lik bir etiket satırı, aralarında 4 px, üstte ve
@@ -252,7 +252,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       {seritler.map((sr) => (
         <div
           key={sr.kimlik}
-          className="grid grid-cols-[192px_1fr] items-center border-b border-white/[0.12]"
+          className="grid grid-cols-[236px_1fr] items-center border-b border-white/[0.12]"
           style={{ height: seritYuksekligi(sr.seriler.length) }}
         >
           <SeritAdi ad={sr.ad} seriler={sr.seriler} />
@@ -428,7 +428,7 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 /** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
 function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 px-2.5 text-[12px] leading-[15px] whitespace-nowrap">
+    <div className="flex min-w-0 flex-col gap-1 pr-5 pl-2.5 text-[12px] leading-[15px] whitespace-nowrap">
       {seriler.map((sr) => (
         <div key={sr.renk} className="flex items-center gap-2">
           <svg width="10" height="4" aria-hidden className="shrink-0">
