@@ -5,10 +5,13 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
+from orman.dogrulama.calistir import V6
 from orman.dogrulama.kalibrasyon import (
     ARALIKLAR,
+    ORTAK_ARALIKLAR,
     gecis_anlari,
     hedef,
+    komsu_parametreler,
     rastgele_parametreler,
     zamanli_iou,
 )
@@ -64,6 +67,30 @@ def test_zamanli_iou_elle():
 def test_hedef_sekil_ve_zaman_ortalamasi():
     assert hedef(0.4, 0.6) == pytest.approx(0.5)
     assert hedef(1.0, 0.0) == pytest.approx(0.5)
+
+
+def test_hedef_bitis_verilirse_uc_parcanin_ortalamasi():
+    assert hedef(0.4, 0.6, bitis=0.8) == pytest.approx(0.6)
+    assert hedef(0.6, 0.6, bitis=0.0) == pytest.approx(0.4)
+
+
+def test_ortak_arama_sondurmeyi_de_arar_ve_tabani_korur():
+    assert set(ARALIKLAR) < set(ORTAK_ARALIKLAR)
+    assert {"sondurme_esigi", "sondurme_olasiligi", "sondurme_doygunluk_ha_sa"} <= set(
+        ORTAK_ARALIKLAR
+    )
+    rng = np.random.default_rng(3)
+    for _ in range(200):
+        p = rastgele_parametreler(rng, V6, ORTAK_ARALIKLAR)
+        q = komsu_parametreler(rng, p, ORTAK_ARALIKLAR)
+        for aday in (p, q):
+            for ad, (alt, ust, _) in ORTAK_ARALIKLAR.items():
+                assert alt <= getattr(aday, ad) <= ust, ad
+            # Aranmayanlar tabandan: söndürmenin başlangıcı, pencere, yakıt tablosu.
+            assert aday.sondurme_baslangic_dk == V6.sondurme_baslangic_dk
+            assert aday.sondurme_pencere_dk == V6.sondurme_pencere_dk
+            assert aday.p_veg == V6.p_veg
+    assert set(ORTAK_ARALIKLAR) <= set(asdict(V6))
 
 
 def test_rastgele_parametreler_araliklarda_ve_tekrarlanabilir():
