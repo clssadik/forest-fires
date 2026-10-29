@@ -277,7 +277,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         />
       )}
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
-      <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.05]">
+      <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.12]">
         <div className="flex items-center gap-2 px-3.5 text-[12px] text-soluk">
           <span className="w-[10px]" />
           {t('olayDuzeni.seritler.olaylar')}
@@ -322,7 +322,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       {seritler.map((sr) => (
         <div
           key={sr.kimlik}
-          className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.05]"
+          className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.12]"
           style={{ height: sr.yuk + 10 }}
         >
           <SeritAdi ad={sr.ad} seriler={sr.seriler} />
