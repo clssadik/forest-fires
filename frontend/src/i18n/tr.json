@@ -360,7 +360,7 @@
       "sondurme": "Söndürme çalışmalarını bilmez: 24 saatten sonra alanı abartır (Marmaris'te 48. saatte gerçeğin 8 katı). İlk 12–24 saate güvenin, sonrasını “en kötü durum” olarak okuyun.",
       "yon": "Yön tahmini kabadır; rüzgâr verisi ~25 km çözünürlüklü tahminden gelir. Tek bir çizgi yerine olasılık bantları bu yüzden gösterilir.",
       "hava": "Hava tahmin edildiği gibi gelmezse sonuç değişir.",
-      "bantlar": "Bantlar yalnızca modelin kendi rastlantısallığını gösterir; hava tahminindeki belirsizliği içermez. Bu yüzden birbirine yakın çıkarlar."
+      "bantlar": "Bantlar modelin kendi rastlantısallığını ve hava tahmininin üyeler arasındaki yayılımını birlikte gösterir. Topluluk havası kullanılamazsa yalnızca modelin rastlantısallığı kalır; bantlar daha dar olur."
     }
   },
   "olay": {

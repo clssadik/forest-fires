@@ -292,17 +292,14 @@ def _tablodan_diziler(
     return saat_dizini, nokta_xy, nokta_rakim, olcumler
 
 
-def hazirla(
+def alan_olustur(
     izgara: Izgara,
     arazi_yuksekligi: np.ndarray,
     hava: pd.DataFrame,
     carpan: int = KABA_CARPAN,
     deniz_dahil: bool = False,
-) -> Path:
-    """Saatlik hava tablosundan `hava_alani.npz` üretir ve yolunu döndürür.
-
-    `arazi_yuksekligi`: ince ızgaranın DEM'i (m, NaN = veri yok). `hava`: hava.csv tablosu.
-    """
+) -> HavaAlani:
+    """Saatlik hava tablosundan bellekte bir `HavaAlani` üretir (diske yazmaz)."""
     if arazi_yuksekligi.shape != izgara.sekil:
         raise ValueError(f"Yükseklik şekli {arazi_yuksekligi.shape}, ızgara {izgara.sekil}")
 
@@ -317,7 +314,40 @@ def hazirla(
         nokta_xy, nokta_rakim, olcumler, kaba_hucre_merkezleri(kaba), hucre_rakim, deniz_dahil
     )
     alanlar = {ad: v.reshape(len(saatler), kaba.yukseklik, kaba.genislik) for ad, v in ham.items()}
+    return HavaAlani(izgara, carpan, saatler, alanlar)
 
+
+def hazirla(
+    izgara: Izgara,
+    arazi_yuksekligi: np.ndarray,
+    hava: pd.DataFrame,
+    carpan: int = KABA_CARPAN,
+    deniz_dahil: bool = False,
+) -> Path:
+    """Saatlik hava tablosundan `hava_alani.npz` üretir ve yolunu döndürür.
+
+    `arazi_yuksekligi`: ince ızgaranın DEM'i (m, NaN = veri yok). `hava`: hava.csv tablosu.
+    """
     yol = _yol(izgara.ad)
-    HavaAlani(izgara, carpan, saatler, alanlar).kaydet(yol)
+    alan_olustur(izgara, arazi_yuksekligi, hava, carpan, deniz_dahil).kaydet(yol)
     return yol
+
+
+def topluluk_hazirla(
+    izgara: Izgara,
+    arazi_yuksekligi: np.ndarray,
+    hava: pd.DataFrame,
+    carpan: int = KABA_CARPAN,
+    deniz_dahil: bool = False,
+) -> dict[int, HavaAlani]:
+    """Topluluk tablosundan (`uye` sütunlu) her üye için ayrı bir `HavaAlani` üretir.
+
+    Kontrol üyesi 0 dahildir. Alanlar bellekte tutulur; üye başına ~50 saat × kaba ızgara
+    küçüktür ve diske yazılmaz (senaryo paketinin tekil `hava_alani.npz` dosyası korunur).
+    """
+    if "uye" not in hava.columns:
+        raise ValueError("Topluluk tablosunda 'uye' sütunu yok.")
+    return {
+        int(uye): alan_olustur(izgara, arazi_yuksekligi, tablo, carpan, deniz_dahil)
+        for uye, tablo in hava.groupby("uye", sort=True)
+    }
