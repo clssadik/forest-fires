@@ -68,6 +68,15 @@ const cizimler: Record<KatmanKimligi, Ciz> = {
       c.stroke()
     }
   },
+  hata: (c) => {
+    const yarim = BOYUT / 2
+    c.fillStyle = '#d4472a'
+    c.fillRect(0, 0, BOYUT, BOYUT)
+    c.fillStyle = '#f0b43c'
+    c.fillRect(yarim, 0, yarim, yarim)
+    c.fillStyle = '#455c80'
+    c.fillRect(0, yarim, yarim, yarim)
+  },
   firms: (c, r) => {
     c.fillStyle = '#6e6a5e'
     c.fillRect(0, 0, BOYUT, BOYUT)

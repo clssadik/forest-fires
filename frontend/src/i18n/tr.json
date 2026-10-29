@@ -55,7 +55,68 @@
       "kanitlar": "Kanıtlar",
       "notlar": "Notlar"
     },
-    "yakinda": "Bu sekme sonraki adımlarda doldurulacak."
+    "analiz": {
+      "iouBaslik": "Eşit alanda IoU · {{sayi}} tohum",
+      "sapma": "± {{deger}}",
+      "daireyiGeciyor": "Daireyi geçiyor ({{deger}})",
+      "daireyiGecemiyor": "Daireyi geçemiyor ({{deger}})",
+      "deneyler": "Deneyler (eşit alanda IoU)",
+      "deneyAdlari": {
+        "model_v1": "Model v1",
+        "model_v2": "Model v2",
+        "model_v3": "Model v3",
+        "ruzgarsiz": "Rüzgârsız",
+        "egimsiz": "Eğimsiz",
+        "ruzgarsiz_egimsiz": "Rüzgârsız, eğimsiz",
+        "daire": "Daire (baseline)"
+      },
+      "dice": "Dice",
+      "kappa": "Kappa",
+      "onIkiSaat": "±12 sa içinde",
+      "hataBaslik": "Model nerede yanıldı?",
+      "hataAlt": "(alan eşitken, +{{saat}} sa)",
+      "dogru": "Doğru",
+      "yanlisAlarm": "Yanlış alarm",
+      "kacirilan": "Kaçırılan",
+      "hektar": "{{deger}} ha",
+      "haritadaGoster": "Haritada göster",
+      "zamanBaslik": "Varış zamanı farkı (model − FIRMS)",
+      "zamanOzet": "Ortanca {{ortanca}} sa · ±12 sa içinde {{oran}}",
+      "zamanIpucu": "Kutu: hücrelerin ortadaki yarısı. Eksi: model erken.",
+      "saatEtiket": "{{deger}} sa",
+      "bitis": "Bitişte model {{model}} ha yakıyor, gerçek alan {{gercek}} ha: model söndürmeyi ve durmayı bilmiyor."
+    },
+    "kanitlar": {
+      "sentinel": "Sentinel-2 dNBR",
+      "sentinelTarih": "Önce {{once}}, sonra {{sonra}} · bulut en çok %{{bulut}}",
+      "sentinelAlan": "Yanmış alan {{deger}} ha (dNBR > {{esik}})",
+      "siddet": "Şiddet: yüksek {{yuksek}} ha · orta {{orta}} ha · düşük {{dusuk}} ha",
+      "firms": "NASA FIRMS",
+      "firmsToplam": "{{deger}} tespit",
+      "firmsGordu": "Gerçek alanın {{deger}} ha'sını gördü ({{oran}})",
+      "hava": "Hava: ERA5",
+      "havaAlt": "Open-Meteo arşivi · ~{{km}} km · saatlik · {{nokta}} nokta",
+      "dem": "Copernicus DEM",
+      "demAlt": "{{m}} m · eğim ve bakı buradan türetildi",
+      "worldcover": "ESA WorldCover {{yil}}",
+      "worldcoverAlt": "{{m}} m · yangın öncesi · 5 yakıt sınıfına indirildi",
+      "izgara": "Model ızgarası",
+      "izgaraAlt": "{{m}} m · {{satir}} × {{sutun}} hücre · 3B sahne 150 m'ye kabalaştırıldı",
+      "yok": "Bu yangın için yok"
+    },
+    "notlar": {
+      "sinirlar": "Modelin sınırları",
+      "sinirListesi": [
+        "Söndürmeyi ve durmayı bilmiyor; bitişte gerçek alanın çok üstüne çıkıyor.",
+        "Sıçrama ateşi (uçuşan kor) yok.",
+        "Rüzgâr tek kaynaktan, ~25 km çözünürlüklü (ERA5); yerel rüzgâr dönüşlerini görmüyor.",
+        "Yakıt yalnızca 5 WorldCover sınıfı; yakıt yükü ve nemi haritadan değil, tablodan."
+      ],
+      "notlarim": "Notlarım",
+      "yerTutucu": "Bu yangın için not yaz",
+      "saklama": "Bu tarayıcıda saklanır, sunucuya gönderilmez.",
+      "saklanamiyor": "Tarayıcı depolaması kapalı; not bu sayfa kapanınca kaybolur."
+    }
   },
   "katmanlar": {
     "arazi": "Arazi (3B)",
@@ -66,7 +127,8 @@
     "ruzgar": "Rüzgâr (Vektörler)",
     "opaklik": "{{ad}} saydamlığı",
     "izokron": "İzokronlar",
-    "firms": "FIRMS Tespitleri"
+    "firms": "FIRMS Tespitleri",
+    "hata": "Model Hatası (eşit alan)"
   },
   "olayOzeti": {
     "baslik": "Olay Özeti",

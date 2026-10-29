@@ -28,7 +28,30 @@ export interface OlayBilgisi {
     aciklama: string
     calisma_sayisi: number
     esit_alan_iou: number
+    esit_alan_iou_sapma: number | null
     daire_iou: number | null
+    /** Model alanı gerçek alana eşitlenince karışıklık matrisi (ha) ve ölçütler. */
+    esit_alan: {
+      dogru_ha: number
+      yanlis_alarm_ha: number
+      kacirilan_ha: number
+      iou: number
+      dice: number
+      kappa: number
+    }
+    /** Alanın eşitlendiği an (tutuşmadan sonra dakika); hata katmanı buna göre çizilir. */
+    esit_alan_esik_dk: number
+    /** Modelin bitişte yaktığı alan (durmayı bilmediği için gerçekten büyük). */
+    bitis: { model_ha: number; iou: number } | null
+    /** Model − FIRMS varış farkı (saat); pozitif: model geç. */
+    zaman: {
+      ortanca_saat: number
+      ceyrek_alt_saat: number
+      ceyrek_ust_saat: number
+      oran_12_saat_icinde: number
+    } | null
+    /** `orman-dogrula` deneyleri (eşit alanda IoU). */
+    deneyler: { ad: string; aciklama: string; iou: number }[]
   }
   izgara: {
     satir: number
@@ -66,6 +89,30 @@ export interface OlayBilgisi {
     toa_saat: (number | null)[]
   } | null
   olaylar: HamOlay[]
+  kanitlar: Kanitlar
+}
+
+interface SentinelDonemi {
+  tarihler: string[]
+  ana_tarih: string | null
+  en_cok_bulut: number
+}
+
+/** Doğrulamanın dayandığı verilerin künyesi (Kanıtlar sekmesi). */
+export interface Kanitlar {
+  sentinel2: {
+    once: SentinelDonemi
+    sonra: SentinelDonemi
+    esik: number
+    yanmis_ha: number
+    /** dNBR şiddet sınıflarına göre alan (ha). */
+    siddet_ha: Record<string, number>
+  } | null
+  firms: { toplam: number; kaynaklar: Record<string, number>; gordugu_ha: number } | null
+  hava: { nokta_sayisi: number; cozunurluk_km: number }
+  dem: { cozunurluk_m: number }
+  worldcover: { cozunurluk_m: number; yil: number }
+  izgara: { cozunurluk_m: number; satir: number; sutun: number }
 }
 
 export interface OlayRasterlari {

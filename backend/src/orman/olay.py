@@ -7,6 +7,9 @@ koordinatı km'dir: +x doğu, +z güney (sahnede kuzey −z), orijin kaba ızgar
 
 Seriler ve olaylar tam çözünürlüklü rasterlardan hesaplanır, kaba olanlardan değil.
 
+`kanitlar` doğrulamanın dayandığı verilerin künyesidir (Sentinel-2 sahneleri, FIRMS kaynakları,
+hava, DEM, örtü); sağ paneldeki Kanıtlar sekmesi bunu gösterir.
+
 Olay türleri:
     tutusma       senaryonun tutuşma anı ve noktası
     uyduGecisi    FIRMS geçiş kümeleri (kalibrasyondaki tanım); o ana kadar FIRMS'in ve modelin
@@ -15,6 +18,7 @@ Olay türleri:
     sirtaUlasma   model yangınının büyük bir sırta (çevresinden belirgin yüksek bölge) ilk varışı
 """
 
+import json
 from collections import deque
 from dataclasses import dataclass
 from datetime import timedelta
@@ -22,6 +26,7 @@ from datetime import timedelta
 import numpy as np
 from pyproj import Transformer
 
+from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.kalibrasyon import gecis_anlari
 from orman.dogrulama.olcutler import buyume_egrisi
 from orman.model.nem import denge_nemi
@@ -226,6 +231,60 @@ def hava_serisi(alan, tutusma, merkez: tuple[int, int], saatler) -> dict[str, li
     }
 
 
+def sentinel_ozeti(meta: dict) -> dict:
+    """`yanmis_alan.json` künyesinden: katkısı olan sahnelerin tarihleri ve en yüksek bulut oranı."""
+
+    def donem(sahneler: list[dict]) -> dict:
+        katki = [s for s in sahneler if s["katkı_hucre"] > 0]
+        toplam: dict[str, int] = {}
+        for s in katki:
+            toplam[s["tarih"]] = toplam.get(s["tarih"], 0) + s["katkı_hucre"]
+        return {
+            "tarihler": sorted(toplam),
+            "ana_tarih": max(toplam, key=toplam.__getitem__) if toplam else None,
+            "en_cok_bulut": round(max((s["bulut_yuzdesi_karo"] for s in katki), default=0.0), 1),
+        }
+
+    return {
+        "once": donem(meta["sahneler"]["once"]),
+        "sonra": donem(meta["sahneler"]["sonra"]),
+        "esik": meta["esik"],
+        "yanmis_ha": round(meta["yanmis_alan_ha"]),
+        "siddet_ha": {ad: round(ha) for ad, ha in meta["siddet_alanlari_ha"].items()},
+    }
+
+
+def firms_ozeti(tespitler, firms_toa: np.ndarray, hucre_ha: float) -> dict:
+    """Tespit sayısı (kaynağa göre) ve FIRMS'in gerçek alandan gördüğü kısım."""
+    kaynaklar = tespitler["kaynak"].value_counts()
+    return {
+        "toplam": len(tespitler),
+        "kaynaklar": {str(k): int(v) for k, v in kaynaklar.items()},
+        "gordugu_ha": round(float(np.count_nonzero(~np.isnan(firms_toa))) * hucre_ha),
+    }
+
+
+def kanitlar(paket, referans) -> dict:
+    """Doğrulamanın dayandığı verilerin künyesi (Kanıtlar sekmesi)."""
+    meta_yolu = ISLENMIS_VERI_DIZINI / paket.senaryo.ad / "yanmis_alan.json"
+    sentinel = sentinel_ozeti(json.loads(meta_yolu.read_text())) if meta_yolu.exists() else None
+    izgara = paket.senaryo.izgara
+    return {
+        "sentinel2": sentinel,
+        "firms": firms_ozeti(paket.tespitler, referans.firms_toa, referans.hucre_ha)
+        if paket.tespitler is not None
+        else None,
+        "hava": {"nokta_sayisi": int(paket.hava["nokta"].nunique()), "cozunurluk_km": 25},
+        "dem": {"cozunurluk_m": 30},
+        "worldcover": {"cozunurluk_m": 10, "yil": 2020},
+        "izgara": {
+            "cozunurluk_m": izgara.cozunurluk,
+            "satir": izgara.sekil[0],
+            "sutun": izgara.sekil[1],
+        },
+    }
+
+
 def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> OlayPaketi:
     """`ortam`: `DeneyOrtami`; `toa`, `olasilik`: güncel modelin topluluk TOA'sı (dk) ve yanma oranı."""
     paket, referans = ortam.paket, ortam.referans
@@ -363,5 +422,6 @@ def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> Ola
         },
         "eksen": eksen,
         "olaylar": olaylar,
+        "kanitlar": kanitlar(paket, referans),
     }
     return OlayPaketi(bilgi, bantlar)

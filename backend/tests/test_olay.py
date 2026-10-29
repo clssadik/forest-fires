@@ -91,6 +91,42 @@ def test_sirt_varisi_tepeye_ilk_ulasma():
     assert tepe == pytest.approx(300, abs=1)
 
 
+def test_sentinel_ozeti_katkisi_olan_sahneler():
+    meta = {
+        "sahneler": {
+            "once": [
+                {"tarih": "2021-07-20", "bulut_yuzdesi_karo": 0.5, "katkı_hucre": 900},
+                {"tarih": "2021-07-15", "bulut_yuzdesi_karo": 4.0, "katkı_hucre": 10},
+                {"tarih": "2021-07-10", "bulut_yuzdesi_karo": 60.0, "katkı_hucre": 0},
+            ],
+            "sonra": [{"tarih": "2021-08-14", "bulut_yuzdesi_karo": 8.44, "katkı_hucre": 5}],
+        },
+        "esik": 0.1,
+        "yanmis_alan_ha": 53384.8,
+        "siddet_alanlari_ha": {"dusuk": 10.4, "yuksek": 20.6},
+    }
+    ozet = olay.sentinel_ozeti(meta)
+    assert ozet["once"] == {
+        "tarihler": ["2021-07-15", "2021-07-20"],
+        "ana_tarih": "2021-07-20",
+        "en_cok_bulut": 4.0,
+    }
+    assert ozet["sonra"]["en_cok_bulut"] == 8.4
+    assert ozet["yanmis_ha"] == 53385
+    assert ozet["siddet_ha"] == {"dusuk": 10, "yuksek": 21}
+
+
+def test_firms_ozeti_kaynak_sayilari():
+    import pandas as pd
+
+    tespitler = pd.DataFrame({"kaynak": ["MODIS_SP", "VIIRS_SNPP_SP", "VIIRS_SNPP_SP"]})
+    firms_toa = np.array([[10, np.nan], [np.nan, 30]], dtype=np.float32)
+    ozet = olay.firms_ozeti(tespitler, firms_toa, 0.09)
+    assert ozet["toplam"] == 3
+    assert ozet["kaynaklar"] == {"VIIRS_SNPP_SP": 2, "MODIS_SP": 1}
+    assert ozet["gordugu_ha"] == 0
+
+
 @paket_gerekli
 def test_olay_uc_noktalari():
     client = TestClient(api.app)
@@ -110,3 +146,13 @@ def test_olay_uc_noktalari():
         yanit = client.get(f"/api/yanginlar/{AD}/olay/{bant}")
         assert len(yanit.content) == hucre * boyut.get(bant, 1)
     assert client.get(f"/api/yanginlar/{AD}/olay/yok").status_code == 404
+    model = bilgi["model"]
+    ea = model["esit_alan"]
+    # Alan eşitlenince yanlış alarm ile kaçırılan aynı büyüklükte olur.
+    assert ea["yanlis_alarm_ha"] == pytest.approx(ea["kacirilan_ha"], rel=0.01)
+    assert ea["dogru_ha"] + ea["kacirilan_ha"] == pytest.approx(bilgi["gercek_ha"], rel=0.01)
+    assert model["esit_alan_esik_dk"] > 0
+    assert any(d["ad"] == "daire" for d in model["deneyler"])
+    kanit = bilgi["kanitlar"]
+    assert kanit["firms"]["toplam"] == sum(kanit["firms"]["kaynaklar"].values())
+    assert kanit["sentinel2"]["yanmis_ha"] == pytest.approx(bilgi["gercek_ha"], rel=0.01)

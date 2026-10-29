@@ -17,8 +17,9 @@ import { yanginUniformlari as U } from './yanginMalzemesi'
 const SIS_RENGI = '#cfd0c8'
 
 /** Global zamanı ve katman opaklıklarını gölgelendirici uniform'larına aktarır. */
-function UniformGuncelleyici({ tutusmaMs }: { tutusmaMs: number }) {
+function UniformGuncelleyici({ tutusmaMs, hataEsikSaat }: { tutusmaMs: number; hataEsikSaat: number }) {
   useFrame((_, dt) => {
+    U.uHataEsik.value = hataEsikSaat
     const t = useZaman.getState().t
     const k = useKatmanlar.getState().katmanlar
     U.uT.value = (t - tutusmaMs) / 3_600_000
@@ -31,6 +32,7 @@ function UniformGuncelleyici({ tutusmaMs }: { tutusmaMs: number }) {
     yumusat(U.uGoruntu, etkinOpaklik(k, 'goruntu'))
     yumusat(U.uFirms, etkinOpaklik(k, 'firms'))
     yumusat(U.uIzokron, etkinOpaklik(k, 'izokron'))
+    yumusat(U.uHata, etkinOpaklik(k, 'hata'))
     yumusat(U.uArazi, etkinOpaklik(k, 'arazi') > 0 ? 1 : 0)
     // Arazi (3B) kapalıyken kabartma düzleşir; kaydırıcı kabartma şiddetidir.
     yumusat(U.uKabartma, Math.max(etkinOpaklik(k, 'arazi'), 0.02))
@@ -68,7 +70,7 @@ export function Sahne({ veri }: { veri: OlayVerisi }) {
       <RuzgarCizgileri veri={veri} opaklik={ruzgar} />
       {yayilim && <YayilimIsaretleri veri={veri} kabartma={etiketKabartma} />}
 
-      <UniformGuncelleyici tutusmaMs={veri.tutusmaMs} />
+      <UniformGuncelleyici tutusmaMs={veri.tutusmaMs} hataEsikSaat={veri.bilgi.model.esit_alan_esik_dk / 60} />
       <KameraKontrol veri={veri} />
       <EffectComposer multisampling={4}>
         <Bloom mipmapBlur intensity={0.75} luminanceThreshold={0.92} luminanceSmoothing={0.15} />

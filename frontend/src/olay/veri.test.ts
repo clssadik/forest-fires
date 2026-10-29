@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { YOK, type OlayBilgisi, type OlayRasterlari } from './api'
-import { aradegerle, OlayVerisi, pusulaYonu } from './veri'
+import { aradegerle, firmsKaynakAdi, OlayVerisi, pusulaYonu } from './veri'
 
 const SAAT = 3_600_000
 
@@ -13,7 +13,19 @@ function ornekVeri() {
     tutusma_utc: '2021-07-28T09:00:00Z',
     bitis_utc: '2021-07-28T13:00:00Z',
     gercek_ha: 100,
-    model: { ad: 'model_v3', aciklama: 'v3', calisma_sayisi: 20, esit_alan_iou: 0.5, daire_iou: 0.4 },
+    model: {
+      ad: 'model_v3',
+      aciklama: 'v3',
+      calisma_sayisi: 20,
+      esit_alan_iou: 0.5,
+      esit_alan_iou_sapma: 0.01,
+      daire_iou: 0.4,
+      esit_alan: { dogru_ha: 67, yanlis_alarm_ha: 33, kacirilan_ha: 33, iou: 0.5, dice: 0.67, kappa: 0.6 },
+      esit_alan_esik_dk: 120,
+      bitis: { model_ha: 400, iou: 0.25 },
+      zaman: { ortanca_saat: -0.5, ceyrek_alt_saat: -2, ceyrek_ust_saat: 1, oran_12_saat_icinde: 0.9 },
+      deneyler: [{ ad: 'daire', aciklama: 'Daire', iou: 0.4 }],
+    },
     izgara: {
       satir: 2,
       sutun: 3,
@@ -50,6 +62,14 @@ function ornekVeri() {
       toa_saat: [0, 1, null],
     },
     olaylar: [{ tur: 'tutusma', saat: 0, x: -1, z: -0.5 }],
+    kanitlar: {
+      sentinel2: null,
+      firms: null,
+      hava: { nokta_sayisi: 4, cozunurluk_km: 25 },
+      dem: { cozunurluk_m: 30 },
+      worldcover: { cozunurluk_m: 10, yil: 2020 },
+      izgara: { cozunurluk_m: 30, satir: 10, sutun: 15 },
+    },
   } satisfies OlayBilgisi
   const rasterlar: OlayRasterlari = {
     yukseklik: new Float32Array([0, 100, 200, 0, 100, 200]),
@@ -125,5 +145,14 @@ describe('yardımcılar', () => {
     expect(pusulaYonu(0)).toBe('K')
     expect(pusulaYonu(359)).toBe('K')
     expect(pusulaYonu(225)).toBe('GB')
+  })
+})
+
+describe('firmsKaynakAdi', () => {
+  it('uydu ve algılayıcı adını okunur yazar', () => {
+    expect(firmsKaynakAdi('VIIRS_NOAA20_SP')).toBe('VIIRS NOAA-20')
+    expect(firmsKaynakAdi('VIIRS_SNPP_NRT')).toBe('VIIRS S-NPP')
+    expect(firmsKaynakAdi('MODIS_SP')).toBe('MODIS')
+    expect(firmsKaynakAdi('BILINMEYEN')).toBe('BILINMEYEN')
   })
 })

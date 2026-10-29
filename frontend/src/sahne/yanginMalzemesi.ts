@@ -24,6 +24,9 @@ export const yanginUniformlari = {
   uKabartma: { value: 1 },
   uFirms: { value: 1 },
   uIzokron: { value: 1 },
+  uHata: { value: 0 },
+  /** Model alanının gerçek alana eşitlendiği an (saat); hata katmanı bu anki modeli karşılaştırır. */
+  uHataEsik: { value: 0 },
 }
 
 const GURULTU_GLSL = /* glsl */ `
@@ -45,6 +48,8 @@ uniform float uArazi;
 uniform float uKabartma;
 uniform float uFirms;
 uniform float uIzokron;
+uniform float uHata;
+uniform float uHataEsik;
 `
 
 const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'Olasilik', 'Firms', 'Orman']
@@ -126,6 +131,14 @@ float gs = fwidth(vGercek);
 float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercek - 0.5));
 float kesik = step(0.5, fract((yp.x + yp.y) * 2.2));
 renk = mix(renk, vec3(0.97, 0.96, 0.92), sinir * kesik * 0.9 * uYanikIzi);
+
+// Model hatası (eşit alan, zamandan bağımsız): doğru, yanlış alarm, kaçırılan
+float modelIc = modelde * step(vToa, uHataEsik);
+float gercekVar = step(0.5, vGercek);
+vec3 hataRengi = modelIc * gercekVar > 0.5 ? vec3(0.83, 0.28, 0.16)
+  : modelIc > 0.5 ? vec3(0.94, 0.71, 0.24)
+  : vec3(0.27, 0.36, 0.5);
+renk = mix(renk, hataRengi, uHata * max(modelIc, gercekVar));
 
 diffuseColor.rgb = renk;`,
     )

@@ -298,16 +298,37 @@ def _olay_paketi(ad: str, surum: float) -> olay.OlayPaketi:
     with rasterio.open(d / "model_olasilik.tif") as ds:
         olasilik = ds.read(1)
     kayit = json.loads((d / "sonuc.json").read_text())
-    baseline = _baseline_ozeti(ad)
-    daire = next((x for x in (baseline or {}).get("deneyler", []) if x["ad"] == "daire"), None)
-    ozet = {
+    return olay.olay_paketi(_ortam(ad), toa, olasilik, _model_ozeti(kayit, _baseline_ozeti(ad)))
+
+
+def _model_ozeti(kayit: dict, baseline: dict | None) -> dict:
+    """Olay ekranının Analiz sekmesi: son simülasyonun ölçütleri ve `orman-dogrula` deneyleri."""
+    olc = kayit["olcutler"]
+    deneyler = (baseline or {}).get("deneyler", [])
+    daire = next((x for x in deneyler if x["ad"] == "daire"), None)
+    alanlar = ("dogru_ha", "yanlis_alarm_ha", "kacirilan_ha", "iou", "dice", "kappa")
+    zaman = olc.get("zaman")
+    return {
         "ad": kayit["model"],
         "aciklama": kayit["aciklama"],
         "calisma_sayisi": kayit["calisma_sayisi"],
-        "esit_alan_iou": kayit["olcutler"]["esit_alan"]["iou"],
+        "esit_alan_iou": olc["esit_alan"]["iou"],
+        "esit_alan_iou_sapma": kayit.get("tohumlar", {}).get("esit_alan_iou", {}).get("sapma"),
         "daire_iou": daire["esit_alan_iou"] if daire else None,
+        "esit_alan": {a: olc["esit_alan"][a] for a in alanlar},
+        # Model alanının gerçek alana eşitlendiği an; ön yüz hata katmanını bununla çizer.
+        "esit_alan_esik_dk": olc["esit_alan_esik"],
+        "bitis": {a: olc["bitis"][a] for a in ("model_ha", "iou")} if olc.get("bitis") else None,
+        "zaman": {
+            a: zaman[a]
+            for a in ("ortanca_saat", "ceyrek_alt_saat", "ceyrek_ust_saat", "oran_12_saat_icinde")
+        }
+        if zaman
+        else None,
+        "deneyler": [
+            {"ad": x["ad"], "aciklama": x["aciklama"], "iou": x["esit_alan_iou"]} for x in deneyler
+        ],
     }
-    return olay.olay_paketi(_ortam(ad), toa, olasilik, ozet)
 
 
 def _guncel_olay_paketi(ad: str) -> olay.OlayPaketi:

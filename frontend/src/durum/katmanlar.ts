@@ -10,6 +10,7 @@ export type KatmanKimligi =
   | 'izokron'
   | 'firms'
   | 'ruzgar'
+  | 'hata'
 
 export interface Katman {
   kimlik: KatmanKimligi
@@ -27,6 +28,7 @@ export const VARSAYILAN_KATMANLAR: Katman[] = [
   { kimlik: 'izokron', acik: true, opaklik: 1 },
   { kimlik: 'firms', acik: true, opaklik: 1 },
   { kimlik: 'ruzgar', acik: false, opaklik: 0.7 },
+  { kimlik: 'hata', acik: false, opaklik: 0.85 },
 ]
 
 interface KatmanDurumu {

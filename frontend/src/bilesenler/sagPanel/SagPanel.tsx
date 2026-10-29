@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import type { OlayVerisi } from '../../olay/veri'
 import { useTranslation } from 'react-i18next'
+import { AnalizSekmesi } from './AnalizSekmesi'
 import { HavaPaneli } from './HavaPaneli'
+import { KanitlarSekmesi } from './KanitlarSekmesi'
 import { KatmanListesi } from './KatmanListesi'
+import { NotlarSekmesi } from './NotlarSekmesi'
 import { OlayOzeti } from './OlayOzeti'
 
 const SEKMELER = ['katmanlar', 'analiz', 'kanitlar', 'notlar'] as const
 type Sekme = (typeof SEKMELER)[number]
 
-/** Sağ panel (Olay kipi): sekmeli katman kartı + olay özeti + hava kartı. */
+/** Sağ panel (Olay kipi): sekmeli kart (katmanlar, analiz, kanıtlar, notlar) + olay özeti + hava kartı. */
 export function SagPanel({ veri }: { veri: OlayVerisi | null }) {
   const { t } = useTranslation()
   const [sekme, setSekme] = useState<Sekme>('katmanlar')
@@ -33,11 +36,10 @@ export function SagPanel({ veri }: { veri: OlayVerisi | null }) {
             </button>
           ))}
         </div>
-        {sekme === 'katmanlar' ? (
-          <KatmanListesi />
-        ) : (
-          <p className="px-4 py-6 text-center text-[12.5px] text-soluk">{t('sagPanel.yakinda')}</p>
-        )}
+        {sekme === 'katmanlar' && <KatmanListesi />}
+        {veri && sekme === 'analiz' && <AnalizSekmesi veri={veri} />}
+        {veri && sekme === 'kanitlar' && <KanitlarSekmesi veri={veri} />}
+        {veri && sekme === 'notlar' && <NotlarSekmesi ad={veri.bilgi.ad} />}
       </section>
       {veri && <OlayOzeti veri={veri} />}
       {veri && <HavaPaneli veri={veri} />}

@@ -54,6 +54,15 @@ const YONLER = ['K', 'KKD', 'KD', 'DKD', 'D', 'DGD', 'GD', 'GGD', 'G', 'GGB', 'G
 /** 16 yönlü pusula kısaltması (Türkçe). */
 export const pusulaYonu = (derece: number) => YONLER[Math.round((((derece % 360) + 360) % 360) / 22.5) % 16]
 
+/** FIRMS kaynak kodundan okunur ad (VIIRS_NOAA20_SP → "VIIRS NOAA-20"). */
+export function firmsKaynakAdi(kod: string): string {
+  if (kod.startsWith('MODIS')) return 'MODIS'
+  if (kod.includes('NOAA21')) return 'VIIRS NOAA-21'
+  if (kod.includes('NOAA20')) return 'VIIRS NOAA-20'
+  if (kod.includes('SNPP')) return 'VIIRS S-NPP'
+  return kod
+}
+
 /** Sıralı `xs` üzerinde doğrusal ara değer; aralık dışında kenara kenetlenir. */
 export function aradegerle(xs: number[], ys: number[], x: number): number {
   if (!xs.length) return 0
