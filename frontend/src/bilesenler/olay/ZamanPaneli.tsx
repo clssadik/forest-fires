@@ -444,7 +444,7 @@ function OlayKarti({
   )
 }
 
-/** Tek şeridin SVG grafiği: yarı ve tam ölçekte silik kılavuz çizgileri, altta taban çizgisi. */
+/** Tek şeridin SVG grafiği; kılavuz çizgisi yok, şeritleri yalnızca aralarındaki çizgi ayırır. */
 function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
   const [ref, { gen, yuk }] = useBoyut<HTMLDivElement>()
   const yollar = useMemo(() => {
@@ -461,15 +461,10 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
       }
     })
   }, [seriler, ust, gen, yuk])
-  const kilavuz = (oran: number) => yuk - 1 - oran * (yuk - 3)
   return (
     <div ref={ref} className="relative h-full">
       {gen > 0 && (
         <svg width={gen} height={yuk} className="absolute inset-0 overflow-visible">
-          {[0.5, 1].map((o) => (
-            <line key={o} x1={0} x2={gen} y1={kilavuz(o)} y2={kilavuz(o)} stroke="#1f1f1f" />
-          ))}
-          <line x1={0} x2={gen} y1={yuk - 0.5} y2={yuk - 0.5} stroke="#333" />
           {yollar.map((y, i) => (
             <g key={i}>
               {y.alan && <path d={y.alan} fill={y.dolgu} />}
