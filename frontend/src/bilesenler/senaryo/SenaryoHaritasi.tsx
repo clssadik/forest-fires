@@ -70,7 +70,7 @@ export function SenaryoHaritasi() {
           nokta: { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
         },
         layers: [
-          { id: 'arka', type: 'background', paint: { 'background-color': '#d1cab8' } },
+          { id: 'arka', type: 'background', paint: { 'background-color': '#000000' } },
           { id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-saturation': -0.35 } },
           {
             id: 'altlik',
@@ -204,19 +204,19 @@ export function SenaryoHaritasi() {
       </div>
       <Lejant />
       {(calisiyor || !harita) && (
-        <div className="absolute top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-panel/95 px-3.5 py-1.5 text-[12.5px] shadow-[0_0_0_1px_rgba(120,110,90,0.18),0_2px_6px_rgba(0,0,0,0.08)]">
-          <span className="size-3.5 animate-spin rounded-full border-2 border-koyu/25 border-t-koyu" />
+        <div className="absolute top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-panel/95 px-3.5 py-1.5 text-[12.5px] shadow-[0_0_0_1px_var(--color-cizgi),0_4px_16px_rgba(0,0,0,0.6)]">
+          <span className="size-3.5 animate-spin rounded-full border-2 border-guclu/25 border-t-guclu" />
           {t(calisiyor ? 'senaryo.harita.hesaplaniyor' : 'senaryo.harita.yukleniyor')}
         </div>
       )}
       {!nokta && harita && (
-        <div className="pointer-events-none absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-koyu/90 px-4 py-1.5 text-[13px] text-white shadow">
+        <div className="pointer-events-none absolute top-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-guclu/90 px-4 py-1.5 text-[13px] text-zemin shadow">
           {t('senaryo.harita.ipucu')}
         </div>
       )}
       {imlec && (
         <div
-          className="pointer-events-none absolute z-10 rounded-[5px] bg-[#2f2c27]/92 px-2.5 py-1.5 text-[12px] leading-[18px] whitespace-nowrap text-white shadow"
+          className="pointer-events-none absolute z-10 rounded-[5px] bg-black/90 ring-1 ring-white/15 px-2.5 py-1.5 text-[12px] leading-[18px] whitespace-nowrap text-white shadow"
           style={{ left: imlec.x + 14, top: imlec.y + 14 }}
         >
           {BANTLAR.map((b, k) => (
@@ -237,7 +237,7 @@ function Lejant() {
   const ozet = useSenaryo((d) => d.ozet)
   if (!ozet) return null
   return (
-    <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1.5 rounded-[5px] bg-panel/95 px-3 py-2 text-[12px] shadow-[0_0_0_1px_rgba(120,110,90,0.18),0_2px_6px_rgba(0,0,0,0.08)]">
+    <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1.5 rounded-[5px] bg-panel/95 px-3 py-2 text-[12px] shadow-[0_0_0_1px_var(--color-cizgi),0_4px_16px_rgba(0,0,0,0.6)]">
       <div className="font-medium">{t('senaryo.lejant.baslik')}</div>
       {[...BANTLAR].reverse().map((b) => (
         <div key={b} className="flex items-center gap-2">

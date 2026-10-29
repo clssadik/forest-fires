@@ -22,7 +22,7 @@ export function OlayOzeti({ veri }: { veri: OlayVerisi }) {
       <span key="sorensen">
         {m.bitis_dice === null ? '—' : yuzdeBicim(m.bitis_dice)}
         {m.daire_dice !== null && m.bitis_dice !== null && (
-          <span className={`ml-1 font-normal ${daireyiGeciyor ? 'text-[#3f6b33]' : 'text-ates'}`}>
+          <span className={`ml-1 font-normal ${daireyiGeciyor ? 'text-yesil' : 'text-ates'}`}>
             {t(daireyiGeciyor ? 'olayOzeti.daireyiGeciyor' : 'olayOzeti.daireyiGecemiyor', {
               deger: yuzdeBicim(m.daire_dice),
             })}

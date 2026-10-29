@@ -43,7 +43,7 @@ export function OlaySecici({ ad, secilebilir }: { ad: string; secilebilir: boole
         onClick={(e) => setSol(acik ? null : e.currentTarget.getBoundingClientRect().left)}
         aria-haspopup="listbox"
         aria-expanded={acik}
-        className="flex items-center gap-2 rounded px-2 py-1 font-semibold enabled:hover:bg-black/5"
+        className="flex items-center gap-2 rounded px-2 py-1 font-semibold enabled:hover:bg-white/[0.07]"
         title={secilebilir ? t('ustBar.olaySecici') : undefined}
       >
         {ad}
@@ -54,7 +54,7 @@ export function OlaySecici({ ad, secilebilir }: { ad: string; secilebilir: boole
         <ul
           role="listbox"
           aria-label={t('ustBar.olaySecici')}
-          className="fixed top-[40px] z-50 min-w-[260px] rounded-md border border-cizgi bg-[#efebe0] py-1 shadow-[0_4px_14px_rgba(0,0,0,0.18)]"
+          className="fixed top-[40px] z-50 min-w-[260px] rounded-md border border-cizgi bg-panel py-1 shadow-[0_8px_24px_rgba(0,0,0,0.7)]"
           style={{ left: sol ?? 0 }}
         >
           {liste === null && <li className="px-3 py-1.5 text-soluk">{t('ustBar.olayYukleniyor')}</li>}
@@ -64,7 +64,7 @@ export function OlaySecici({ ad, secilebilir }: { ad: string; secilebilir: boole
               <li key={y.ad} role="option" aria-selected={y.ad === secili}>
                 <button
                   type="button"
-                  className={`flex w-full flex-col px-3 py-1.5 text-left hover:bg-black/5 ${y.ad === secili ? 'font-semibold' : ''}`}
+                  className={`flex w-full flex-col px-3 py-1.5 text-left hover:bg-white/[0.07] ${y.ad === secili ? 'font-semibold' : ''}`}
                   onClick={() => {
                     setSol(null)
                     void yanginSec(y.ad)

@@ -26,13 +26,13 @@ export function Pusula() {
           {t('harita.kuzey')}
         </span>
         <svg viewBox="0 0 44 44" className="size-full drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
-          <circle cx="22" cy="22" r="20.5" fill="#3a3f47" fillOpacity="0.82" stroke="#f3f1ea" strokeWidth="1.6" />
+          <circle cx="22" cy="22" r="20.5" fill="#0a0a0a" fillOpacity="0.85" stroke="#ededed" strokeWidth="1.6" />
           <path d="M22 7 30 31 22 26 14 31z" fill="#ffffff" />
           <path d="M22 7 22 26 14 31z" fill="#d9dde3" />
         </svg>
       </button>
       {kip === '3B' && (
-        <div className="grid grid-cols-2 overflow-hidden rounded-[5px] bg-[#2a2723]/80 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm">
+        <div className="grid grid-cols-2 overflow-hidden rounded-[5px] bg-black/75 ring-1 ring-white/10 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm">
           <Dugme etiket={t('harita.solaDon')} onClick={() => donmeIste(-DONUS_ADIMI, 0)}>
             <IkonDonSol boyut={15} />
           </Dugme>

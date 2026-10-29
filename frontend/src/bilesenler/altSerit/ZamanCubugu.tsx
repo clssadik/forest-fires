@@ -47,7 +47,7 @@ export function ZamanCubugu({ yogunluk, olaylar }: Ozellikler) {
             <select
               value={Math.round(hiz / TEMEL_HIZ)}
               onChange={(e) => hizAyarla(Number(e.target.value) * TEMEL_HIZ)}
-              className="h-[38px] w-[56px] appearance-none rounded-[5px] border border-cizgi bg-[#e4e0d5] pl-2.5 text-[12.5px] shadow-[0_1px_1px_rgba(0,0,0,0.06)]"
+              className="h-[38px] w-[56px] appearance-none rounded-[5px] border border-cizgi bg-yuzey pl-2.5 text-[12.5px]"
             >
               {HIZLAR.map((h) => (
                 <option key={h} value={h}>
@@ -156,7 +156,7 @@ function Iz({
       }}
     >
       {/* Ana çizgi */}
-      <div className="absolute inset-x-0 top-[9px] h-[3px] rounded bg-[#77716a]" />
+      <div className="absolute inset-x-0 top-[9px] h-[3px] rounded bg-eksen" />
       {/* Yoğunluk bandı: geçmiş tam, gelecek soluk */}
       <div className="absolute inset-x-0 top-[13px] h-[6px] opacity-45" style={{ background: bant }} />
       <div
@@ -179,11 +179,11 @@ function Iz({
         const etiketli = yerel % 12 === 0
         return (
           <div key={x} className="absolute top-[30px] -translate-x-1/2 text-center" style={{ left: yuzde(x) }}>
-            <div className={`mx-auto w-px bg-[#9a9385] ${etiketli ? 'h-[5px]' : 'h-[3px]'}`} />
+            <div className={`mx-auto w-px bg-silik ${etiketli ? 'h-[5px]' : 'h-[3px]'}`} />
             {etiketli && (
               <div className="mt-0.5 leading-[15px] whitespace-nowrap">
                 <div className={`text-[12.5px] font-semibold ${gun ? '' : 'invisible'}`}>{gunAy(x)}</div>
-                <div className="text-[12px] text-[#4d483f]">{saat(x)}</div>
+                <div className="text-[12px] text-soluk">{saat(x)}</div>
               </div>
             )}
           </div>
@@ -193,12 +193,12 @@ function Iz({
       <div className="pointer-events-none absolute top-0 -translate-x-1/2" style={{ left: yuzde(zaman) }}>
         {/* Etiket ortalanır; uçlara yaklaşınca çubuğun dışına taşmasın diye içeri kayar. */}
         <div
-          className="absolute bottom-[calc(100%+4px)] left-1/2 rounded-[4px] bg-[#2f2c27] px-2 py-[3px] text-[12.5px] whitespace-nowrap text-white shadow"
+          className="absolute bottom-[calc(100%+4px)] left-1/2 rounded-[4px] bg-yuzey-acik ring-1 ring-white/10 px-2 py-[3px] text-[12.5px] whitespace-nowrap text-white shadow"
           style={{ transform: `translateX(-${etiketKaymasi(oran(zaman))}%)` }}
         >
           {gunAySaat(zaman)}
         </div>
-        <div className="size-[20px] rounded-full border-[3px] border-[#e9e5da] bg-[#4a463e] shadow-[0_1px_3px_rgba(0,0,0,0.35)]" />
+        <div className="size-[20px] rounded-full border-[3px] border-metin bg-zemin shadow-[0_0_0_3px_rgba(236,90,58,0.35)]" />
       </div>
     </div>
   )
@@ -228,8 +228,8 @@ function Dugme({
       aria-pressed={etkin}
       disabled={pasif}
       onClick={onClick}
-      className={`grid size-[38px] place-items-center rounded-[5px] border shadow-[0_1px_1px_rgba(0,0,0,0.08)] ${
-        etkin ? 'border-koyu bg-koyu text-white' : 'border-cizgi bg-[#e4e0d5] text-[#2f2c27] hover:bg-[#ebe7dc]'
+      className={`grid size-[38px] place-items-center rounded-[5px] border  ${
+        etkin ? 'border-guclu bg-guclu text-zemin' : 'border-cizgi bg-yuzey text-metin hover:bg-yuzey-acik'
       } ${pasif ? 'opacity-40' : ''}`}
     >
       {children}

@@ -24,7 +24,7 @@ import { SunucuGostergesi } from './SunucuGostergesi'
 
 const Ayirici = ({ noktali = false }: { noktali?: boolean }) => (
   <span
-    className={`mx-2.5 h-5 self-center ${noktali ? 'border-l border-dotted border-[#8f8778]' : 'border-l border-cizgi'}`}
+    className={`mx-2.5 h-5 self-center ${noktali ? 'border-l border-dotted border-silik' : 'border-l border-cizgi'}`}
   />
 )
 
@@ -75,7 +75,7 @@ export function UstBar() {
         {gunAyYil(baslik.baslangic)} – {gunAyYil(baslik.bitis)}
       </span>
 
-      <nav className="ml-3.5 flex rounded-md bg-[#cfc9b9] p-[3px]">
+      <nav className="ml-3.5 flex rounded-md bg-yuzey p-[3px] ring-1 ring-cizgi">
         <KipSekmesi
           secili={ekran === 'olay'}
           onClick={() => ekranAyarla('olay')}
@@ -107,11 +107,11 @@ export function UstBar() {
       <div className="ml-auto flex items-center">
         <SunucuGostergesi />
         <Ayirici />
-        <button type="button" className="rounded p-1.5 hover:bg-black/5" title={t('ustBar.ayarlar')}>
+        <button type="button" className="rounded p-1.5 hover:bg-white/[0.07]" title={t('ustBar.ayarlar')}>
           <IkonAyar boyut={16} />
         </button>
         <Ayirici />
-        <button type="button" className="rounded p-1.5 text-soluk hover:bg-black/5" title={t('ustBar.kucult')}>
+        <button type="button" className="rounded p-1.5 text-soluk hover:bg-white/[0.07]" title={t('ustBar.kucult')}>
           <IkonCizgi boyut={16} />
         </button>
       </div>
@@ -142,7 +142,7 @@ function KipSekmesi({
       aria-pressed={onClick ? secili : undefined}
       title={onClick ? undefined : t('ustBar.kipYakinda')}
       className={`flex items-center gap-1.5 rounded-[5px] px-2.5 py-[3px] ${
-        secili ? 'bg-[#efebe0] shadow-[0_1px_2px_rgba(0,0,0,0.12)]' : onClick ? 'hover:bg-black/5' : 'text-soluk'
+        secili ? 'bg-yuzey-acik text-metin shadow-[0_1px_2px_rgba(0,0,0,0.5)]' : onClick ? 'hover:bg-white/[0.07]' : 'text-soluk'
       }`}
     >
       {ikon}
@@ -158,7 +158,7 @@ function KipSekmesi({
 
 function Menu({ ad, ikon }: { ad: string; ikon: ReactNode }) {
   return (
-    <button type="button" title={ad} className="flex items-center gap-1.5 rounded px-2.5 py-1 hover:bg-black/5">
+    <button type="button" title={ad} className="flex items-center gap-1.5 rounded px-2.5 py-1 hover:bg-white/[0.07]">
       <span className="text-soluk">{ikon}</span>
       {/* Dar ekranda yalnızca simge: üst bar taşmasın. */}
       <span className="max-[1700px]:sr-only">{ad}</span>

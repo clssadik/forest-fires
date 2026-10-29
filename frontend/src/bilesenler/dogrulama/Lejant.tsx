@@ -11,7 +11,7 @@ export function Lejant() {
   const katmanlar = useDogrulama((d) => d.katmanlar)
 
   return (
-    <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1.5 rounded-[5px] bg-panel/95 px-3 py-2 text-[12px] shadow-[0_0_0_1px_rgba(120,110,90,0.18),0_2px_6px_rgba(0,0,0,0.08)]">
+    <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1.5 rounded-[5px] bg-panel/95 px-3 py-2 text-[12px] shadow-[0_0_0_1px_var(--color-cizgi),0_4px_16px_rgba(0,0,0,0.6)]">
       {katmanlar.model &&
         (renkKipi === 'yayilim' ? (
           <div>
@@ -40,7 +40,7 @@ export function Lejant() {
         ))}
       {katmanlar.gercek && (
         <div className="flex items-center gap-2">
-          <span className="h-0 w-[14px] border-t-2 border-[#1f1d19]" />
+          <span className="h-0 w-[14px] border-t-2 border-metin" />
           {t('dogrulama.lejant.gercekSinir')}
         </div>
       )}
@@ -48,7 +48,7 @@ export function Lejant() {
         <div className="flex items-center gap-2">
           <span className="flex gap-0.5">
             {FIRMS_DURAKLARI.map(([, r]) => (
-              <span key={r} className="size-[8px] rounded-full border-[0.5px] border-[#1f1d19]" style={{ background: r }} />
+              <span key={r} className="size-[8px] rounded-full border-[0.5px] border-metin" style={{ background: r }} />
             ))}
           </span>
           {t('dogrulama.lejant.firms')}

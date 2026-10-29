@@ -52,21 +52,21 @@ export function SenaryoGrafigi() {
           <svg width={gen} height={yuk} className="absolute inset-0 text-[10.5px]">
             {yTikler.map((y) => (
               <g key={y}>
-                <line x1={SOL} x2={SOL + ic.gen} y1={py(y)} y2={py(y)} stroke="#c6bfac" strokeWidth={y ? 0.6 : 1} />
-                <text x={SOL - 6} y={py(y)} textAnchor="end" dominantBaseline="middle" fill="#4d483f">
+                <line x1={SOL} x2={SOL + ic.gen} y1={py(y)} y2={py(y)} className="stroke-cizgi" strokeWidth={y ? 0.6 : 1} />
+                <text x={SOL - 6} y={py(y)} textAnchor="end" dominantBaseline="middle" className="fill-soluk">
                   {sayi(y)}
                 </text>
               </g>
             ))}
             {saatTikleri.map((s) => (
-              <text key={s} x={px(bas + s * SAAT)} y={yuk - 4} textAnchor="middle" fill="#4d483f">
+              <text key={s} x={px(bas + s * SAAT)} y={yuk - 4} textAnchor="middle" className="fill-soluk">
                 {s % 24 === 0 ? saat(bas + s * SAAT) : `+${s}`}
               </text>
             ))}
             {BANTLAR.map((b, k) => (
               <path key={b} d={alan(ozet.buyume_ha[k])} fill={BANT_RENKLERI[b]} fillOpacity={0.85} />
             ))}
-            <line x1={px(imlec)} x2={px(imlec)} y1={UST} y2={UST + ic.yuk} stroke="#3d3a33" strokeWidth={1.3} />
+            <line x1={px(imlec)} x2={px(imlec)} y1={UST} y2={UST + ic.yuk} className="stroke-metin" strokeWidth={1.3} />
           </svg>
         )}
         {!ozet && <p className="absolute inset-0 grid place-items-center text-[12.5px] text-soluk">{t('senaryo.grafik.bos')}</p>}

@@ -52,18 +52,18 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                 onClick={() => git(o)}
                 title={t('olaylar.git')}
                 className={`my-[3px] flex w-full gap-2 rounded-[5px] py-1 pr-2 pl-0.5 text-left text-[12.5px] leading-[16px] ${
-                  seciliMi ? 'bg-koyu text-[#efebe0]' : 'hover:bg-black/[0.04]'
+                  seciliMi ? 'bg-yuzey-acik text-metin' : 'hover:bg-white/[0.05]'
                 } ${gelecek ? 'opacity-50' : ''}`}
               >
                 <span
                   className={`relative z-10 mt-[1px] grid size-[18px] shrink-0 place-items-center rounded-full ${
-                    seciliMi ? 'bg-[#efebe0]' : 'bg-olaylar'
+                    seciliMi ? 'bg-zemin' : 'bg-olaylar'
                   }`}
                 >
                   <OlayIkonu tur={o.tur} boyut={13} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={`block text-[11.5px] ${seciliMi ? 'text-[#c9c2b2]' : 'text-soluk'}`}>
+                  <span className="block text-[11.5px] text-soluk">
                     {t('olaylar.saat', { saat: sayi(saat, 1) })} · {gunAySaat(o.zaman)}
                   </span>
                   <span className="block font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>

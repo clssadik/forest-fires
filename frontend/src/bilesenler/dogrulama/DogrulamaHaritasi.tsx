@@ -93,7 +93,7 @@ export function DogrulamaHaritasi() {
           tutusma: { type: 'geojson', data: { type: 'Point', coordinates: [boylam, enlem] } },
         },
         layers: [
-          { id: 'arka', type: 'background', paint: { 'background-color': '#d1cab8' } },
+          { id: 'arka', type: 'background', paint: { 'background-color': '#000000' } },
           { id: 'altlik', type: 'raster', source: 'altlik', paint: { 'raster-fade-duration': 0 } },
           {
             id: 'osm',
@@ -243,14 +243,14 @@ export function DogrulamaHaritasi() {
       </div>
       <Lejant />
       {yukleniyor && (
-        <div className="absolute top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-panel/95 px-3.5 py-1.5 text-[12.5px] shadow-[0_0_0_1px_rgba(120,110,90,0.18),0_2px_6px_rgba(0,0,0,0.08)]">
-          <span className="size-3.5 animate-spin rounded-full border-2 border-koyu/25 border-t-koyu" />
+        <div className="absolute top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-panel/95 px-3.5 py-1.5 text-[12.5px] shadow-[0_0_0_1px_var(--color-cizgi),0_4px_16px_rgba(0,0,0,0.6)]">
+          <span className="size-3.5 animate-spin rounded-full border-2 border-guclu/25 border-t-guclu" />
           {t('dogrulama.harita.yukleniyor')}
         </div>
       )}
       {imlec && (
         <div
-          className="pointer-events-none absolute z-10 rounded-[5px] bg-[#2f2c27]/92 px-2.5 py-1.5 text-[12px] leading-[18px] whitespace-nowrap text-white shadow"
+          className="pointer-events-none absolute z-10 rounded-[5px] bg-black/90 ring-1 ring-white/15 px-2.5 py-1.5 text-[12px] leading-[18px] whitespace-nowrap text-white shadow"
           style={{ left: imlec.x + 14, top: imlec.y + 14 }}
         >
           <div>

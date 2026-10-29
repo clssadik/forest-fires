@@ -7,10 +7,10 @@ export function OlayIkonu({ tur, boyut = 15 }: { tur: OlayTuru; boyut?: number }
     case 'tutusma':
       return <IkonDaire boyut={boyut} className="text-ates" />
     case 'uyduGecisi':
-      return <IkonHedef boyut={boyut - 1} className="text-[#5b7fa8]" />
+      return <IkonHedef boyut={boyut - 1} className="text-mavi" />
     case 'hizliBuyume':
       return <IkonAlev boyut={boyut} className="text-[#e5532c]" />
     case 'sirtaUlasma':
-      return <IkonUcgen boyut={boyut} className="text-[#7b766c]" />
+      return <IkonUcgen boyut={boyut} className="text-soluk" />
   }
 }

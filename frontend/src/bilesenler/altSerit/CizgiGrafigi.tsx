@@ -46,7 +46,7 @@ export function CizgiGrafigi({ baslik, veri, xAlan, yAlan, xTikler, yTikler, iml
     <div className="flex min-w-0 flex-1 flex-col border-r border-cizgi px-3 pt-1.5 pb-1 last:border-r-0">
       <div className="flex h-[20px] items-center">
         <h3 className="text-[12.5px] font-medium">{baslik}</h3>
-        <button type="button" className="ml-auto grid size-5 place-items-center rounded text-soluk hover:bg-black/5" title={t('grafikler.secenekler')}>
+        <button type="button" className="ml-auto grid size-5 place-items-center rounded text-soluk hover:bg-white/[0.07]" title={t('grafikler.secenekler')}>
           <IkonUcNokta boyut={13} />
         </button>
       </div>
@@ -62,15 +62,15 @@ export function CizgiGrafigi({ baslik, veri, xAlan, yAlan, xTikler, yTikler, iml
               </clipPath>
             </defs>
             {/* Eksenler */}
-            <line x1={SOL} x2={SOL} y1={UST} y2={UST + ic.yuk} stroke="#8a8375" />
-            <line x1={SOL} x2={SOL + ic.gen} y1={UST + ic.yuk} y2={UST + ic.yuk} stroke="#8a8375" />
+            <line x1={SOL} x2={SOL} y1={UST} y2={UST + ic.yuk} className="stroke-eksen" />
+            <line x1={SOL} x2={SOL + ic.gen} y1={UST + ic.yuk} y2={UST + ic.yuk} className="stroke-eksen" />
             {yTikler.map(({ y, etiket }) => (
-              <text key={y} x={SOL - 6} y={py(y)} textAnchor="end" dominantBaseline="middle" fill="#2f2c27">
+              <text key={y} x={SOL - 6} y={py(y)} textAnchor="end" dominantBaseline="middle" className="fill-soluk">
                 {etiket}
               </text>
             ))}
             {xTikler.map(({ x, etiket }) => (
-              <text key={x} x={px(x)} y={yuk - 3} textAnchor="middle" fill="#2f2c27">
+              <text key={x} x={px(x)} y={yuk - 3} textAnchor="middle" className="fill-soluk">
                 {etiket}
               </text>
             ))}
@@ -85,14 +85,14 @@ export function CizgiGrafigi({ baslik, veri, xAlan, yAlan, xTikler, yTikler, iml
               <path d={cizgi} fill="none" stroke={tema.cizgi} strokeWidth={1.6} />
             </g>
             {/* İmleç */}
-            <line x1={ix} x2={ix} y1={UST} y2={UST + ic.yuk} stroke="#3d3a33" strokeWidth={1.5} />
+            <line x1={ix} x2={ix} y1={UST} y2={UST + ic.yuk} className="stroke-metin" strokeWidth={1.5} />
             {[UST, UST + ic.yuk].map((y) => (
-              <circle key={y} cx={ix} cy={y} r={3.2} fill="#f3f0e8" stroke="#3d3a33" strokeWidth={1.3} />
+              <circle key={y} cx={ix} cy={y} r={3.2} className="fill-zemin stroke-metin" strokeWidth={1.3} />
             ))}
             {kirmiziNokta ? (
-              <circle cx={ix} cy={iy} r={4.5} fill="#d4472a" stroke="#f3f0e8" strokeWidth={1.2} />
+              <circle cx={ix} cy={iy} r={4.5} className="fill-ates stroke-metin" strokeWidth={1.2} />
             ) : (
-              <circle cx={ix} cy={iy} r={3.2} fill="#f3f0e8" stroke="#3d3a33" strokeWidth={1.3} />
+              <circle cx={ix} cy={iy} r={3.2} className="fill-zemin stroke-metin" strokeWidth={1.3} />
             )}
           </svg>
         )}

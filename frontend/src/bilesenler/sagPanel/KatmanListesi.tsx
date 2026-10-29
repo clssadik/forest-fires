@@ -30,7 +30,7 @@ function KatmanSatiri({ katman }: { katman: Katman }) {
         <input type="checkbox" className="peer sr-only" checked={katman.acik} onChange={() => degistir(katman.kimlik)} />
         <span
           className={`grid size-[15px] shrink-0 place-items-center rounded-[3px] border peer-focus-visible:ring-2 peer-focus-visible:ring-ates/50 ${
-            katman.acik ? 'border-[#55514a] bg-[#55514a] text-white' : 'border-[#b5ae9e] bg-[#e6e2d7]'
+            katman.acik ? 'border-guclu bg-guclu text-zemin' : 'border-eksen bg-transparent'
           }`}
         >
           {katman.acik && <IkonTik boyut={11} strokeWidth={3} />}

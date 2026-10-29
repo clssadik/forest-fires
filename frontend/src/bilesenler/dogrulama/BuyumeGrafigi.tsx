@@ -10,7 +10,7 @@ const SAG = 14
 const UST = 8
 const ALT = 20
 const MODEL = '#c9543a'
-const FIRMS = '#3d3a33'
+const FIRMS = '#d4d4d4'
 
 /** Yanan alan–zaman: model (topluluk) ve FIRMS'in gördüğü gerçek alan; kesikli çizgi gerçek toplam. */
 export function BuyumeGrafigi() {
@@ -48,28 +48,28 @@ export function BuyumeGrafigi() {
         </h3>
         <Anahtar renk={MODEL} ad={t('dogrulama.grafik.model')} />
         <Anahtar renk={FIRMS} ad={t('dogrulama.grafik.firms')} />
-        <Anahtar renk="#8a8375" ad={t('dogrulama.grafik.gercek', { ha: sayi(gercek) })} kesikli />
+        <Anahtar renk="#8a8a8a" ad={t('dogrulama.grafik.gercek', { ha: sayi(gercek) })} kesikli />
       </div>
       <div ref={ref} className="relative min-h-0 flex-1">
         {gen > 0 && (
           <svg width={gen} height={yuk} className="absolute inset-0 text-[10.5px]">
             {yTikler.map((y) => (
               <g key={y}>
-                <line x1={SOL} x2={SOL + ic.gen} y1={py(y)} y2={py(y)} stroke="#c6bfac" strokeWidth={y ? 0.6 : 1} />
-                <text x={SOL - 6} y={py(y)} textAnchor="end" dominantBaseline="middle" fill="#4d483f">
+                <line x1={SOL} x2={SOL + ic.gen} y1={py(y)} y2={py(y)} className="stroke-cizgi" strokeWidth={y ? 0.6 : 1} />
+                <text x={SOL - 6} y={py(y)} textAnchor="end" dominantBaseline="middle" className="fill-soluk">
                   {y ? t('dogrulama.grafik.bin', { deger: sayi(y / 1000) }) : '0'}
                 </text>
               </g>
             ))}
             {gunler.map((x) => (
-              <text key={x} x={px(x)} y={yuk - 4} textAnchor="middle" fill="#4d483f">
+              <text key={x} x={px(x)} y={yuk - 4} textAnchor="middle" className="fill-soluk">
                 {gunAy(x)}
               </text>
             ))}
-            <line x1={SOL} x2={SOL + ic.gen} y1={py(gercek)} y2={py(gercek)} stroke="#8a8375" strokeDasharray="4 3" />
+            <line x1={SOL} x2={SOL + ic.gen} y1={py(gercek)} y2={py(gercek)} stroke="#8a8a8a" strokeDasharray="4 3" />
             <path d={yol(firms)} fill="none" stroke={FIRMS} strokeWidth={1.6} />
             <path d={yol(model)} fill="none" stroke={MODEL} strokeWidth={2} />
-            <line x1={ix} x2={ix} y1={UST} y2={UST + ic.yuk} stroke="#3d3a33" strokeWidth={1.3} />
+            <line x1={ix} x2={ix} y1={UST} y2={UST + ic.yuk} className="stroke-metin" strokeWidth={1.3} />
           </svg>
         )}
         {!sonuc && (

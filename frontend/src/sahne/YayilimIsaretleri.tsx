@@ -70,7 +70,7 @@ export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabart
               <span className="absolute -top-[7px] -left-[7px] grid size-[14px] place-items-center rounded-full border-2 border-[#f6a43a] bg-[#fff4df]">
                 <span className="size-[4px] rounded-full bg-[#f08a2a]" />
               </span>
-              <div className="absolute top-[-11px] left-[14px] rounded-[4px] bg-[#2b2622]/80 px-1.5 py-[2px] text-[12.5px] whitespace-nowrap text-white">
+              <div className="absolute top-[-11px] left-[14px] rounded-[4px] bg-black/75 ring-1 ring-white/10 px-1.5 py-[2px] text-[12.5px] whitespace-nowrap text-white">
                 {t('harita.izokron', { saat })} · {gunAySaat(an)}
               </div>
             </div>
@@ -84,7 +84,7 @@ export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabart
       >
         <div className={`pointer-events-none relative ${basladi ? '' : 'invisible'}`}>
           <span className="absolute -top-[7px] -left-[7px] size-[14px] rounded-full border-2 border-white bg-ates shadow-[0_0_14px_6px_rgba(255,170,60,0.75)]" />
-          <div className="absolute top-[-14px] left-[14px] rounded-[4px] bg-[#2b2622]/80 px-2 py-1 text-[14px] leading-[18px] whitespace-nowrap text-white">
+          <div className="absolute top-[-14px] left-[14px] rounded-[4px] bg-black/75 ring-1 ring-white/10 px-2 py-1 text-[14px] leading-[18px] whitespace-nowrap text-white">
             {t('harita.tutusma')}
             <br />
             {gunAySaat(veri.tutusmaMs)}

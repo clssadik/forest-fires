@@ -33,7 +33,7 @@ export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
           )}
         </div>
         {m.daire_dice !== null && puan !== null && (
-          <div className={daireyiGeciyor ? 'text-[#3f6b33]' : 'text-ates'}>
+          <div className={daireyiGeciyor ? 'text-yesil' : 'text-ates'}>
             {t(daireyiGeciyor ? 'sagPanel.analiz.daireyiGeciyor' : 'sagPanel.analiz.daireyiGecemiyor', {
               deger: yuzdeBicim(m.daire_dice),
             })}
@@ -55,7 +55,7 @@ export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
                   </span>
                   <span className="h-[7px] rounded-[1px] bg-cizgi">
                     <span
-                      className={`block h-full rounded-[1px] ${guncel ? 'bg-ates' : d.ad === 'daire' ? 'bg-koyu' : 'bg-silik'}`}
+                      className={`block h-full rounded-[1px] ${guncel ? 'bg-ates' : d.ad === 'daire' ? 'bg-guclu' : 'bg-silik'}`}
                       style={{ width: `${(d.dice / enBuyuk) * 100}%` }}
                     />
                   </span>
@@ -136,7 +136,7 @@ function HataDagilimi({ veri }: { veri: OlayVerisi }) {
         <input type="checkbox" className="peer sr-only" checked={acik} onChange={() => degistir('hata')} />
         <span
           className={`grid size-[14px] place-items-center rounded-[3px] border peer-focus-visible:ring-2 peer-focus-visible:ring-ates/50 ${
-            acik ? 'border-[#55514a] bg-[#55514a] text-white' : 'border-[#b5ae9e] bg-[#e6e2d7]'
+            acik ? 'border-guclu bg-guclu text-zemin' : 'border-eksen bg-transparent'
           }`}
         >
           {acik && <IkonTik boyut={10} strokeWidth={3} />}

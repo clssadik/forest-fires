@@ -53,7 +53,7 @@ function YerKarti() {
         )}
         {durum === 'calisiyor' && (
           <p className="flex items-center gap-2 text-soluk">
-            <span className="size-3.5 animate-spin rounded-full border-2 border-koyu/25 border-t-koyu" />
+            <span className="size-3.5 animate-spin rounded-full border-2 border-guclu/25 border-t-guclu" />
             {t('senaryo.yer.calisiyor')}
           </p>
         )}
@@ -69,7 +69,7 @@ function YerKarti() {
               type="checkbox"
               checked={altlik}
               onChange={() => useSenaryo.getState().altlikAcKapa()}
-              className="size-[14px] accent-[#3d3a33]"
+              className="size-[14px] accent-ates"
             />
             {t('senaryo.yer.altlik')}
           </label>

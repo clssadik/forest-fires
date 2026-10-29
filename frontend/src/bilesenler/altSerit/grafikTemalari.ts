@@ -1,4 +1,4 @@
-/** Alt şerit grafiklerinin renk temaları (geçmiş: dolu, gelecek: soluk). */
+/** Alt şerit grafiklerinin renk temaları, siyah zemin için (geçmiş: dolu, gelecek: soluk). */
 
 export interface GrafikTemasi {
   cizgi: string
@@ -8,7 +8,7 @@ export interface GrafikTemasi {
 }
 
 export const TEMALAR = {
-  alan: { cizgi: '#c9543a', dolgu: '#dd8c6c', gelecekCizgi: '#d9a088', gelecekDolgu: '#e6c8b4' },
-  hiz: { cizgi: '#c22a24', dolgu: '#efc3b6', gelecekCizgi: '#e1a091', gelecekDolgu: '#f0ddd4' },
-  profil: { cizgi: '#4f5f41', dolgu: '#7f906c', gelecekCizgi: '#a3ad92', gelecekDolgu: '#c3cab3' },
+  alan: { cizgi: '#f06a45', dolgu: '#7c2f1d', gelecekCizgi: '#9a5d4b', gelecekDolgu: '#33201a' },
+  hiz: { cizgi: '#ff5a44', dolgu: '#5e211b', gelecekCizgi: '#8f4c43', gelecekDolgu: '#2c1a17' },
+  profil: { cizgi: '#9bbd7e', dolgu: '#3d4f30', gelecekCizgi: '#65735a', gelecekDolgu: '#20281b' },
 } satisfies Record<string, GrafikTemasi>

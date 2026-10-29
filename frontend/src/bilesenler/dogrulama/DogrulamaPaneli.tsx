@@ -10,7 +10,7 @@ import { Kart } from '../sagPanel/Kart'
 /** Harita hücresi yerde ~30 m × 30 m (arka uç Mercator hücresini buna göre seçer). */
 const HUCRE_HA = 0.09
 const SAAT = 3_600_000
-const MODEL_RENGI = '#2a78d6'
+const MODEL_RENGI = '#4a90e2'
 const BASELINE_RENGI = '#b9cfe9'
 
 const ha = (x: number) => `${sayi(x)} ha`
@@ -41,7 +41,7 @@ function KatmanKarti() {
   return (
     <Kart baslik={t('dogrulama.katmanlar.baslik')}>
       <div className="px-3 pt-2.5">
-        <div role="radiogroup" aria-label={t('dogrulama.katmanlar.renkKipi')} className="flex rounded-md bg-[#cfc9b9] p-[3px]">
+        <div role="radiogroup" aria-label={t('dogrulama.katmanlar.renkKipi')} className="flex rounded-md bg-yuzey p-[3px] ring-1 ring-cizgi">
           {(['yayilim', 'karsilastirma'] as const).map((k) => (
             <button
               key={k}
@@ -50,7 +50,7 @@ function KatmanKarti() {
               aria-checked={renkKipi === k}
               onClick={() => renkKipiAyarla(k)}
               className={`flex-1 rounded-[5px] py-[3px] text-[12.5px] ${
-                renkKipi === k ? 'bg-[#efebe0] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.12)]' : 'text-soluk'
+                renkKipi === k ? 'bg-yuzey-acik font-medium text-metin shadow-[0_1px_2px_rgba(0,0,0,0.5)]' : 'text-soluk'
               }`}
             >
               {t(`dogrulama.katmanlar.kipler.${k}`)}
@@ -61,8 +61,8 @@ function KatmanKarti() {
       <ul className="px-1.5 py-1.5">
         {sira.map((k) => (
           <li key={k}>
-            <label className="flex cursor-pointer items-center gap-2.5 rounded px-1.5 py-[5px] text-[13px] hover:bg-black/[0.03]">
-              <input type="checkbox" checked={katmanlar[k]} onChange={() => katmanAcKapa(k)} className="size-[14px] accent-[#3d3a33]" />
+            <label className="flex cursor-pointer items-center gap-2.5 rounded px-1.5 py-[5px] text-[13px] hover:bg-white/[0.04]">
+              <input type="checkbox" checked={katmanlar[k]} onChange={() => katmanAcKapa(k)} className="size-[14px] accent-ates" />
               {t(`dogrulama.katmanlar.${k}`)}
             </label>
           </li>
@@ -101,9 +101,9 @@ function SimulasyonKarti() {
           type="button"
           disabled={!hazir || calisiyor}
           onClick={() => void useDogrulama.getState().simulasyonCalistir()}
-          className="flex h-[34px] items-center justify-center gap-2 rounded-[5px] bg-koyu text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.15)] hover:bg-[#4a463e] disabled:opacity-60"
+          className="flex h-[34px] items-center justify-center gap-2 rounded-[5px] bg-guclu text-[13px] font-medium text-zemin hover:bg-white disabled:opacity-60"
         >
-          {calisiyor && <span className="size-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />}
+          {calisiyor && <span className="size-3.5 animate-spin rounded-full border-2 border-zemin/30 border-t-zemin" />}
           {t(calisiyor ? 'dogrulama.simulasyon.calisiyor' : 'dogrulama.simulasyon.calistir')}
         </button>
         {calisiyor && <p className="text-[11.5px] text-soluk">{t('dogrulama.simulasyon.bekleyin')}</p>}
@@ -233,7 +233,7 @@ function BaselineKarti() {
                 <span className={modelMi(d.ad) ? 'font-semibold' : ''}>{t(`dogrulama.baseline.adlar.${d.ad}`, d.aciklama)}</span>
                 <span className="ml-auto font-medium tabular-nums">{yuzdeBicim(d.bitis_dice)}</span>
               </div>
-              <div className="mt-0.5 h-[7px] rounded-[2px] bg-[#cfc9b9]/60">
+              <div className="mt-0.5 h-[7px] rounded-[2px] bg-yuzey-acik">
                 <div
                   className="h-full rounded-[2px]"
                   style={{ width: `${(d.bitis_dice / (enBuyuk * 1.05)) * 100}%`, background: modelMi(d.ad) ? MODEL_RENGI : BASELINE_RENGI }}
@@ -244,7 +244,7 @@ function BaselineKarti() {
         })}
       </ul>
       {model && model.bitis_dice < enIyi.bitis_dice && (
-        <p className="mx-3 mb-2 rounded-[4px] bg-[#e8d9c4] px-2 py-1.5 text-[11.5px] leading-[15px]">
+        <p className="mx-3 mb-2 rounded-[4px] bg-ates/10 ring-1 ring-ates/30 px-2 py-1.5 text-[11.5px] leading-[15px]">
           {t('dogrulama.baseline.gecemiyor', {
             modelAd: t(`dogrulama.baseline.adlar.${model.ad}`, model.aciklama),
             model: yuzdeBicim(model.bitis_dice),

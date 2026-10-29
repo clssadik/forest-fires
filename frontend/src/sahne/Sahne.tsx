@@ -14,7 +14,8 @@ import { RuzgarCizgileri } from './RuzgarCizgileri'
 import { YayilimIsaretleri } from './YayilimIsaretleri'
 import { yanginUniformlari as U } from './yanginMalzemesi'
 
-const SIS_RENGI = '#cfd0c8'
+/** Uzak arazi siyah zemine karışır. */
+const SIS_RENGI = '#050505'
 
 /** Global zamanı ve katman opaklıklarını gölgelendirici uniform'larına aktarır. */
 function UniformGuncelleyici({ tutusmaMs, hataEsikSaat }: { tutusmaMs: number; hataEsikSaat: number }) {

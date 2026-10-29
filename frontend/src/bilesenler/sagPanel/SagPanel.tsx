@@ -18,7 +18,7 @@ export function SagPanel({ veri }: { veri: OlayVerisi | null }) {
 
   return (
     <aside className="flex w-[312px] shrink-0 flex-col gap-[7px] overflow-y-auto border-l border-cizgi bg-zemin p-[7px]">
-      <section className="overflow-hidden rounded-[5px] bg-panel shadow-[0_0_0_1px_rgba(120,110,90,0.12)]">
+      <section className="overflow-hidden rounded-[5px] bg-panel shadow-[0_0_0_1px_var(--color-cizgi)]">
         <div role="tablist" className="flex bg-panel-baslik px-1 pt-1">
           {SEKMELER.map((s) => (
             <button
@@ -28,7 +28,7 @@ export function SagPanel({ veri }: { veri: OlayVerisi | null }) {
               aria-selected={sekme === s}
               onClick={() => setSekme(s)}
               className={`relative h-[33px] flex-1 rounded-t-[4px] text-[13.5px] ${
-                sekme === s ? 'bg-panel font-semibold' : 'text-[#4d483f] hover:text-metin'
+                sekme === s ? 'bg-panel font-semibold' : 'text-soluk hover:text-metin'
               }`}
             >
               {t(`sagPanel.sekmeler.${s}`)}

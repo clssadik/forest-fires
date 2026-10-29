@@ -1,8 +1,8 @@
 import { BackSide, Color } from 'three'
 
-/** Puslu ufuk → açık mavi tepe geçişli gökyüzü kubbesi. */
-const UST = new Color('#9fb6c6')
-const UFUK = new Color('#d3d3cb')
+/** Hafif aydınlık ufuk → siyah tepe geçişli gökyüzü kubbesi. */
+const UST = new Color('#000000')
+const UFUK = new Color('#141414')
 
 export function Gokyuzu() {
   return (

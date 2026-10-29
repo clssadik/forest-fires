@@ -29,11 +29,11 @@ export function HavaPaneli({ veri }: { veri: OlayVerisi }) {
         <Deger ikon={<IkonTermometre boyut={17} />} etiket={t('hava.sicaklik')} cizgi>
           {t('hava.derece', { deger: Math.round(h.sicaklik) })}
         </Deger>
-        <Deger ikon={<IkonDamla boyut={17} className="text-[#3f7fc0]" />} etiket={t('hava.nem')} cizgi>
+        <Deger ikon={<IkonDamla boyut={17} className="text-mavi" />} etiket={t('hava.nem')} cizgi>
           {yuzdeBicim(h.nem / 100)}
         </Deger>
         <div className="col-span-3 my-2 border-t border-cizgi/80" />
-        <Deger ikon={<IkonYaprak boyut={18} className="text-[#55634a]" />} etiket={t('hava.yakitNemi')}>
+        <Deger ikon={<IkonYaprak boyut={18} className="text-yesil" />} etiket={t('hava.yakitNemi')}>
           {sayi(h.yakitNemi, 1)} %
         </Deger>
         <Deger ikon={<IkonAlev boyut={18} className="text-ates" />} etiket={t('hava.cepheHizi')} cizgi>
@@ -60,7 +60,7 @@ function Deger({
 }) {
   return (
     <div className={`flex min-w-0 gap-1.5 px-1.5 ${cizgi ? 'border-l border-cizgi/80' : ''}`}>
-      <span className="mt-[9px] shrink-0 text-[#4a463e]">{ikon}</span>
+      <span className="mt-[9px] shrink-0 text-soluk">{ikon}</span>
       <div className="min-w-0 leading-[17px]">
         <div className="truncate text-[12px] text-soluk">{etiket}</div>
         <div className="text-[14px] font-semibold whitespace-nowrap">{children}</div>

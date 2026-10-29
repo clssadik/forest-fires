@@ -6,7 +6,7 @@ import { IkonAsagi, IkonHedef, IkonTamEkran } from '../ikonlar'
 import { OlcekCubugu } from './OlcekCubugu'
 
 const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10]
-const koyuKutu = 'rounded-[5px] bg-[#2a2723]/80 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm'
+const koyuKutu = 'rounded-[5px] bg-black/75 ring-1 ring-white/10 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm'
 
 /** Sağ alttaki harita kontrolleri: ölçek, 2B/3B, tutuşmaya git, yakınlaştırma, tam ekran. */
 export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkran: () => void }) {
@@ -35,7 +35,7 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
         onClick={() => odaklanIste(tutusma.x, tutusma.z)}
         title={t('harita.tutusmayaGit')}
         aria-label={t('harita.tutusmayaGit')}
-        className={`flex h-[32px] items-center gap-1.5 px-2.5 text-[13px] hover:bg-[#2a2723]/95 ${koyuKutu}`}
+        className={`flex h-[32px] items-center gap-1.5 px-2.5 text-[13px] hover:bg-black/95 ${koyuKutu}`}
       >
         <IkonHedef boyut={15} className="text-ates-acik" />
         {t('harita.tutusma')}

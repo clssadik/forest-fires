@@ -42,7 +42,7 @@ function NotAlani({ ad }: { ad: string }) {
         }}
         placeholder={t('sagPanel.notlar.yerTutucu')}
         rows={7}
-        className="w-full resize-y rounded-[4px] border border-cizgi bg-[#ece8dd] px-2 py-1.5 text-[12.5px] placeholder:text-silik focus:border-soluk focus:outline-none"
+        className="w-full resize-y rounded-[4px] border border-cizgi bg-yuzey px-2 py-1.5 text-[12.5px] placeholder:text-silik focus:border-soluk focus:outline-none"
       />
       <p className={saklandi ? 'text-soluk' : 'text-ates'}>
         {t(saklandi ? 'sagPanel.notlar.saklama' : 'sagPanel.notlar.saklanamiyor')}

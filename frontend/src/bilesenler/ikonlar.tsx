@@ -239,7 +239,7 @@ export function IkonYaprak(p: IkonOzellik) {
   return (
     <Ikon {...p} dolgu>
       <path d="M5 20c0-9 5-15 16-16-1 11-7 16-16 16z" />
-      <path d="M5 20 13 12" stroke="#dedace" strokeWidth={1.6} />
+      <path d="M5 20 13 12" className="stroke-panel" strokeWidth={1.6} />
     </Ikon>
   )
 }
