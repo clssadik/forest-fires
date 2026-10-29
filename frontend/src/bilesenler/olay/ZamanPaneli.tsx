@@ -57,16 +57,19 @@ interface Serit {
  * Şeritler her zaman açık: yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi. Olaylar
  * yanan alan grafiğinin içinde noktalardır: uydu gözlemi FIRMS çizgisinde, model olayı model
  * eğrisinde, tutuşma tabanda. Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür;
- * beyaz çizgi seçili an. En üst satırda solda seçili an, sağda gün ekseni. Şeritler
+ * beyaz çizgi seçili an. Gün ekseni oynatma denetimleriyle aynı satırda; altında seçili anın kendi satırı. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   return (
     <section className="shrink-0 border-t border-cizgi bg-olaylar">
-      <div className="flex h-[50px] items-center gap-2 border-b border-cizgi px-3.5 whitespace-nowrap">
-        <Denetimler />
-      </div>
-      {veri && <Seritler veri={veri} />}
+      {veri ? (
+        <Seritler veri={veri} />
+      ) : (
+        <div className="flex h-[50px] items-center gap-2 border-b border-cizgi px-3.5 whitespace-nowrap">
+          <Denetimler />
+        </div>
+      )}
     </section>
   )
 }
@@ -121,7 +124,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const zamanaGit = useZaman((d) => d.zamanaGit)
   const odaklanIste = useHarita((d) => d.odaklanIste)
   const ref = useRef<HTMLDivElement>(null)
-  const [olayRef, { gen: olayGen }] = useBoyut<HTMLDivElement>()
+  const [eksenRef, { gen: eksenGen }] = useBoyut<HTMLDivElement>()
 
   const oran = (x: number) => Math.min(Math.max((x - baslangic) / Math.max(bitis - baslangic, 1), 0), 1)
 
@@ -276,23 +279,28 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           kapat={kapat}
         />
       )}
-      {/* Üst satır: solda seçili an, sağda gün ekseni */}
-      <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.12]">
-        <div className="flex items-baseline gap-2 px-3.5 whitespace-nowrap">
-          <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-          <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
+      {/* Denetimler ve gün ekseni aynı satırda */}
+      <div className="grid h-[50px] grid-cols-[212px_1fr] items-center border-b border-cizgi">
+        <div className="flex items-center gap-2 px-3.5 whitespace-nowrap">
+          <Denetimler />
         </div>
-        <div className="relative h-full text-[11px] whitespace-nowrap text-silik" style={{ marginRight: SAG }}>
-          <span className="absolute top-[8px] left-0">{gunAySaat(baslangic)}</span>
+        <div ref={eksenRef} className="relative h-full text-[11.5px] whitespace-nowrap text-soluk" style={{ marginRight: SAG }}>
+          <span className="absolute top-1/2 left-0 -translate-y-1/2">{gunAySaat(baslangic)}</span>
           {s.gunler
             // Baştaki tarih yazısıyla ve sağ kenarla çakışan gün yazıları atlanır.
-            .filter((x) => oran(x) * olayGen > 115 && (1 - oran(x)) * olayGen > 25)
+            .filter((x) => oran(x) * eksenGen > 115 && (1 - oran(x)) * eksenGen > 25)
             .map((x) => (
-              <span key={x} className="absolute top-[8px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
+              <span key={x} className="absolute top-1/2 -translate-1/2" style={{ left: `${oran(x) * 100}%` }}>
                 {gunAy(x)}
               </span>
             ))}
         </div>
+      </div>
+
+      {/* Seçili an */}
+      <div className="flex h-[30px] items-center gap-2 border-b border-white/[0.12] px-3.5 whitespace-nowrap">
+        <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
+        <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
       </div>
 
       {seritler.map((sr) => (
@@ -302,7 +310,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           style={{ height: sr.yuk + 10 }}
         >
           <SeritAdi ad={sr.ad} seriler={sr.seriler} />
-          <div ref={sr.kimlik === 'alan' ? olayRef : undefined} className="relative" style={{ marginRight: SAG, height: sr.yuk }}>
+          <div className="relative" style={{ marginRight: SAG, height: sr.yuk }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {
@@ -359,7 +367,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         }}
       >
         <div
-          className="pointer-events-none absolute top-0 bottom-0 w-[1.5px] -translate-x-1/2 bg-metin"
+          className="pointer-events-none absolute top-[50px] bottom-0 w-[1.5px] -translate-x-1/2 bg-metin"
           style={{ left: `${imlec * 100}%` }}
         />
       </div>
