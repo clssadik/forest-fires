@@ -16,6 +16,9 @@ class Senaryo:
     tutusma_utc: datetime
     tutusma_konumu: tuple[float, float]  # (enlem, boylam), WGS84
     model_bitis_utc: datetime | None = None  # simülasyonun duracağı an (yaklaşık söndürme)
+    # Sonradan başlayan ayrı yangınlar: (UTC an, enlem, boylam). Kayıtlı kundaklamalar ve yayılmayla
+    # açıklanamayacak kadar uzakta beliren uydu tespitleri; model bunları o anda tutuşturur.
+    ek_tutusmalar: tuple[tuple[datetime, float, float], ...] = ()
     baslik: str = ""  # arayüzde görünen ad
     konum: str = ""  # arayüzde görünen yer adı
 
@@ -34,6 +37,19 @@ MANAVGAT_2021 = Senaryo(
     tutusma_konumu=(36.9313, 31.3838),
     # FIRMS tespitlerinin %94'ü bu andan önce; sonrası dağınık, söner hâldeki noktalar.
     model_bitis_utc=datetime(2021, 8, 4, 0, 0, tzinfo=UTC),
+    # Manavgat yangını tek yangın değil, ayrı kundaklamalardan oluşan bir küme (Nature npj Natural
+    # Hazards 2025, "Up in flames": 28 Tem'de 4 kundaklama ve 7 ayrı noktada alev, 29 Tem'de barajın
+    # yakınında yeni bir kundaklama). İlk dördü: ana tespitten 70 dk sonraki VIIRS geçişinde, önceki
+    # her tespitten 2 km + 2 km/sa × geçen süreden uzakta beliren noktalar (yayılmayla varılamaz);
+    # her odağın en güçlü tespiti. Sonuncusu: 29 Tem kundaklaması; Saraçlı köyünün 5 km içindeki ilk
+    # geçişin en güçlü tespiti (02:22 yerel). Zaman tespit anıdır (gerçek tutuşma biraz önce).
+    ek_tutusmalar=(
+        (datetime(2021, 7, 28, 10, 11, tzinfo=UTC), 36.83870, 31.65840),
+        (datetime(2021, 7, 28, 10, 11, tzinfo=UTC), 36.79631, 31.42257),
+        (datetime(2021, 7, 28, 10, 12, tzinfo=UTC), 36.86535, 31.31508),
+        (datetime(2021, 7, 28, 10, 12, tzinfo=UTC), 36.87107, 31.35931),
+        (datetime(2021, 7, 28, 23, 22, tzinfo=UTC), 36.88373, 31.56738),
+    ),
     baslik="Manavgat 2021",
     konum="Manavgat, Antalya",
 )

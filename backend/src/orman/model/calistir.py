@@ -33,8 +33,21 @@ TUTUSMA_ARAMA_YARICAPI = 10  # hücre; tutuşma noktası yanmaz hücreye düşer
 
 def tutusma_hucresi(paket: BolgePaketi) -> tuple[int, int]:
     """Senaryonun tutuşma konumundaki (yanmazsa en yakın yanabilir) ızgara hücresi."""
+    return _yanabilir_hucre(paket, *paket.senaryo.tutusma_konumu)
+
+
+def tutusma_hucreleri(paket: BolgePaketi) -> list[tuple[int, int, float]]:
+    """Ana tutuşma (0. dk) ve senaryonun ek tutuşmaları: (satır, sütun, tutuşmadan bu yana dk)."""
+    senaryo = paket.senaryo
+    hucreler = [(*tutusma_hucresi(paket), 0.0)]
+    for an, enlem, boylam in senaryo.ek_tutusmalar:
+        dakika = (an - senaryo.tutusma_utc).total_seconds() / 60.0
+        hucreler.append((*_yanabilir_hucre(paket, enlem, boylam), dakika))
+    return hucreler
+
+
+def _yanabilir_hucre(paket: BolgePaketi, enlem: float, boylam: float) -> tuple[int, int]:
     izgara = paket.senaryo.izgara
-    enlem, boylam = paket.senaryo.tutusma_konumu
     x, y = Transformer.from_crs("EPSG:4326", izgara.crs, always_xy=True).transform(boylam, enlem)
     sutun, satir = ~izgara.transform * (x, y)
     r, c = int(np.floor(satir)), int(np.floor(sutun))
@@ -61,13 +74,14 @@ def calistir(
     hucre = tutusma_hucresi(paket)
     bitis_dk = (senaryo.model_bitis_utc - senaryo.tutusma_utc).total_seconds() / 60.0
 
-    yayilim(arazi, ruzgar, [hucre], parametreler, tohum, 1.0)  # Numba derlemesi ölçüme girmesin
+    tutusmalar = tutusma_hucreleri(paket)
+    yayilim(arazi, ruzgar, tutusmalar, parametreler, tohum, 1.0)  # Numba derlemesi ölçüme girmesin
     baslangic = time.perf_counter()
     if calisma == 1:
-        toa, olasilik = yayilim(arazi, ruzgar, [hucre], parametreler, tohum, bitis_dk), None
+        toa, olasilik = yayilim(arazi, ruzgar, tutusmalar, parametreler, tohum, bitis_dk), None
     else:
         sonuc = coklu_yayilim(
-            arazi, ruzgar, [hucre], parametreler, range(tohum, tohum + calisma), bitis_dk
+            arazi, ruzgar, tutusmalar, parametreler, range(tohum, tohum + calisma), bitis_dk
         )
         toa, olasilik = sonuc.toa_ortanca, sonuc.olasilik
     sure = time.perf_counter() - baslangic

@@ -144,7 +144,7 @@ def degerlendir(
 ) -> Degerlendirme:
     r = ortam.referans
     toa = coklu_yayilim(
-        ortam.arazi, ortam.ruzgar, [ortam.tutusma], parametreler, tohumlar, r.bitis_dk
+        ortam.arazi, ortam.ruzgar, ortam.model_tutusmalari, parametreler, tohumlar, r.bitis_dk
     ).toa_topluluk
     o = dogrula(toa, r)
     zamanlama = zamanli_iou(toa, r, anlar_dk)

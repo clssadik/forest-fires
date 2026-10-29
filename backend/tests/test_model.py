@@ -360,3 +360,23 @@ def test_sondurme_gucu_buyume_hizina_baglanir():
     # Aynı yangın 1 m hücrede 100× küçük alanla büyür: ekipler kenarı tutar, alan küçük kalır.
     assert np.count_nonzero(~np.isnan(yavas_toa)) < 0.25 * np.count_nonzero(~np.isnan(hizli_toa))
 
+
+def test_zamanli_ek_tutusma_o_anda_baslar():
+    """(satır, sütun, dakika): ikinci yangın 100. dakikada başlar; o ana kadar oraya ateş ulaşmaz."""
+    arazi = _duz_arazi(81)
+    ruzgar = Ruzgar.sabit(0.0, 0.0)
+    ilk, ikinci = (10, 10), (70, 70)
+    tek = yayilim(arazi, ruzgar, [ilk], Parametreler(), 0, 200.0)
+    iki = yayilim(arazi, ruzgar, [ilk, (*ikinci, 100.0)], Parametreler(), 0, 200.0)
+    assert np.isnan(tek[ikinci])  # tek yangın 200 dk'da oraya varmıyor
+    assert iki[ikinci] == pytest.approx(100.0)
+    r, c = ikinci
+    komsular = iki[r - 3 : r + 4, c - 3 : c + 4]
+    assert np.nanmin(komsular) == pytest.approx(
+        100.0
+    )  # ikinci yangın çevresi 100. dk'dan önce yanmaz
+    assert np.count_nonzero(~np.isnan(iki)) > np.count_nonzero(~np.isnan(tek))
+    # Dakika verilmezse 0 sayılır (eski çağrılar aynı sonucu verir).
+    np.testing.assert_array_equal(
+        tek, yayilim(arazi, ruzgar, [(*ilk, 0.0)], Parametreler(), 0, 200.0)
+    )

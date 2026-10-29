@@ -43,7 +43,12 @@ def olc(senaryo: Senaryo, calisma: int = CALISMA) -> dict:
     ortam = DeneyOrtami.hazirla(senaryo)
     ref = ortam.referans
     sonuc = coklu_yayilim(
-        ortam.arazi, ortam.ruzgar, [ortam.tutusma], PARAMETRELER, range(calisma), SURE_SA * 60.0
+        ortam.arazi,
+        ortam.ruzgar,
+        ortam.model_tutusmalari,
+        PARAMETRELER,
+        range(calisma),
+        SURE_SA * 60.0,
     )
     bantlar = esik_toalari(sonuc.toalar, ESIKLER)
     uzaklik = daire_toa(ortam.tutusma, ortam.paket.yanabilir, senaryo.izgara.cozunurluk)

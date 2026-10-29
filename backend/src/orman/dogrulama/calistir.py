@@ -13,13 +13,13 @@ firms_varis.tif ve görseller (rapor.py).
 import argparse
 import json
 import time
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass, field, replace
 
 import numpy as np
 
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.olcutler import Olcutler, Referans, buyume_egrisi, daire_toa, dogrula
-from orman.model.calistir import tutusma_hucresi, yaz_raster
+from orman.model.calistir import tutusma_hucreleri, tutusma_hucresi, yaz_raster
 from orman.model.yayilim import V2_YAKIT, Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR, BolgePaketi, yukle
@@ -107,13 +107,22 @@ def _tohum_ozeti(olcutler: list[Olcutler]) -> dict[str, dict[str, float]]:
 
 @dataclass
 class DeneyOrtami:
-    """Bir senaryonun deneyler arasında ortak girdileri (paket, referans, arazi, rüzgâr)."""
+    """Bir senaryonun deneyler arasında ortak girdileri (paket, referans, arazi, rüzgâr).
+
+    `tutusma`: ana tutuşma hücresi (daire baseline'ı, olay ekranı). `tutusmalar`: modelin
+    kullandığı bütün tutuşmalar (satır, sütun, dk); boşsa yalnızca ana tutuşma.
+    """
 
     paket: BolgePaketi
     referans: Referans
     arazi: Arazi
     ruzgar: Ruzgar
     tutusma: tuple[int, int]
+    tutusmalar: list[tuple[int, int, float]] = field(default_factory=list)
+
+    @property
+    def model_tutusmalari(self) -> list:
+        return self.tutusmalar or [self.tutusma]
 
     @classmethod
     def hazirla(cls, senaryo: Senaryo) -> "DeneyOrtami":
@@ -124,6 +133,7 @@ class DeneyOrtami:
             arazi=Arazi.paketten(paket),
             ruzgar=Ruzgar.hava_alanindan(paket.hava_alani(), senaryo.tutusma_utc),
             tutusma=tutusma_hucresi(paket),
+            tutusmalar=tutusma_hucreleri(paket),
         )
         yayilim(ortam.arazi, ortam.ruzgar, [ortam.tutusma], V1, 0, 1.0)  # Numba derlemesi
         return ortam
@@ -143,7 +153,7 @@ def model_deneyi(
     sonuc = coklu_yayilim(
         ortam.arazi,
         ortam.ruzgar,
-        [ortam.tutusma],
+        ortam.model_tutusmalari,
         parametreler,
         range(ilk_tohum, ilk_tohum + calisma),
         referans.bitis_dk,

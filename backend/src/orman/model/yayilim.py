@@ -258,7 +258,7 @@ def _kuyruktan_al(zaman, hucre, n):
 
 @njit(cache=True, nogil=True)
 def _yayilim_cekirdegi(
-    yukseklik, yanabilir, yakit, engel, cozunurluk, tutusma_satir, tutusma_sutun,
+    yukseklik, yanabilir, yakit, engel, cozunurluk, tutusma_satir, tutusma_sutun, tutusma_dk,
     p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, engel_etkisi,
     sondurme_esigi, sondurme_baslangic_dk, sondurme_olasiligi, doygunluk_ha_sa, pencere_dk,
     tohum, bitis_dk, dk, U, V, H, M, sa, su, so, ca, cu, co,
@@ -283,8 +283,9 @@ def _yayilim_cekirdegi(
 
     for k in range(tutusma_satir.shape[0]):
         idx = tutusma_satir[k] * sutun_n + tutusma_sutun[k]
-        en_iyi[idx] = 0.0
-        zaman, hucre, n = _kuyruga_ekle(zaman, hucre, n, 0.0, idx)
+        if tutusma_dk[k] < en_iyi[idx]:
+            en_iyi[idx] = tutusma_dk[k]
+            zaman, hucre, n = _kuyruga_ekle(zaman, hucre, n, tutusma_dk[k], idx)
 
     while n > 0:
         t, idx, n = _kuyruktan_al(zaman, hucre, n)
@@ -364,10 +365,13 @@ def yayilim(
 ) -> np.ndarray:
     """Tek çalıştırma. Döner: TOA (dakika, float32; yanmayan hücreler NaN).
 
-    `tutusma`: tutuşan hücreler (satır, sütun), hepsi `t = 0` anında; yanabilir olmalı.
+    `tutusma`: tutuşan hücreler, (satır, sütun) ya da (satır, sütun, dakika); dakika verilmezse
+    `t = 0`. Sonradan başlayan ayrı yangınlar (ör. ikinci bir kundaklama) dakikayla verilir;
+    hücre o ana kadar ateş ulaşmamışsa o anda tutuşur. Hücreler yanabilir olmalı.
     """
-    satirlar = np.array([s for s, _ in tutusma], dtype=np.int64)
-    sutunlar = np.array([c for _, c in tutusma], dtype=np.int64)
+    satirlar = np.array([t[0] for t in tutusma], dtype=np.int64)
+    sutunlar = np.array([t[1] for t in tutusma], dtype=np.int64)
+    dakikalar = np.array([t[2] if len(t) > 2 else 0.0 for t in tutusma], dtype=np.float64)
     if not arazi.yanabilir[satirlar, sutunlar].all():
         raise ValueError("Tutuşma hücreleri yanabilir olmalı.")
     p = parametreler
@@ -379,6 +383,7 @@ def yayilim(
         float(arazi.cozunurluk),
         satirlar,
         sutunlar,
+        dakikalar,
         p.p_h, p.c1, p.c2, p.a, p.hiz_olcegi, p.yanma_suresi_dk,
         np.array(p.p_veg, dtype=np.float64),
         np.array(p.p_den, dtype=np.float64),
