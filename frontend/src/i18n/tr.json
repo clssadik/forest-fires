@@ -418,6 +418,10 @@
       "model": "model",
       "firms": "FIRMS"
     },
+    "olayKarti": {
+      "grup": "{{sayi}} olay",
+      "kapat": "Kapat"
+    },
     "seritler": {
       "olaylar": "Olaylar",
       "yananAlan": "Yanan alan",
