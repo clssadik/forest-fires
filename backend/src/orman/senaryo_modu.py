@@ -197,6 +197,13 @@ def uye_secimi(uye_sayisi: int, calisma: int) -> list[int]:
     return np.rint(np.linspace(0, uye_sayisi - 1, calisma)).astype(int).tolist()
 
 
+def uye_alanlari(alanlar: dict[int, HavaAlani], calisma: int) -> list[HavaAlani]:
+    """Çalıştırma başına hava alanı. Seçim üye numarasına değil sırasına göredir: yanıtta
+    eksik üye varsa numaralar atlar (0, 1, 3, ...)."""
+    sirali = [alanlar[k] for k in sorted(alanlar)]
+    return [sirali[i] for i in uye_secimi(len(sirali), calisma)]
+
+
 def topluluk_alanlari(
     senaryo: Senaryo, yukseklik: np.ndarray
 ) -> tuple[dict[int, HavaAlani] | None, str | None]:
@@ -257,7 +264,7 @@ def calistir(
     hucre = tutusma_hucresi(paket)
     if alanlar:
         # Üye sayısı çalıştırmadan fazlaysa eşit aralıklı seçilir; tohum i → i. üye.
-        hava_alanlari = [alanlar[u] for u in uye_secimi(len(alanlar), calisma)]
+        hava_alanlari = uye_alanlari(alanlar, calisma)
         hava_kaynagi = f"topluluk:{TOPLULUK_MODEL}:{len(alanlar)}"
         ozet_alanlari = list(alanlar.values())
     else:

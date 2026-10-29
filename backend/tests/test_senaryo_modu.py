@@ -13,6 +13,7 @@ from orman.senaryo_modu import (
     noktadan_senaryo,
     topluluk_alanlari,
     utm_crs,
+    uye_alanlari,
     uye_secimi,
 )
 from orman.veri.hava import ruzgar_uv
@@ -81,6 +82,12 @@ def test_uye_secimi_az_uyede_dongu():
     assert uye_secimi(20, 20) == list(range(20))
     with pytest.raises(ValueError):
         uye_secimi(0, 20)
+
+
+def test_uye_alanlari_eksik_uye_numarasinda_da_secilir():
+    # Bir üye yanıtta eksikse numaralar atlar (0, 1, 3); seçim sıraya göre yapılmalı.
+    alanlar = {0: "kontrol", 1: "bir", 3: "uc"}
+    assert uye_alanlari(alanlar, 5) == ["kontrol", "bir", "uc", "kontrol", "bir"]
 
 
 def _sabit_alan(hiz: float, yon: float, sicaklik: float = 25.0) -> HavaAlani:
