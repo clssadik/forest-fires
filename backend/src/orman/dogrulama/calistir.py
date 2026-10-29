@@ -3,7 +3,7 @@
     uv run orman-dogrula manavgat_2021              # 20 tohum
     uv run orman-dogrula manavgat_2021 --calisma 5
 
-Deneyler: model v1, v2 (+ yakıt türü), v3 (+ nem, kalibre) ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
+Deneyler: model v1, v2 (+ yakıt türü), v3 (+ nem, kalibre), v4 (+ söndürme) ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
 daire). Her deney için topluluk (çalıştırmaların en az yarısında yanan alan) ölçütleri ve
 tohumlar arası ortalama ± sapma. Çıktılar `data/islenmis/<ad>/dogrulama/`: rapor.json,
 firms_varis.tif ve görseller (rapor.py).
@@ -28,12 +28,17 @@ V2 = V2_YAKIT  # v1 + yakıt türü (Alexandridis tablosu)
 # v3: v2 + yakıt nemi, `orman-kalibre` ile Manavgat 2021'e ayarlı (2026-10-26, 200 deneme, en iyi
 # aday 20 yeni tohumla seçildi). Eğim etkisi ~0'a, rüzgâr yönü etkisi düştü; bkz. docs/05 Adım 6.
 V3 = replace(V2, hiz_olcegi=0.087, c1=0.126, c2=0.081, a=0.0, sonme_nemi=0.19)
-GUNCEL_MODEL = "model_v3"  # web simülasyonu ve senaryo modunun kullandığı model
+# v4: v3 + söndürme vekili (2026-10-29): 6. saatten sonra p < 0,52 olan geçişler olmaz. Eşik
+# Manavgat'ta elle tarandı (0,50–0,53 arası keskin geçiş; 0,525 biraz daha iyiydi, yuvarlak değer
+# seçildi), Marmaris ayarsız. Bkz. docs/05, "durma ve kare şekli".
+V4 = replace(V3, sondurme_esigi=0.52, sondurme_baslangic_dk=360.0)
+GUNCEL_MODEL = "model_v4"  # web simülasyonu ve senaryo modunun kullandığı model
 # Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz).
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
     "model_v1": ("Model v1 (rüzgâr + eğim)", V1),
     "model_v2": ("Model v2 (+ yakıt türü)", V2),
     "model_v3": ("Model v3 (+ nem, kalibre)", V3),
+    "model_v4": ("Model v4 (+ söndürme)", V4),
     "ruzgarsiz": ("Rüzgârsız model", replace(V1, c1=0.0, c2=0.0)),
     "egimsiz": ("Eğimsiz model", replace(V1, a=0.0)),
     "ruzgarsiz_egimsiz": ("Rüzgârsız ve eğimsiz model", replace(V1, c1=0.0, c2=0.0, a=0.0)),

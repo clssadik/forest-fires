@@ -148,8 +148,9 @@ def test_olay_uc_noktalari():
     assert client.get(f"/api/yanginlar/{AD}/olay/yok").status_code == 404
     model = bilgi["model"]
     ea = model["esit_alan"]
-    # Alan eşitlenince yanlış alarm ile kaçırılan aynı büyüklükte olur.
-    assert ea["yanlis_alarm_ha"] == pytest.approx(ea["kacirilan_ha"], rel=0.01)
+    # Alan eşitlenince yanlış alarm ile kaçırılan aynı büyüklükte olur; model gerçek alana
+    # ulaşmadan durduysa (v4) yanlış alarm daha küçüktür.
+    assert ea["yanlis_alarm_ha"] <= ea["kacirilan_ha"] * 1.01
     assert ea["dogru_ha"] + ea["kacirilan_ha"] == pytest.approx(bilgi["gercek_ha"], rel=0.01)
     assert model["esit_alan_esik_dk"] > 0
     assert any(d["ad"] == "daire" for d in model["deneyler"])

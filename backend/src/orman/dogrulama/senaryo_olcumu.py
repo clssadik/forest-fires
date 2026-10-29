@@ -2,7 +2,7 @@
 
     uv run orman-senaryo-olc               # Manavgat 2021 ve Marmaris 2022
 
-Senaryo modu (`senaryo_modu.py`) ile aynı ayarlar: model v3, 20 tohum, 48 saat, %10/%50/%90
+Senaryo modu (`senaryo_modu.py`) ile aynı ayarlar: güncel model, 20 tohum, 48 saat, %10/%50/%90
 olasılık bantları. Fark yalnızca hava: burada tahmin değil, olay anının ERA5 havası (yani
 "hava tahmini kusursuz olsaydı"). Her bant ve her saat için:
 

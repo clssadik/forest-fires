@@ -81,3 +81,14 @@ def test_firms_geojson_saat_tutusmaya_gore():
 def test_png_imzasi():
     rgba = np.zeros((4, 6, 4), dtype=np.uint8)
     assert gosterim.png(rgba)[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_kenar_maskesi_kenarda_saydam_ortada_opak():
+    from orman.gosterim import kenar_maskesi
+
+    m = kenar_maskesi((200, 300))
+    assert m.shape == (200, 300) and m.dtype == np.float32
+    assert m[0].max() == 0 and m[-1].max() == 0 and m[:, 0].max() == 0 and m[:, -1].max() == 0
+    assert (m[60:140, 60:240] == 1).all()  # bant kısa kenarın en çok %12 × 1,4'ü
+    assert 0 < m[10].mean() < 1
+    assert not np.allclose(m[10], m[10].mean())  # geçiş düzensiz, düz bir şerit değil

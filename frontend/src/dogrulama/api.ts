@@ -27,6 +27,11 @@ export interface YanginBilgisi {
   baseline: { calisma_sayisi: number; deneyler: BaselineDeneyi[] } | null
 }
 
+/** Model gerçek alan kadar yaktı mı? Durduysa "alan eşitlenmiş" ölçüt yaktığı tüm alandır ve
+ *  yanlış alarm kaçırılandan küçük kalır (alan eşitken ikisi aynıdır). */
+export const gercekAlanaUlasti = (e: { yanlis_alarm_ha: number; kacirilan_ha: number }) =>
+  e.yanlis_alarm_ha >= 0.99 * e.kacirilan_ha
+
 export interface MekansalOlcutler {
   dogru_ha: number
   yanlis_alarm_ha: number

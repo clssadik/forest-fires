@@ -2,7 +2,7 @@
 
 Haritadan seçilen bir nokta için bölge paketi istek üzerine üretilir: noktanın çevresinde
 `YARICAP_KM` yarıçaplı kare ızgara (noktanın UTM diliminde, 30 m), Copernicus DEM, WorldCover
-ve Open-Meteo **tahmini** (önümüzdeki saatler). FIRMS ve Sentinel-2 gerekmez. Model v3
+ve Open-Meteo **tahmini** (önümüzdeki saatler). FIRMS ve Sentinel-2 gerekmez. Güncel model
 `CALISMA` tohumla `SURE_SA` saat çalışır.
 
 Sonuç tek bir çizgi değil, olasılıktır: her hücre için çalıştırmaların %10, %50 ve %90'ında

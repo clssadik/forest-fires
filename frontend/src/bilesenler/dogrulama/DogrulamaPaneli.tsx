@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
+import { gercekAlanaUlasti } from '../../dogrulama/api'
 import { KARSILASTIRMA_RENKLERI, iou } from '../../dogrulama/boyama'
 import { tutusmaMs, useDogrulama, type DogrulamaKatmani } from '../../durum/dogrulama'
 import { useZaman } from '../../durum/zaman'
@@ -147,7 +148,9 @@ function SonucKarti() {
         <section>
           <h3 className="text-[12px] font-semibold">{t('dogrulama.sonuc.esitAlan')}</h3>
           <p className="text-[11.5px] leading-[15px] text-soluk">
-            {t('dogrulama.sonuc.esitAlanAciklama', { saat: sayi(sonuc.olcutler.esit_alan_saat, 0) })}
+            {gercekAlanaUlasti(e)
+              ? t('dogrulama.sonuc.esitAlanAciklama', { saat: sayi(sonuc.olcutler.esit_alan_saat, 0) })
+              : t('dogrulama.sonuc.esitAlanDurdu', { ha: sayi(e.model_ha, 0) })}
           </p>
           <dl className="mt-1.5 grid grid-cols-3 gap-1">
             <Sayi etiket="IoU" deger={oran(e.iou)} buyuk />

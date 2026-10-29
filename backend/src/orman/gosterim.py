@@ -37,6 +37,7 @@ ALTLIK_RENKLERI = {
 }
 ALTLIK_SU = (178, 199, 207)
 SU_KODU = 80  # WorldCover: kalıcı su (deniz, baraj gölü)
+KENAR_ORANI = 0.12  # altlığın saydamlaşan kenar bandı, kısa kenarın oranı
 
 
 def harita_izgarasi(izgara: Izgara) -> Izgara:
@@ -151,8 +152,34 @@ def firms_geojson(tespitler: pd.DataFrame, tutusma_utc: datetime) -> dict:
     return {"type": "FeatureCollection", "features": ozellikler}
 
 
+def _puruzsuz_gurultu(sekil: tuple[int, int], kaba: int, tohum: int) -> np.ndarray:
+    """0–1 arası yumuşak gürültü: `kaba × kaba` rastgele değer, iki yönde doğrusal ara değer."""
+    degerler = np.random.default_rng(tohum).random((kaba, kaba))
+    satir = np.linspace(0, kaba - 1, sekil[0])
+    sutun = np.linspace(0, kaba - 1, sekil[1])
+    ara = np.array([np.interp(sutun, np.arange(kaba), d) for d in degerler])  # (kaba, sütun)
+    return np.array([np.interp(satir, np.arange(kaba), ara[:, j]) for j in range(sekil[1])]).T
+
+
+def kenar_maskesi(sekil: tuple[int, int], oran: float = KENAR_ORANI, tohum: int = 0) -> np.ndarray:
+    """Izgara kenarında 1'den 0'a inen saydamlık (float32); geçiş bandı düzensiz.
+
+    Hesap alanı dikdörtgen bir kutu; altlık kenarda birden kesilirse ekranda kare olarak görünür.
+    Bant genişliği kısa kenarın `oran` katı, gürültüyle ±%40 oynar; en dış hücreler hep saydam.
+    """
+    satir_n, sutun_n = sekil
+    bant = oran * min(sekil)
+    satir = np.minimum(np.arange(satir_n), np.arange(satir_n)[::-1])[:, None]
+    sutun = np.minimum(np.arange(sutun_n), np.arange(sutun_n)[::-1])[None, :]
+    uzaklik = np.minimum(satir, sutun) / bant  # kenardan uzaklık, bant biriminde
+    olcek = 0.6 + 0.8 * _puruzsuz_gurultu(sekil, 9, tohum)
+    x = np.clip(uzaklik / olcek, 0.0, 1.0)
+    return (x * x * (3.0 - 2.0 * x)).astype(np.float32)  # smoothstep
+
+
 def altlik_rgba(paket: BolgePaketi, harita: Izgara) -> np.ndarray:
-    """Harita altlığı: yakıt sınıfı renkleri × tepe gölgelendirmesi, su mavi; ızgara dışı saydam."""
+    """Harita altlığı: yakıt sınıfı renkleri × tepe gölgelendirmesi, su mavi; kenarlar
+    düzensiz bir bantla saydamlaşır (`kenar_maskesi`), ızgara dışı saydam."""
     izgara = paket.senaryo.izgara
     golge = golgelendirme(paket.yukseklik, izgara.cozunurluk)
     rgb = np.zeros((*paket.yakit.shape, 3), dtype=np.float32)
@@ -160,7 +187,8 @@ def altlik_rgba(paket: BolgePaketi, harita: Izgara) -> np.ndarray:
         rgb[paket.yakit == kod] = renk
     rgb *= (0.6 + 0.4 * golge)[..., None]
     rgb[paket.arazi_ortusu == SU_KODU] = ALTLIK_SU
-    rgba = np.dstack([rgb.astype(np.uint8), np.full(paket.yakit.shape, 255, dtype=np.uint8)])
+    alfa = (255 * kenar_maskesi(paket.yakit.shape)).astype(np.uint8)
+    rgba = np.dstack([rgb.astype(np.uint8), alfa])
     return np.dstack(
         [haritaya_yansit(rgba[..., b], izgara, harita, 0, Resampling.bilinear) for b in range(4)]
     )

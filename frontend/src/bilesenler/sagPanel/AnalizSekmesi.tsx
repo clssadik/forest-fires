@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { sayi, yuzdeBicim } from '../../bicim'
+import { gercekAlanaUlasti } from '../../dogrulama/api'
 import { useKatmanlar } from '../../durum/katmanlar'
 import type { OlayVerisi } from '../../olay/veri'
 import { IkonTik } from '../ikonlar'
@@ -110,7 +111,9 @@ function HataDagilimi({ veri }: { veri: OlayVerisi }) {
     <section>
       <h3 className="mb-1">
         <span className="font-semibold">{t('sagPanel.analiz.hataBaslik')}</span>{' '}
-        <span className="text-soluk">{t('sagPanel.analiz.hataAlt', { saat: sayi(m.esit_alan_esik_dk / 60) })}</span>
+        <span className="text-soluk">{gercekAlanaUlasti(m.esit_alan)
+            ? t('sagPanel.analiz.hataAlt', { saat: sayi(m.esit_alan_esik_dk / 60) })
+            : t('sagPanel.analiz.hataAltDurdu')}</span>
       </h3>
       <div className="mb-1.5 flex h-[11px] overflow-hidden rounded-[2px]">
         {parcalar.map((p) => (

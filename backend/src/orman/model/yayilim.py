@@ -12,6 +12,10 @@ aşarsa `i`, `j`'yi tutuşturamaz. Böylece `p` hem yayılma hızını hem tutu�
 rüzgar ve yokuş yönünde yangın daha hızlı ilerler. `η_M` yakıt nemi sönümü (model/nem.py), `e`
 hedef hücredeki yol / akarsu engelinin gücü × `engel_etkisi` (veri/engeller.py).
 
+Söndürme (kaba vekil): `sondurme_baslangic_dk` sonrasında `p < sondurme_esigi` olan geçişler
+olmaz. Ekipler yavaş ilerleyen kenarları (yanlar, rüzgâr tersi, nemli gece) tutar; hızlı baş
+cephe durdurulamaz. Ekip konumu veya sayısı bilinmediği için yerden bağımsızdır.
+
 Çıktı her hücrenin varış zamanıdır (TOA, tutuşmadan bu yana dakika; yanmadıysa NaN).
 Hesap olay kuyruğuyla yapılır (en erken aday zaman önce); `i`'nin hızları tutuştuğu andaki
 havayla hesaplanır.
@@ -51,6 +55,9 @@ class Parametreler:
     sonme_nemi: float = 0.0
     # OSM engel gücünün çarpanı (0 = engeller kapalı; v1–v3). Etkin güç min(etki · güç, 1).
     engel_etkisi: float = 0.0
+    # Söndürme vekili: bu andan (dk) sonra p'si eşiğin altındaki geçişler olmaz; 0 = kapalı.
+    sondurme_esigi: float = 0.0
+    sondurme_baslangic_dk: float = 0.0
 
 
 def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
@@ -237,8 +244,8 @@ def _kuyruktan_al(zaman, hucre, n):
 @njit(cache=True, nogil=True)
 def _yayilim_cekirdegi(
     yukseklik, yanabilir, yakit, engel, cozunurluk, tutusma_satir, tutusma_sutun,
-    p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, engel_etkisi, tohum,
-    bitis_dk,
+    p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, engel_etkisi,
+    sondurme_esigi, sondurme_baslangic_dk, tohum, bitis_dk,
     dk, U, V, H, M, sa, su, so, ca, cu, co,
 ):  # fmt: skip
     satir_n, sutun_n = yukseklik.shape
@@ -291,7 +298,7 @@ def _yayilim_cekirdegi(
             p = p_h * (1.0 + p_veg[sinif]) * (1.0 + p_den[sinif]) * p_w * p_s * eta_m
             # Engel: yol / akarsu hücresine geçiş yavaşlar; bekleme yanma süresini aşarsa geçemez.
             p *= 1.0 - min(engel_etkisi * engel[rr, cc], 1.0)
-            if p <= 0.0:
+            if p <= 0.0 or (t >= sondurme_baslangic_dk and p < sondurme_esigi):
                 continue
 
             # Bekleme: üstel dağılım, ortalama 1 / (hiz_olcegi · p); köşegende √2 kat.
@@ -335,6 +342,8 @@ def yayilim(
         np.array(p.p_den, dtype=np.float64),
         float(p.sonme_nemi),
         float(p.engel_etkisi),
+        float(p.sondurme_esigi),
+        float(p.sondurme_baslangic_dk),
         int(tohum),
         float(bitis_dk),
         *ruzgar._diziler(),
