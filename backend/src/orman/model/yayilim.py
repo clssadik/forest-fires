@@ -2,14 +2,15 @@
 
 Yanan hücre `i`, komşusu `j` için Alexandridis çarpanını hesaplar:
 
-    p = p_h · (1 + p_veg) · (1 + p_den) · p_w · p_s
+    p = p_h · (1 + p_veg) · (1 + p_den) · p_w · p_s · η_M · (1 − e)
 
 Adım adım kuralın (her kısa adımda `p` ile orantılı küçük bir olasılıkla dene) adım süresi
 sıfıra giderkenki hâli kullanılır: `i`, `j`'yi `hiz_olcegi · p` hızında (1/dk) tutuşturmaya
 çalışır, yani bekleme süresi üstel dağılımlıdır ve ortalaması `1 / (hiz_olcegi · p)` dakikadır.
 Köşegen komşu √2 kat uzak olduğundan bekleme √2 ile çarpılır. Bekleme `i`'nin yanma süresini
 aşarsa `i`, `j`'yi tutuşturamaz. Böylece `p` hem yayılma hızını hem tutuşma şansını belirler:
-rüzgar ve yokuş yönünde yangın daha hızlı ilerler.
+rüzgar ve yokuş yönünde yangın daha hızlı ilerler. `η_M` yakıt nemi sönümü (model/nem.py), `e`
+hedef hücredeki yol / akarsu engelinin gücü × `engel_etkisi` (veri/engeller.py).
 
 Çıktı her hücrenin varış zamanıdır (TOA, tutuşmadan bu yana dakika; yanmadıysa NaN).
 Hesap olay kuyruğuyla yapılır (en erken aday zaman önce); `i`'nin hızları tutuştuğu andaki
@@ -48,6 +49,8 @@ class Parametreler:
     p_den: tuple[float, ...] = (0.0,) * YAKIT_SINIF_SAYISI
     # Ölü ince yakıtın sönme nemi (oran); 0 = nem etkisi kapalı (v1, v2). Bkz. model/nem.py
     sonme_nemi: float = 0.0
+    # OSM engel gücünün çarpanı (0 = engeller kapalı; v1–v3). Etkin güç min(etki · güç, 1).
+    engel_etkisi: float = 0.0
 
 
 def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
@@ -71,6 +74,11 @@ class Arazi:
     yanabilir: np.ndarray  # bool
     yakit: np.ndarray  # yakıt sınıfı kodu, uint8
     cozunurluk: float  # hücre kenarı (m)
+    engel: np.ndarray | None = None  # yol / akarsu engel gücü (0–1), float32; None = engel yok
+
+    def __post_init__(self):
+        if self.engel is None:
+            self.engel = np.zeros(self.yukseklik.shape, dtype=np.float32)
 
     @classmethod
     def paketten(cls, paket) -> "Arazi":
@@ -80,6 +88,7 @@ class Arazi:
             yanabilir=paket.yanabilir,
             yakit=paket.yakit.astype(np.uint8),
             cozunurluk=paket.senaryo.izgara.cozunurluk,
+            engel=paket.engel,
         )
 
 
@@ -227,8 +236,9 @@ def _kuyruktan_al(zaman, hucre, n):
 
 @njit(cache=True, nogil=True)
 def _yayilim_cekirdegi(
-    yukseklik, yanabilir, yakit, cozunurluk, tutusma_satir, tutusma_sutun,
-    p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, tohum, bitis_dk,
+    yukseklik, yanabilir, yakit, engel, cozunurluk, tutusma_satir, tutusma_sutun,
+    p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, engel_etkisi, tohum,
+    bitis_dk,
     dk, U, V, H, M, sa, su, so, ca, cu, co,
 ):  # fmt: skip
     satir_n, sutun_n = yukseklik.shape
@@ -279,6 +289,8 @@ def _yayilim_cekirdegi(
             p_s = math.exp(a * teta_s)
             sinif = yakit[rr, cc]
             p = p_h * (1.0 + p_veg[sinif]) * (1.0 + p_den[sinif]) * p_w * p_s * eta_m
+            # Engel: yol / akarsu hücresine geçiş yavaşlar; bekleme yanma süresini aşarsa geçemez.
+            p *= 1.0 - min(engel_etkisi * engel[rr, cc], 1.0)
             if p <= 0.0:
                 continue
 
@@ -314,6 +326,7 @@ def yayilim(
         np.ascontiguousarray(arazi.yukseklik, dtype=np.float32),
         np.ascontiguousarray(arazi.yanabilir, dtype=np.bool_),
         np.ascontiguousarray(arazi.yakit, dtype=np.uint8),
+        np.ascontiguousarray(arazi.engel, dtype=np.float32),
         float(arazi.cozunurluk),
         satirlar,
         sutunlar,
@@ -321,6 +334,7 @@ def yayilim(
         np.array(p.p_veg, dtype=np.float64),
         np.array(p.p_den, dtype=np.float64),
         float(p.sonme_nemi),
+        float(p.engel_etkisi),
         int(tohum),
         float(bitis_dk),
         *ruzgar._diziler(),

@@ -1,5 +1,6 @@
 """Yayılım modeli v1: yapay senaryolarla fiziksel davranış testleri (bkz. docs/model.md)."""
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import numpy as np
@@ -249,3 +250,16 @@ def test_coklu_calistirma_olasilik_haritasi():
         yarisinda = (np.nan_to_num(sonuc.toalar, nan=np.inf) <= t).sum(axis=0) >= 3
         assert np.array_equal(yarisinda, sonuc.toa_topluluk <= t)
     assert np.array_equal(~np.isnan(sonuc.toa_topluluk), sonuc.olasilik >= 0.5)
+
+
+def test_engel_gecisi_yavaslatir_ve_tam_guc_durdurur():
+    """Ortadan geçen dikey bir engel: etki 0'da yok sayılır, tam güçte ateş öbür yakaya geçemez."""
+    arazi = _duz_arazi(41)
+    engel = np.zeros((41, 41), dtype=np.float32)
+    engel[:, 25] = 1.0
+    arazi.engel = engel
+    ruzgar = Ruzgar.sabit(0.0, 0.0)
+    acik = yayilim(arazi, ruzgar, [(20, 20)], replace(V2_YAKIT, engel_etkisi=0.0), 0, 2000.0)
+    kapali = yayilim(arazi, ruzgar, [(20, 20)], replace(V2_YAKIT, engel_etkisi=1.0), 0, 2000.0)
+    assert np.isfinite(acik[:, 30]).any()
+    assert np.isnan(kapali[:, 25:]).all()

@@ -4,7 +4,8 @@
 
 Üretilen dosyalar `data/islenmis/<ad>/` altındadır:
 yukseklik.tif, egim.tif, baki.tif, arazi_ortusu.tif, yakit_sinifi.tif (+ .json),
-hava.csv, hava_alani.npz, firms.csv, dnbr.tif, yanma_siddeti.tif, yanmis_alan.tif (+ .json)
+engeller.tif (OSM yol / akarsu), hava.csv, hava_alani.npz, firms.csv, dnbr.tif,
+yanma_siddeti.tif, yanmis_alan.tif (+ .json)
 ve görsel kontrol için onizleme/*.png.
 """
 
@@ -23,7 +24,7 @@ from rasterio.errors import NotGeoreferencedWarning
 
 from orman.ayarlar import HAM_VERI_DIZINI, ISLENMIS_VERI_DIZINI
 from orman.senaryo import MANAVGAT_2021, MARMARIS_2022, Senaryo
-from orman.veri import arazi_ortusu, dem, firms, hava, yanmis_alan
+from orman.veri import arazi_ortusu, dem, engeller, firms, hava, yanmis_alan
 from orman.veri import hava_alani as hava_alani_modulu
 from orman.veri.hava_alani import HavaAlani
 
@@ -68,6 +69,7 @@ class BolgePaketi:
     arazi_ortusu: np.ndarray  # WorldCover kodu, uint8
     yakit: np.ndarray  # yakıt sınıfı kodu, uint8 (0 = yanmaz)
     hava: pd.DataFrame  # saatlik, UTC, nokta bazında
+    engel: np.ndarray | None = None  # OSM yol / akarsu engel gücü (0–1); None = katman yok
     # Doğrulama katmanları; yalnızca geçmiş yangın paketlerinde var (senaryo modunda None).
     tespitler: pd.DataFrame | None = None  # FIRMS, UTC; satir/sutun = ızgara hücresi
     dnbr: np.ndarray | None = None  # Sentinel-2 dNBR (ofseti düzeltilmiş), float32, NaN = veri yok
@@ -121,8 +123,8 @@ def model_girdilerini_olustur(senaryo: Senaryo, canli: bool = False) -> dict[str
     """
     d = ISLENMIS_VERI_DIZINI / senaryo.ad
     d.mkdir(parents=True, exist_ok=True)
-    # Üç kaynak birbirinden bağımsız; ağ beklemesi üst üste binsin diye aynı anda indirilir.
-    with ThreadPoolExecutor(3) as havuz:
+    # Kaynaklar birbirinden bağımsız; ağ beklemesi üst üste binsin diye aynı anda indirilir.
+    with ThreadPoolExecutor(4) as havuz:
         if canli and (d / "yukseklik.tif").exists():  # arazi değişmez: aynı noktaya ikinci istek
             yukseklik = havuz.submit(
                 lambda: {ad: d / f"{ad}.tif" for ad in ("yukseklik", "egim", "baki")}
@@ -130,10 +132,14 @@ def model_girdilerini_olustur(senaryo: Senaryo, canli: bool = False) -> dict[str
         else:
             yukseklik = havuz.submit(dem.hazirla, senaryo.izgara, canli)
         ortu = havuz.submit(arazi_ortusu.hazirla, senaryo.izgara)
+        # OSM engelleri yalnızca geçmiş yangınlarda: Overpass senaryo modu için fazla yavaş.
+        engel = None if canli else havuz.submit(engeller.hazirla, senaryo.izgara)
         hava_yolu = havuz.submit(
             hava.hazirla, senaryo.izgara, senaryo.baslangic, senaryo.bitis, tahmin=canli
         )
         yollar = yukseklik.result() | ortu.result() | {"hava": hava_yolu.result()["islenmis"]}
+        if engel is not None:
+            yollar |= engel.result()
     yollar["hava_alani"] = hava_alani_modulu.hazirla(
         senaryo.izgara,
         _oku(yollar["yukseklik"]),
@@ -153,6 +159,11 @@ def olustur(senaryo: Senaryo) -> dict[str, Path]:
     )
     yollar |= onizlemeleri_yaz(yukle(senaryo))
     return yollar
+
+
+def _engel_oku(d: Path) -> np.ndarray | None:
+    yol = d / "engeller.tif"
+    return _oku(yol) if yol.exists() else None
 
 
 def _oku(yol: Path) -> np.ndarray:
@@ -175,6 +186,7 @@ def yukle(senaryo: Senaryo) -> BolgePaketi:
         arazi_ortusu=_oku(d / "arazi_ortusu.tif"),
         yakit=_oku(d / "yakit_sinifi.tif"),
         hava=pd.read_csv(d / "hava.csv", parse_dates=["zaman_utc"]),
+        engel=_engel_oku(d),
         tespitler=pd.read_csv(d / "firms.csv", parse_dates=["zaman_utc"]),
         dnbr=_oku(d / "dnbr.tif"),
         yanmis_alan=_oku(d / "yanmis_alan.tif"),
@@ -192,6 +204,7 @@ def model_girdilerini_yukle(senaryo: Senaryo) -> BolgePaketi:
         arazi_ortusu=_oku(d / "arazi_ortusu.tif"),
         yakit=_oku(d / "yakit_sinifi.tif"),
         hava=pd.read_csv(d / "hava.csv", parse_dates=["zaman_utc"]),
+        engel=_engel_oku(d),
     )
 
 
