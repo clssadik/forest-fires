@@ -24,6 +24,13 @@ const TEMEL_HIZ = 60
 /** Şerit adlarının sütunu ve grafiklerin sağ boşluğu (px). */
 const ETIKET = 192
 const SAG = 16
+/**
+ * Şerit satırının yüksekliği (px): her seri 15 px'lik bir etiket satırı, aralarında 4 px, üstte ve
+ * altta eşit 14 px boşluk. Böylece tüm şeritlerde etiketlerin üst/alt boşluğu aynıdır.
+ */
+const seritYuksekligi = (seriSayisi: number) => seriSayisi * 15 + (seriSayisi - 1) * 4 + 28
+/** Grafik, satırın üstünden ve altından 5'er px içeride çizilir. */
+const grafikYuksekligi = (seriSayisi: number) => seritYuksekligi(seriSayisi) - 10
 
 /** Yanan alan grafiğindeki olay noktalarının renkleri: uydu gözlemi FIRMS çizgisinde, model olayı model eğrisinde. */
 const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
@@ -47,7 +54,6 @@ interface Seri {
 interface Serit {
   kimlik: string
   ad: string
-  yuk: number
   ust: number
   seriler: Seri[]
 }
@@ -168,7 +174,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const alan: Serit = {
     kimlik: 'alan',
     ad: t('olayDuzeni.seritler.yananAlan'),
-    yuk: 70,
     ust: s.alanUst,
     seriler: [
       {
@@ -191,14 +196,12 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     {
       kimlik: 'hiz',
       ad: t('olayDuzeni.seritler.cepheHizi'),
-      yuk: 34,
       ust: s.hizUst,
       seriler: [{ ys: s.hiz, renk: '#f06a45', deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire }],
     },
     {
       kimlik: 'ruzgar',
       ad: t('olayDuzeni.seritler.ruzgar'),
-      yuk: 34,
       ust: s.ruzgarUst,
       seriler: [
         { ys: s.ruzgar, renk: '#9fc7ef', deger: `${t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })} ${pusulaYonu(h.ruzgarYonu)}` },
@@ -207,14 +210,12 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     {
       kimlik: 'sicaklik',
       ad: t('olayDuzeni.seritler.sicaklik'),
-      yuk: 28,
       ust: s.sicaklikUst,
       seriler: [{ ys: s.sicaklik, renk: '#e8a04a', deger: t('hava.derece', { deger: Math.round(h.sicaklik) }) }],
     },
     {
       kimlik: 'nem',
       ad: t('olayDuzeni.seritler.nem'),
-      yuk: 34,
       ust: s.nemUst,
       seriler: [
         { ys: s.nem, renk: '#5f9fdc', deger: yuzdeBicim(h.nem / 100) },
@@ -265,7 +266,8 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   // Olay noktasının grafikteki yüksekliği (px, üstten); SeritGrafigi ile aynı ölçek.
   const olayY = (o: OnemliOlay) => {
     const v = o.tur === 'tutusma' ? 0 : o.tur === 'uyduGecisi' ? veri.firmsAlanHa(o.zaman) : veri.yananAlanHa(o.zaman)
-    return alan.yuk - 1 - (Math.min(Math.max(v, 0), alan.ust) / alan.ust) * (alan.yuk - 3)
+    const yuk = grafikYuksekligi(alan.seriler.length)
+    return yuk - 1 - (Math.min(Math.max(v, 0), alan.ust) / alan.ust) * (yuk - 3)
   }
 
   return (
@@ -307,10 +309,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         <div
           key={sr.kimlik}
           className="grid grid-cols-[192px_1fr] items-center border-b border-white/[0.12]"
-          style={{ height: sr.yuk + 10 }}
+          style={{ height: seritYuksekligi(sr.seriler.length) }}
         >
           <SeritAdi ad={sr.ad} seriler={sr.seriler} />
-          <div className="relative" style={{ marginRight: SAG, height: sr.yuk }}>
+          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(sr.seriler.length) }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {
