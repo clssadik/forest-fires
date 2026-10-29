@@ -7,7 +7,7 @@ import { Etiket } from './Etiket'
 const YUKSELTI = 0.12
 
 /**
- * Zaman panelinde seçilen olayın haritadaki yeri: yanıp sönen halka ve olayın adıyla saati.
+ * Zaman panelinde seçilen olayın haritadaki yeri: sarı dolu nokta, yanıp sönen halka ve olayın adıyla saati.
  * Etiket sürekli bağlı kalır, seçim yokken gizlenir (bkz. Etiket).
  */
 export function SeciliOlayIsareti({ veri, kabartma }: { veri: OlayVerisi; kabartma: number }) {
@@ -19,10 +19,10 @@ export function SeciliOlayIsareti({ veri, kabartma }: { veri: OlayVerisi; kabart
   return (
     <Etiket position={[x, veri.araziY(x, z) * kabartma + YUKSELTI, z]} zIndexRange={[25, 0]}>
       <div className={`pointer-events-none relative ${gorunur ? '' : 'invisible'}`}>
-        <span className="absolute -top-[18px] -left-[18px] size-[36px] animate-ping rounded-full border-2 border-white" />
-        <span className="absolute -top-[9px] -left-[9px] size-[18px] rounded-full border-2 border-white bg-white/25 shadow-[0_0_0_2px_rgba(0,0,0,0.5)]" />
+        <span className="absolute -top-[18px] -left-[18px] size-[36px] animate-ping rounded-full border-2 border-sari" />
+        <span className="absolute -top-[9px] -left-[9px] size-[18px] rounded-full border-2 border-black/60 bg-sari shadow-[0_0_12px_4px_rgba(242,184,74,0.55)]" />
         {olay && (
-          <div className="absolute top-[-13px] left-[18px] rounded-[5px] bg-white px-2 py-1 text-[12.5px] leading-[16px] font-semibold whitespace-nowrap text-zemin shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+          <div className="absolute top-[-13px] left-[18px] rounded-[5px] bg-sari px-2 py-1 text-[12.5px] leading-[16px] font-semibold whitespace-nowrap text-zemin shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
             {t(`olaylar.turler.${olay.tur}`)} <span className="font-normal opacity-70">· {saat(olay.zaman)}</span>
           </div>
         )}
