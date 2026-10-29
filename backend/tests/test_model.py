@@ -1,5 +1,6 @@
 """Yayılım modeli v1: yapay senaryolarla fiziksel davranış testleri (bkz. docs/model.md)."""
 
+import math
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
@@ -13,6 +14,7 @@ from orman.model.yayilim import (
     Arazi,
     Parametreler,
     Ruzgar,
+    _rastgele,
     coklu_yayilim,
     yakit_carpani,
     yayilim,
@@ -275,3 +277,57 @@ def test_sondurme_esigi_ve_kacak():
     kacan = yayilim(arazi, ruzgar, [(20, 20)], kacak, 0, 2000.0)
     assert np.count_nonzero(np.isfinite(tutulan)) == 1
     assert np.count_nonzero(np.isfinite(kacan)) > 10
+
+
+def test_sondurme_doygunlugu_sifirken_rasgele_dizisi_degismez():
+    """Doygunluk 0 (v1–v5): söndürme eski sırayla aynı sayıları tüketir, sonuç tohum tohum aynı."""
+    assert Parametreler().sondurme_doygunluk_ha_sa == 0.0
+    arazi = _duz_arazi(3)
+    arazi.yanabilir[:] = False
+    arazi.yanabilir[1, 1] = arazi.yanabilir[1, 2] = True
+    p = Parametreler(sondurme_esigi=0.6, sondurme_baslangic_dk=0.0, sondurme_olasiligi=0.8)
+    for tohum in range(200):
+        # Eski çekirdek: ilk çekiliş tutma, ikincisi bekleme. p = p_h = 0,58 < eşik.
+        durum = np.array([np.uint64((tohum * 0x2545F4914F6CDD1D) & (2**64 - 1))], dtype=np.uint64)
+        tutuldu = _rastgele(durum) < p.sondurme_olasiligi
+        bekleme = -math.log(_rastgele(durum)) / (p.hiz_olcegi * p.p_h)
+        beklenen = np.nan if tutuldu or bekleme > p.yanma_suresi_dk else bekleme
+        toa = yayilim(arazi, Ruzgar.sabit(0.0, 0.0), [(1, 1)], p, tohum, 1e9)
+        assert toa[1, 2] == pytest.approx(beklenen, nan_ok=True)
+
+    # Doygunluk alanı varsayılan 0 iken hiçbir şeyi değiştirmez (rastgele dizi dahil).
+    arazi = _duz_arazi(41)
+    arazi.yanabilir[5:20, 7:30] = False
+    ruzgar = Ruzgar.sabit(4.0, 60.0)
+    v5 = replace(V2_YAKIT, sondurme_esigi=0.6, sondurme_baslangic_dk=120.0,
+                 sondurme_olasiligi=0.8)  # fmt: skip
+    for tohum in range(3):
+        a = yayilim(arazi, ruzgar, [(20, 20)], v5, tohum, 240.0)
+        # Pencere değeri doygunluk kapalıyken etkisiz olmalı.
+        b = yayilim(arazi, ruzgar, [(20, 20)], replace(v5, sondurme_pencere_dk=15.0), tohum, 240.0)
+        np.testing.assert_array_equal(a, b)
+
+
+def test_sondurme_gucu_buyume_hizina_baglanir():
+    """Hızlı büyüyen yangında söndürme etkisiz (kapalıyla birebir), yavaş büyüyende etkili."""
+    # Aynı yayılma, yalnızca hücre alanı farklı: 30 m hücrede saatlik büyüme doygunluğu aşar,
+    # 1 m hücrede aşmaz. Eşik her geçişi kapsar (p < 10), böylece fark yalnızca tutma gücünden.
+    p = replace(
+        HIZLI,
+        sondurme_esigi=10.0,
+        sondurme_baslangic_dk=30.0,
+        sondurme_olasiligi=1.0,
+        sondurme_doygunluk_ha_sa=10.0,
+    )
+    ruzgar = Ruzgar.sabit(0.0, 0.0)
+    hizli = _duz_arazi(201)
+    yavas = _duz_arazi(201)
+    yavas.cozunurluk = 1.0
+    hizli_toa = yayilim(hizli, ruzgar, [MERKEZ], p, 0, 120.0)
+    kapali = yayilim(hizli, ruzgar, [MERKEZ], replace(p, sondurme_esigi=0.0), 0, 120.0)
+    yavas_toa = yayilim(yavas, ruzgar, [MERKEZ], p, 0, 120.0)
+    # Büyüme doygunluğun çok üstünde: ekipler yetişemez, söndürme hiçbir geçişi tutmaz.
+    np.testing.assert_array_equal(hizli_toa, kapali)
+    # Aynı yangın 1 m hücrede 100× küçük alanla büyür: ekipler kenarı tutar, alan küçük kalır.
+    assert np.count_nonzero(~np.isnan(yavas_toa)) < 0.25 * np.count_nonzero(~np.isnan(hizli_toa))
+

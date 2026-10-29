@@ -16,6 +16,14 @@ Söndürme (kaba vekil): `sondurme_baslangic_dk` sonrasında `p < sondurme_esigi
 `sondurme_olasiligi` olasılıkla olmaz. Ekipler yavaş ilerleyen kenarları (yanlar, rüzgâr tersi, nemli gece) tutar; hızlı baş
 cephe durdurulamaz. Ekip konumu veya sayısı bilinmediği için yerden bağımsızdır.
 
+v6: söndürme gücü yangının kendi büyüme hızına bağlanır (`sondurme_doygunluk_ha_sa` > 0). Son
+`sondurme_pencere_dk` içinde kesinleşen hücrelerin alanı büyüme hızını (ha/sa) verir; etkin tutma
+olasılığı `sondurme_olasiligi · max(0, 1 − büyüme / doygunluk)`. Doğrusal biçim seçildi: ekiplerin
+saatte tutabildiği kenar uzunluğu yaklaşık sabittir, büyüme hızı da kenar uzunluğuyla orantılı
+artar; tek parametre yeter ve iki uç (0 → tam tutma, doygunluk → hiç tutma) doğal çıkar.
+Doygunluk hızına ulaşan yangında ekipler yetişemez, yavaş büyüyende kenarları tutar. Doygunluk
+0 iken eski davranış (v1–v5) birebir korunur: ek çekiliş yapılmaz, aynı rastgele sayı dizisi.
+
 Çıktı her hücrenin varış zamanıdır (TOA, tutuşmadan bu yana dakika; yanmadıysa NaN).
 Hesap olay kuyruğuyla yapılır (en erken aday zaman önce); `i`'nin hızları tutuştuğu andaki
 havayla hesaplanır.
@@ -61,6 +69,10 @@ class Parametreler:
     # Eşik altı geçişin tutulma olasılığı; 1 = hepsi tutulur (v4). Kaçan geçişler yangını gece
     # canlı tutar, gündüz yeniden koşabilir.
     sondurme_olasiligi: float = 1.0
+    # v6: son `sondurme_pencere_dk` içindeki büyüme hızı (ha/sa) bu değere ulaşınca ekipler
+    # etkisizleşir (etkin tutma 0). 0 = kapalı, eski davranış.
+    sondurme_doygunluk_ha_sa: float = 0.0
+    sondurme_pencere_dk: float = 60.0
 
 
 def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
@@ -248,13 +260,22 @@ def _kuyruktan_al(zaman, hucre, n):
 def _yayilim_cekirdegi(
     yukseklik, yanabilir, yakit, engel, cozunurluk, tutusma_satir, tutusma_sutun,
     p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, engel_etkisi,
-    sondurme_esigi, sondurme_baslangic_dk, sondurme_olasiligi, tohum, bitis_dk,
-    dk, U, V, H, M, sa, su, so, ca, cu, co,
+    sondurme_esigi, sondurme_baslangic_dk, sondurme_olasiligi, doygunluk_ha_sa, pencere_dk,
+    tohum, bitis_dk, dk, U, V, H, M, sa, su, so, ca, cu, co,
 ):  # fmt: skip
     satir_n, sutun_n = yukseklik.shape
     toa = np.full((satir_n, sutun_n), np.nan, dtype=np.float32)
     en_iyi = np.full(satir_n * sutun_n, np.inf)
     kesin = np.zeros(satir_n * sutun_n, dtype=np.bool_)
+    # Kesinleşme zamanları (artan); pencere içindeki büyüme hızı için iki işaretçi yeter.
+    # Doygunluk kapalıyken büyük tampon ayrılmaz.
+    if doygunluk_ha_sa > 0.0:
+        kesin_zaman = np.empty(satir_n * sutun_n, dtype=np.float64)
+    else:
+        kesin_zaman = np.empty(1, dtype=np.float64)
+    kesin_sayi = 0
+    alt = 0
+    hucre_ha = cozunurluk * cozunurluk / 10000.0
     durum = np.array([np.uint64(tohum) * np.uint64(0x2545F4914F6CDD1D)], dtype=np.uint64)
     zaman = np.empty(1 << 16, dtype=np.float64)
     hucre = np.empty(1 << 16, dtype=np.int64)
@@ -274,6 +295,16 @@ def _yayilim_cekirdegi(
         kesin[idx] = True
         r, c = idx // sutun_n, idx % sutun_n
         toa[r, c] = t
+        # Söndürme gücü: penceredeki kesinleşmelerden büyüme hızı (ha/sa). Doygunluk kapalıyken
+        # tutma eskisi gibi sabit; ek çekiliş yok, rastgele sayı dizisi değişmez.
+        tutma = sondurme_olasiligi
+        if doygunluk_ha_sa > 0.0:
+            kesin_zaman[kesin_sayi] = t
+            kesin_sayi += 1
+            while alt < kesin_sayi - 1 and kesin_zaman[alt] <= t - pencere_dk:
+                alt += 1
+            buyume = (kesin_sayi - alt) * hucre_ha / (pencere_dk / 60.0)
+            tutma = sondurme_olasiligi * max(0.0, 1.0 - buyume / doygunluk_ha_sa)
         u, v, hiz, nem = _ruzgar_ornekle(r, c, t, dk, U, V, H, M, sa, su, so, ca, cu, co)
         eta_m = nem_sonumu(nem, sonme_nemi)
         vektor = math.hypot(u, v)
@@ -304,10 +335,11 @@ def _yayilim_cekirdegi(
             if p <= 0.0:
                 continue
             # Söndürme; olasılık 1 iken çekiliş yapılmaz (v4'ün rastgele sayı dizisi değişmesin).
+            # `tutma` doygunlukla düşer; 0 ise geçiş hiç tutulmaz, 1 ise hiç kaçmaz.
             if (
                 t >= sondurme_baslangic_dk
                 and p < sondurme_esigi
-                and (sondurme_olasiligi >= 1.0 or _rastgele(durum) < sondurme_olasiligi)
+                and (tutma >= 1.0 or (tutma > 0.0 and _rastgele(durum) < tutma))
             ):
                 continue
 
@@ -355,6 +387,8 @@ def yayilim(
         float(p.sondurme_esigi),
         float(p.sondurme_baslangic_dk),
         float(p.sondurme_olasiligi),
+        float(p.sondurme_doygunluk_ha_sa),
+        float(max(p.sondurme_pencere_dk, 1.0)),
         int(tohum),
         float(bitis_dk),
         *ruzgar._diziler(),

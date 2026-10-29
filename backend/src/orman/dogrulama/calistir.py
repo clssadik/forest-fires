@@ -3,7 +3,8 @@
     uv run orman-dogrula manavgat_2021              # 20 tohum
     uv run orman-dogrula manavgat_2021 --calisma 5
 
-Deneyler: model v1, v2 (+ yakıt türü), v3 (+ nem, kalibre), v4 (+ söndürme), v5 (+ söndürmeden kaçak) ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
+Deneyler: model v1, v2 (+ yakıt türü), v3 (+ nem, kalibre), v4 (+ söndürme), v5 (+ söndürmeden
+kaçak), v6 (+ büyüme hızına bağlı söndürme) ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
 daire). Her deney için topluluk (çalıştırmaların en az yarısında yanan alan) ölçütleri ve
 tohumlar arası ortalama ± sapma. Çıktılar `data/islenmis/<ad>/dogrulama/`: rapor.json,
 firms_varis.tif ve görseller (rapor.py).
@@ -36,6 +37,19 @@ V4 = replace(V3, sondurme_esigi=0.52, sondurme_baslangic_dk=360.0)
 # 2.000 ha'da kaldı). Eşik 0,60 ve tutma 0,80 Manavgat'ta elle tarandı (0,58–0,65 × 0,75–0,85 bir
 # sırt; yuvarlak değer), Marmaris ayarsız. Bkz. docs/05, "durma ve kare şekli".
 V5 = replace(V4, sondurme_esigi=0.60, sondurme_olasiligi=0.80)
+# v6: itfaiyenin gücü yangının büyüme hızına bağlı (2026-10-29). Son 60 dk'daki büyüme
+# `sondurme_doygunluk_ha_sa`'ya yaklaşınca etkin tutma düşer; yavaş büyüyen yangında ekipler
+# kenarları tutar. Eşik 0,58, tutma 0,85 ve doygunluk 26.500 ha/sa Manavgat 2021'de tarandı
+# (6000–80800 × 0,55–0,70 × 0,80–0,95; en iyi aday 20 yeni tohumla doğrulandı),
+# Marmaris ayarsız. Büyüme ~500–1000 ha/sa olduğundan etkin tutma ~0,82–0,85 arasında oynar;
+# kazancın çoğu tutmanın 0,80'den yükselmesinden gelir (kuralsız sabit 0,84: Marmaris 8.584 ha,
+# v6 6.016 ha). Model tutmaya çok duyarlı: sabit 0,82 → Manavgat 74 bin ha, 0,85 → 40 bin ha.
+V6 = replace(
+    V5,
+    sondurme_esigi=0.58,
+    sondurme_olasiligi=0.85,
+    sondurme_doygunluk_ha_sa=26500.0,
+)
 GUNCEL_MODEL = "model_v5"  # web simülasyonu ve senaryo modunun kullandığı model
 # Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz).
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
@@ -44,6 +58,7 @@ DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
     "model_v3": ("Model v3 (+ nem, kalibre)", V3),
     "model_v4": ("Model v4 (+ söndürme)", V4),
     "model_v5": ("Model v5 (+ söndürmeden kaçak)", V5),
+    "model_v6": ("Model v6 (+ büyümeye bağlı söndürme)", V6),
     "ruzgarsiz": ("Rüzgârsız model", replace(V1, c1=0.0, c2=0.0)),
     "egimsiz": ("Eğimsiz model", replace(V1, a=0.0)),
     "ruzgarsiz_egimsiz": ("Rüzgârsız ve eğimsiz model", replace(V1, c1=0.0, c2=0.0, a=0.0)),
@@ -115,12 +130,24 @@ class DeneyOrtami:
 
 
 def model_deneyi(
-    ortam: DeneyOrtami, ad: str, aciklama: str, parametreler: Parametreler, calisma: int
+    ortam: DeneyOrtami,
+    ad: str,
+    aciklama: str,
+    parametreler: Parametreler,
+    calisma: int,
+    ilk_tohum: int = 0,
+    is_parcacigi: int | None = None,
 ) -> DeneySonucu:
     """Modeli `calisma` tohumla çalıştırır; topluluk TOA'sını ve ölçütleri döndürür."""
     referans = ortam.referans
     sonuc = coklu_yayilim(
-        ortam.arazi, ortam.ruzgar, [ortam.tutusma], parametreler, range(calisma), referans.bitis_dk
+        ortam.arazi,
+        ortam.ruzgar,
+        [ortam.tutusma],
+        parametreler,
+        range(ilk_tohum, ilk_tohum + calisma),
+        referans.bitis_dk,
+        is_parcacigi=is_parcacigi,
     )
     tek_tek = [dogrula(t, referans) for t in sonuc.toalar]
     return DeneySonucu(
