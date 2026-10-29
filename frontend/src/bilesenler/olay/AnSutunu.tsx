@@ -26,7 +26,8 @@ export function AnSutunu({ veri }: { veri: OlayVerisi }) {
 
   const basladi = an >= veri.tutusmaMs
   const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
-  const sonOlay = veri.olaylar.findLast((o) => o.zaman <= an)
+  // `an` dakikaya yuvarlı; olaya tıklanınca saniyeler yüzünden bir öncekini göstermesin.
+  const sonOlay = veri.olaylar.findLast((o) => Math.floor(o.zaman / DAKIKA) * DAKIKA <= an)
   const m = veri.bilgi.model
   const daireyiGeciyor = m.daire_dice !== null && m.bitis_dice !== null && m.bitis_dice > m.daire_dice
   const tire = t('hava.baslamadi')
