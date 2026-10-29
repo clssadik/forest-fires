@@ -13,7 +13,7 @@ rüzgar ve yokuş yönünde yangın daha hızlı ilerler. `η_M` yakıt nemi sö
 hedef hücredeki yol / akarsu engelinin gücü × `engel_etkisi` (veri/engeller.py).
 
 Söndürme (kaba vekil): `sondurme_baslangic_dk` sonrasında `p < sondurme_esigi` olan geçişler
-olmaz. Ekipler yavaş ilerleyen kenarları (yanlar, rüzgâr tersi, nemli gece) tutar; hızlı baş
+`sondurme_olasiligi` olasılıkla olmaz. Ekipler yavaş ilerleyen kenarları (yanlar, rüzgâr tersi, nemli gece) tutar; hızlı baş
 cephe durdurulamaz. Ekip konumu veya sayısı bilinmediği için yerden bağımsızdır.
 
 Çıktı her hücrenin varış zamanıdır (TOA, tutuşmadan bu yana dakika; yanmadıysa NaN).
@@ -58,6 +58,9 @@ class Parametreler:
     # Söndürme vekili: bu andan (dk) sonra p'si eşiğin altındaki geçişler olmaz; 0 = kapalı.
     sondurme_esigi: float = 0.0
     sondurme_baslangic_dk: float = 0.0
+    # Eşik altı geçişin tutulma olasılığı; 1 = hepsi tutulur (v4). Kaçan geçişler yangını gece
+    # canlı tutar, gündüz yeniden koşabilir.
+    sondurme_olasiligi: float = 1.0
 
 
 def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
@@ -245,7 +248,7 @@ def _kuyruktan_al(zaman, hucre, n):
 def _yayilim_cekirdegi(
     yukseklik, yanabilir, yakit, engel, cozunurluk, tutusma_satir, tutusma_sutun,
     p_h, c1, c2, a, hiz_olcegi, yanma_suresi, p_veg, p_den, sonme_nemi, engel_etkisi,
-    sondurme_esigi, sondurme_baslangic_dk, tohum, bitis_dk,
+    sondurme_esigi, sondurme_baslangic_dk, sondurme_olasiligi, tohum, bitis_dk,
     dk, U, V, H, M, sa, su, so, ca, cu, co,
 ):  # fmt: skip
     satir_n, sutun_n = yukseklik.shape
@@ -298,7 +301,14 @@ def _yayilim_cekirdegi(
             p = p_h * (1.0 + p_veg[sinif]) * (1.0 + p_den[sinif]) * p_w * p_s * eta_m
             # Engel: yol / akarsu hücresine geçiş yavaşlar; bekleme yanma süresini aşarsa geçemez.
             p *= 1.0 - min(engel_etkisi * engel[rr, cc], 1.0)
-            if p <= 0.0 or (t >= sondurme_baslangic_dk and p < sondurme_esigi):
+            if p <= 0.0:
+                continue
+            # Söndürme; olasılık 1 iken çekiliş yapılmaz (v4'ün rastgele sayı dizisi değişmesin).
+            if (
+                t >= sondurme_baslangic_dk
+                and p < sondurme_esigi
+                and (sondurme_olasiligi >= 1.0 or _rastgele(durum) < sondurme_olasiligi)
+            ):
                 continue
 
             # Bekleme: üstel dağılım, ortalama 1 / (hiz_olcegi · p); köşegende √2 kat.
@@ -344,6 +354,7 @@ def yayilim(
         float(p.engel_etkisi),
         float(p.sondurme_esigi),
         float(p.sondurme_baslangic_dk),
+        float(p.sondurme_olasiligi),
         int(tohum),
         float(bitis_dk),
         *ruzgar._diziler(),

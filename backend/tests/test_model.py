@@ -263,3 +263,15 @@ def test_engel_gecisi_yavaslatir_ve_tam_guc_durdurur():
     kapali = yayilim(arazi, ruzgar, [(20, 20)], replace(V2_YAKIT, engel_etkisi=1.0), 0, 2000.0)
     assert np.isfinite(acik[:, 30]).any()
     assert np.isnan(kapali[:, 25:]).all()
+
+
+def test_sondurme_esigi_ve_kacak():
+    """Eşik her geçişin üstündeyse ateş tutuşma hücresinde kalır; kaçak payı varsa yayılır."""
+    arazi = _duz_arazi(41)
+    ruzgar = Ruzgar.sabit(0.0, 0.0)
+    tam = replace(V2_YAKIT, sondurme_esigi=10.0)
+    kacak = replace(tam, sondurme_olasiligi=0.5)
+    tutulan = yayilim(arazi, ruzgar, [(20, 20)], tam, 0, 2000.0)
+    kacan = yayilim(arazi, ruzgar, [(20, 20)], kacak, 0, 2000.0)
+    assert np.count_nonzero(np.isfinite(tutulan)) == 1
+    assert np.count_nonzero(np.isfinite(kacan)) > 10
