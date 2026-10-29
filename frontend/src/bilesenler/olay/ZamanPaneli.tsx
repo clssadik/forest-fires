@@ -22,7 +22,7 @@ const HIZLAR = [1, 2, 5, 10, 30]
 /** 1× oynatma hızı: gerçek saniye başına simülasyon dakikası. */
 const TEMEL_HIZ = 60
 /** Şerit adlarının sütunu ve grafiklerin sağ boşluğu (px). */
-const ETIKET = 212
+const ETIKET = 192
 const SAG = 16
 
 /** Yanan alan grafiğindeki olay noktalarının renkleri: uydu gözlemi FIRMS çizgisinde, model olayı model eğrisinde. */
@@ -280,8 +280,8 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         />
       )}
       {/* Denetimler ve gün ekseni aynı satırda */}
-      <div className="grid h-[50px] grid-cols-[212px_1fr] items-center border-b border-cizgi">
-        <div className="flex items-center gap-2 px-3.5 whitespace-nowrap">
+      <div className="grid h-[50px] grid-cols-[192px_1fr] items-center border-b border-cizgi">
+        <div className="flex items-center gap-1.5 px-2.5 whitespace-nowrap">
           <Denetimler />
         </div>
         <div ref={eksenRef} className="relative h-full text-[11.5px] whitespace-nowrap text-soluk" style={{ marginRight: SAG }}>
@@ -298,15 +298,15 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       </div>
 
       {/* Seçili an */}
-      <div className="flex h-[30px] items-center gap-2 border-b border-white/[0.12] px-3.5 whitespace-nowrap">
-        <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-        <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
+      <div className="flex h-[38px] items-baseline gap-2 border-b border-white/[0.12] px-2.5 pt-[9px] whitespace-nowrap">
+        <span className="text-[17px] leading-[20px] font-semibold tabular-nums">{gunAySaat(an)}</span>
+        <span className="text-[12.5px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
       </div>
 
       {seritler.map((sr) => (
         <div
           key={sr.kimlik}
-          className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.12]"
+          className="grid grid-cols-[192px_1fr] items-center border-b border-white/[0.12]"
           style={{ height: sr.yuk + 10 }}
         >
           <SeritAdi ad={sr.ad} seriler={sr.seriler} />
@@ -482,7 +482,7 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 /** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
 function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 px-3.5 text-[12px] leading-[15px] whitespace-nowrap">
+    <div className="flex min-w-0 flex-col gap-1 px-2.5 text-[12px] leading-[15px] whitespace-nowrap">
       {seriler.map((sr) => (
         <div key={sr.renk} className="flex items-center gap-2">
           <svg width="10" height="4" aria-hidden className="shrink-0">
