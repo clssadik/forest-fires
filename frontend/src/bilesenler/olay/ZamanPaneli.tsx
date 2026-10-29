@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode
 import { useTranslation } from 'react-i18next'
 import { gunAy, gunAySaat, saat as saatBicim, sayi, yuzdeBicim } from '../../bicim'
 import { useHarita } from '../../durum/harita'
+import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
@@ -235,22 +236,34 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     const o = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1)
     zamanaGit(baslangic + o * (bitis - baslangic))
   }
-  // Tıklanan olay işaretinin kartı (anahtar: grubun ilk olayının zamanı).
+  // Tıklanan olay işaretinin kartı (anahtar: grubun ilk olayının zamanı). Dışarı tıklamak yalnızca
+  // kartı kapatır, haritadaki işaret kalır; Esc ve × ikisini birden kaldırır.
   const [acik, setAcik] = useState<number | null>(null)
+  const olaySec = useOlay((d) => d.olaySec)
   const kartRef = useRef<HTMLDivElement>(null)
+  const kapat = () => {
+    setAcik(null)
+    olaySec(null)
+  }
   useEffect(() => {
     if (acik === null) return
-    const kapat = (e: Event) => {
-      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !kartRef.current?.contains(e.target as Node)) setAcik(null)
+    const dinle = (e: Event) => {
+      if (e instanceof KeyboardEvent) {
+        if (e.key === 'Escape') {
+          setAcik(null)
+          olaySec(null)
+        }
+      } else if (!kartRef.current?.contains(e.target as Node)) setAcik(null)
     }
-    document.addEventListener('pointerdown', kapat)
-    document.addEventListener('keydown', kapat)
+    document.addEventListener('pointerdown', dinle)
+    document.addEventListener('keydown', dinle)
     return () => {
-      document.removeEventListener('pointerdown', kapat)
-      document.removeEventListener('keydown', kapat)
+      document.removeEventListener('pointerdown', dinle)
+      document.removeEventListener('keydown', dinle)
     }
-  }, [acik])
+  }, [acik, olaySec])
   const git = (o: OnemliOlay) => {
+    olaySec(o)
     zamanaGit(o.zaman)
     if (o.x !== undefined && o.z !== undefined) odaklanIste(o.x, o.z)
   }
@@ -274,7 +287,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           olaylar={acikGrup}
           oran={oran(acikGrup[0].zaman)}
           git={git}
-          kapat={() => setAcik(null)}
+          kapat={kapat}
         />
       )}
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
@@ -293,8 +306,9 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
                 // Kartın dışına tıklama onu kapatır; işaretin kendisi kapatıp yeniden açmasın.
                 onPointerDown={(e) => e.nativeEvent.stopImmediatePropagation()}
                 onClick={() => {
+                  if (secili) return kapat()
                   git(ilk)
-                  setAcik(secili ? null : ilk.zaman)
+                  setAcik(ilk.zaman)
                 }}
                 title={secili ? undefined : metin}
                 aria-label={metin}

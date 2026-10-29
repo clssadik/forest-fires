@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import * as api from '../olay/api'
-import { OlayVerisi } from '../olay/veri'
+import { OlayVerisi, type OnemliOlay } from '../olay/veri'
 import { useZaman } from './zaman'
 
 const SAAT = 3_600_000
@@ -15,6 +15,9 @@ interface OlayDurumu {
   veri: OlayVerisi | null
   /** Fare altındaki sahne noktası (km); null = arazinin dışında. */
   imlec: { x: number; z: number } | null
+  /** Zaman panelinden seçilen olay; haritada konumu işaretlenir. */
+  seciliOlay: OnemliOlay | null
+  olaySec: (olay: OnemliOlay | null) => void
   /** Yangını yükler; aynı yangın zaten yüklüyse yalnızca zaman aralığını kurar. */
   yukle: (ad: string) => Promise<void>
   zamaniKur: () => void
@@ -27,6 +30,8 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
   hata: null,
   veri: null,
   imlec: null,
+  seciliOlay: null,
+  olaySec: (seciliOlay) => set({ seciliOlay }),
 
   yukle: async (ad) => {
     if (get().ad === ad && get().yukleme !== 'hata') {
@@ -35,7 +40,7 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
     }
     // Yükleme sürerken başka yangın seçilirse bu yüklemenin yanıtları atılır.
     const guncel = () => get().ad === ad
-    set({ ad, yukleme: 'yukleniyor', hata: null, veri: null, imlec: null })
+    set({ ad, yukleme: 'yukleniyor', hata: null, veri: null, imlec: null, seciliOlay: null })
     try {
       // Bilgi uç noktası gerekirse simülasyonu çalıştırır; bantlar ondan sonra istenir.
       const bilgi = await api.olayBilgisi(ad)

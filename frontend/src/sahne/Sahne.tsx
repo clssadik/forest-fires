@@ -11,6 +11,7 @@ import { Arazi } from './Arazi'
 import { Gokyuzu } from './Gokyuzu'
 import { KameraKontrol } from './KameraKontrol'
 import { RuzgarCizgileri } from './RuzgarCizgileri'
+import { SeciliOlayIsareti } from './SeciliOlayIsareti'
 import { YayilimIsaretleri } from './YayilimIsaretleri'
 import { yanginUniformlari as U } from './yanginMalzemesi'
 
@@ -70,6 +71,7 @@ export function Sahne({ veri }: { veri: OlayVerisi }) {
       <Agaclar veri={veri} gorunur={goruntu} />
       <RuzgarCizgileri veri={veri} opaklik={ruzgar} />
       {yayilim && <YayilimIsaretleri veri={veri} kabartma={etiketKabartma} />}
+      <SeciliOlayIsareti veri={veri} kabartma={etiketKabartma} />
 
       <UniformGuncelleyici tutusmaMs={veri.tutusmaMs} hataEsikSaat={veri.bilgi.model.esit_alan_esik_dk / 60} />
       <KameraKontrol veri={veri} />
