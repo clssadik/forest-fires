@@ -6,7 +6,7 @@ import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { olayAciklamasi } from '../altSerit/OnemliOlaylar'
+import { olayOzeti } from '../altSerit/OnemliOlaylar'
 import { OlayIkonu } from '../OlayIkonu'
 import {
   IkonAlev,
@@ -273,7 +273,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           kartRef={kartRef}
           olaylar={acikGrup}
           oran={oran(acikGrup[0].zaman)}
-          tutusmaMs={veri.tutusmaMs}
           git={git}
           kapat={() => setAcik(null)}
         />
@@ -380,22 +379,17 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-/**
- * Olay işaretine tıklanınca üstünde açılan kart: gruptaki her olay ne olduğunu anlatan bir başlık,
- * kaynağı (kayıt, uydu ya da model), zamanı ve sayılarıyla bir açıklama cümlesiyle.
- */
+/** Olay işaretine tıklanınca üstünde açılan kart: gruptaki her olay için başlık, saat ve kısa özet. */
 function OlayKarti({
   kartRef,
   olaylar,
   oran,
-  tutusmaMs,
   git,
   kapat,
 }: {
   kartRef: RefObject<HTMLDivElement | null>
   olaylar: OnemliOlay[]
   oran: number
-  tutusmaMs: number
   git: (o: OnemliOlay) => void
   kapat: () => void
 }) {
@@ -406,7 +400,7 @@ function OlayKarti({
         ref={kartRef}
         role="dialog"
         aria-label={t('olayDuzeni.seritler.olaylar')}
-        className="pointer-events-auto absolute bottom-0 w-[320px] rounded-[10px] border border-cizgi bg-panel p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-auto absolute bottom-0 w-[260px] rounded-[10px] border border-cizgi bg-panel p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
         style={{ left: `${oran * 100}%`, transform: `translateX(-${etiketKaymasi(oran)}%)` }}
       >
         <div className="flex items-center justify-between px-2 pt-1 pb-1.5 text-[11.5px] text-soluk">
@@ -429,20 +423,17 @@ function OlayKarti({
                 type="button"
                 onClick={() => git(o)}
                 title={t('olaylar.git')}
-                className="flex w-full gap-2.5 rounded-[7px] px-2 py-2 text-left text-[12.5px] leading-[16px] hover:bg-yuzey"
+                className="flex w-full items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-left text-[12.5px] leading-[16px] hover:bg-yuzey"
               >
-                <span className="mt-[1px] grid size-[22px] shrink-0 place-items-center rounded-[6px] bg-yuzey">
+                <span className="grid size-[22px] shrink-0 place-items-center rounded-[6px] bg-yuzey">
                   <OlayIkonu tur={o.tur} boyut={13} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline gap-2">
-                    <span className="font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
-                    <span className="rounded-[4px] bg-yuzey px-1.5 text-[10.5px] leading-[16px] text-soluk">{t(`olaylar.kaynak.${o.tur}`)}</span>
-                    <span className="ml-auto text-[11.5px] whitespace-nowrap text-soluk">
-                      {saatBicim(o.zaman)} · {t('olaylar.saat', { saat: sayi(Math.max(o.zaman - tutusmaMs, 0) / SAAT, 1) })}
-                    </span>
+                    <span className="truncate font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
+                    <span className="ml-auto text-[11.5px] text-soluk tabular-nums">{saatBicim(o.zaman)}</span>
                   </span>
-                  <span className="mt-1 block text-[12px] leading-[17px] text-metin/80">{olayAciklamasi(o, t)}</span>
+                  {olayOzeti(o, t) && <span className="block truncate text-[11.5px] text-soluk">{olayOzeti(o, t)}</span>}
                 </span>
               </button>
             </li>

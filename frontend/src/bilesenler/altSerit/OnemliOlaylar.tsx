@@ -79,22 +79,14 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-/** Olayın ne anlama geldiğini anlatan cümle (sayılarıyla). */
-export function olayAciklamasi(olay: OnemliOlay, t: TFunction): string {
+/** Olayın tek satırlık kısa özeti; tutuşmada boş. */
+export function olayOzeti(olay: OnemliOlay, t: TFunction): string {
   const h = olay.ham
-  if (olay.tur === 'uyduGecisi' && h?.firms_ha !== undefined && h.model_ha !== undefined) {
-    const oran = h.model_ha / Math.max(h.firms_ha, 1)
-    const durum = oran < 0.8 ? 'geride' : oran > 1.25 ? 'onde' : 'yakin'
-    return t('olaylar.aciklama.uyduGecisi', {
-      firms: sayi(h.firms_ha),
-      model: sayi(h.model_ha),
-      durum: t(`olaylar.durum.${durum}`),
-    })
-  }
-  if (olay.tur === 'hizliBuyume' && h?.ha_sa !== undefined) return t('olaylar.aciklama.hizliBuyume', { deger: sayi(h.ha_sa) })
-  if (olay.tur === 'sirtaUlasma' && h?.yukseklik_m !== undefined)
-    return t('olaylar.aciklama.sirtaUlasma', { deger: sayi(h.yukseklik_m) })
-  return olay.tur === 'tutusma' ? t('olaylar.aciklama.tutusma') : ''
+  if (olay.tur === 'uyduGecisi' && h?.firms_ha !== undefined && h.model_ha !== undefined)
+    return t('olaylar.ozet.uyduGecisi', { firms: sayi(h.firms_ha), model: sayi(h.model_ha) })
+  if (olay.tur === 'hizliBuyume' && h?.ha_sa !== undefined) return t('olaylar.ozet.hizliBuyume', { deger: sayi(h.ha_sa) })
+  if (olay.tur === 'sirtaUlasma' && h?.yukseklik_m !== undefined) return t('olaylar.ozet.sirtaUlasma', { deger: sayi(h.yukseklik_m) })
+  return ''
 }
 
 /** Olayın bir satırlık ayrıntısı (FIRMS ve model alanı, büyüme hızı, sırt yüksekliği). */
