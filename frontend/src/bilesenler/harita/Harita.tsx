@@ -41,13 +41,17 @@ export function Harita() {
           )}
         </div>
       )}
-      <p className="pointer-events-none absolute bottom-4 left-4 flex items-center whitespace-nowrap rounded-md bg-black/70 px-2.5 py-1.5 text-[12px] leading-none text-white/80 ring-1 ring-white/10 backdrop-blur-sm">
+      <p
+        className={`pointer-events-none absolute bottom-4 left-4 flex items-center whitespace-nowrap text-[12px] leading-none text-white/80 ${
+          kip === '3B' ? '' : 'rounded-md bg-black/70 px-2.5 py-1.5 ring-1 ring-white/10 backdrop-blur-sm'
+        }`}
+      >
         {kip === '3B' ? (
           <Trans
             i18nKey="harita.ipucu3B"
             components={{
               tus: (
-                <kbd className="rounded-[4px] border border-white/25 border-b-white/40 bg-white/10 px-1.5 py-[3px] font-sans text-[11px] font-medium text-white" />
+                <kbd className="rounded-[4px] border border-white/25 border-b-white/40 bg-white/10 px-1.5 py-[3px] font-sans backdrop-blur-sm text-[11px] font-medium text-white" />
               ),
             }}
           />
