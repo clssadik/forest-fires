@@ -370,7 +370,7 @@ def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> Ola
     olaylar.sort(key=lambda o: o["saat"])
 
     # Ana yayılım ekseni: tutuşmadan, model alanı gerçek alana ulaştığında en uzakta yanmış
-    # hücreye. Model durmayı bilmediği için bitişteki en uzak hücre bölgenin kenarıdır.
+    # hücreye. Bitiş alanı gerçekten farklı olabildiği için ölçek eşit alan anına sabitlenir.
     esit_saat = next(
         (h for h, a in zip(saatler, model_ha, strict=True) if a >= referans.gercek_ha), saatler[-1]
     )

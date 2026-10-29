@@ -7,8 +7,9 @@ FIRMS ve Sentinel-2 gerekmez. Güncel model `CALISMA` tohumla `SURE_SA` saat ça
 
 Sonuç tek bir çizgi değil, olasılıktır: her hücre için çalıştırmaların %10, %50 ve %90'ında
 yandığı en erken an (`ESIKLER`). Bir t anında "olasılık ≥ q" alanı, q eşiğinin TOA'sı ≤ t
-olan hücrelerdir. Doğrulamada (docs/dogrulama.md) model alanı ve yakıtı iyi, yönü kısmen,
-durmayı (söndürme) hiç bilmiyor; arayüz bunu açıkça yazar.
+olan hücrelerdir. Doğrulamada (docs/dogrulama.md) model alanı ve yakıtı iyi, yönü kısmen
+biliyor; söndürmeyi yalnızca kaba bir kuralla (yangının büyüme hızına bağlı) taklit ediyor.
+Arayüz bunu açıkça yazar.
 
 Çıktılar `data/islenmis/senaryolar/<kimlik>/`: paket katmanları, esik_toa.tif (3 bant, dk)
 ve sonuc.json.
@@ -37,7 +38,7 @@ from orman.veri.hava_alani import HavaAlani
 
 YARICAP_KM = 20.0  # ızgara: nokta merkezli 40 × 40 km
 COZUNURLUK_M = 30.0
-SURE_SA = 48  # model durmayı bilmediği için daha uzun süre anlamlı değil
+SURE_SA = 48  # 24 saatten sonra sapma büyüyor; daha uzun süre anlamlı değil
 CALISMA = 20
 ESIKLER = (0.1, 0.5, 0.9)  # olasılık bantları: düşük, orta, yüksek
 KIMLIK_HASSASIYETI = 2  # ondalık basamak (~1 km); yakın tıklamalar aynı paketi kullanır

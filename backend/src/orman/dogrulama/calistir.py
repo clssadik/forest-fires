@@ -50,7 +50,7 @@ V6 = replace(
     sondurme_olasiligi=0.85,
     sondurme_doygunluk_ha_sa=26500.0,
 )
-GUNCEL_MODEL = "model_v5"  # web simülasyonu ve senaryo modunun kullandığı model
+GUNCEL_MODEL = "model_v6"  # web simülasyonu ve senaryo modunun kullandığı model
 # Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz).
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
     "model_v1": ("Model v1 (rüzgâr + eğim)", V1),
