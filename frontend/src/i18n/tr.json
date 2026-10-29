@@ -356,8 +356,8 @@
     },
     "guven": {
       "baslik": "Bu tahmin ne kadar güvenilir?",
-      "olcum": "Geçmiş iki yangında aynı ayarlarla sınandı (Manavgat 2021, Marmaris 2022; hava tahmini kusursuz varsayılarak). İlk 12 saatte gerçekte yanan alanın %73–99'u “olası” bandın içinde kaldı; bandın %48–95'i gerçekten yandı. Aynı büyüklükte bir daire %49–92'de kalıyor.",
-      "sondurme": "Söndürme çalışmalarını bilmez: 24 saatten sonra alanı abartır (Marmaris'te 48. saatte gerçeğin 8 katı). İlk 12–24 saate güvenin, sonrasını “en kötü durum” olarak okuyun.",
+      "olcum": "Geçmiş iki yangında aynı ayarlarla sınandı (Manavgat 2021, Marmaris 2022; hava tahmini kusursuz varsayılarak). İlk 12 saatte gerçekte yanan alanın %55–66'sı “olası” bandın içinde kaldı; bandın %71–98'i gerçekten yandı. Aynı büyüklükte bir daire %41–49'da kalıyor.",
+      "sondurme": "Söndürmeyi kaba bir kuralla taklit eder; ekiplerin sayısını ve yerini bilmez. 24 saatten sonra sapma büyür: Manavgat'ta 24. saatte gerçek alanın yarısında kaldı, Marmaris'te 48. saatte gerçeğin yaklaşık 4 katına çıktı. İlk 12 saate güvenin, sonrasını kaba bir tahmin olarak okuyun.",
       "yon": "Yön tahmini kabadır; rüzgâr verisi ~25 km çözünürlüklü tahminden gelir. Tek bir çizgi yerine olasılık bantları bu yüzden gösterilir.",
       "hava": "Hava tahmin edildiği gibi gelmezse sonuç değişir.",
       "bantlar": "Bantlar modelin kendi rastlantısallığını ve hava tahmininin üyeler arasındaki yayılımını birlikte gösterir. Topluluk havası kullanılamazsa yalnızca modelin rastlantısallığı kalır; bantlar daha dar olur."
