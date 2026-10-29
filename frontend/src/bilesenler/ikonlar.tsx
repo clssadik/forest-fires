@@ -319,6 +319,22 @@ export function IkonNot(p: IkonOzellik) {
   )
 }
 
+export function IkonBayrak(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M5 21V4.5M5 4.5h11l-2 4 2 4H5" />
+    </Ikon>
+  )
+}
+
+export function IkonSimsek(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <path d="M13 3 5 13.5h6L10 21l8-10.5h-6z" />
+    </Ikon>
+  )
+}
+
 export function IkonKapat(p: IkonOzellik) {
   return (
     <Ikon {...p}>

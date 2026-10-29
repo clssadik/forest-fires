@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, type PointerEvent, type ReactNode } from 'react'
+import { useMemo, useRef, type PointerEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAy, gunAySaat, sayi, yuzdeBicim } from '../../bicim'
 import { useHarita } from '../../durum/harita'
@@ -7,8 +7,7 @@ import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { IkonAlev, IkonAsagi, IkonDamla, IkonDuraklat, IkonHedef, IkonIleri, IkonOynat, IkonRuzgar, IkonTermometre } from '../ikonlar'
-import { OlayIkonu } from '../OlayIkonu'
+import { IkonAlev, IkonAsagi, IkonBayrak, IkonDamla, IkonDuraklat, IkonIleri, IkonOynat, IkonRuzgar, IkonSimsek, IkonTermometre } from '../ikonlar'
 
 const SAAT = 3_600_000
 const DAKIKA = 60_000
@@ -16,8 +15,16 @@ const HIZLAR = [1, 2, 5, 10, 30]
 /** 1× oynatma hızı: gerçek saniye başına simülasyon dakikası. */
 const TEMEL_HIZ = 60
 /** Şerit adlarının sütunu ve grafiklerin sağ boşluğu (px). */
-const ETIKET = 196
+const ETIKET = 212
 const SAG = 16
+
+/** Olaylar şeridindeki elmasların renkleri (türe göre). */
+const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
+  tutusma: '#ec5a3a',
+  uyduGecisi: '#5f9fdc',
+  hizliBuyume: '#f2b84a',
+  sirtaUlasma: '#cfcfcf',
+}
 
 interface Seri {
   ys: number[]
@@ -39,7 +46,8 @@ interface Serit {
 /**
  * Olay ekranının alt paneli: oynatma denetimleri ve aynı zaman ekseninde alt alta şeritler.
  * Kapalıyken yalnızca olaylar ve yanan alan; açıkken cephe hızı, rüzgâr, sıcaklık ve nem de.
- * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an.
+ * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an. Şeritler
+ * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   const { t } = useTranslation()
@@ -59,7 +67,7 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
                 {t('olayDuzeni.lejant.firms')}
               </Lejant>
               <span className="flex items-center gap-1.5">
-                <IkonHedef boyut={12} className="text-mavi" />
+                <span className="size-[7px] rotate-45 rounded-[1px] bg-mavi" />
                 {t('olayDuzeni.lejant.olaylar')}
               </span>
             </span>
@@ -190,12 +198,12 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
         alan,
         {
           kimlik: 'hiz',
-          ikon: <IkonAlev boyut={14} className="text-ates" />,
+          ikon: <IkonSimsek boyut={14} />,
           ad: t('olayDuzeni.seritler.cepheHizi'),
           deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire,
           yuk: 34,
           ust: s.hizUst,
-          seriler: [{ ys: s.hiz, renk: '#ff5a44', dolgu: 'rgba(255,90,68,0.12)' }],
+          seriler: [{ ys: s.hiz, renk: '#f06a45' }],
         },
         {
           kimlik: 'ruzgar',
@@ -217,9 +225,9 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
         },
         {
           kimlik: 'nem',
-          ikon: <IkonDamla boyut={14} className="text-mavi" />,
+          ikon: <IkonDamla boyut={14} />,
           ad: t('olayDuzeni.seritler.nem'),
-          deger: `${yuzdeBicim(h.nem / 100)} · ${sayi(h.yakitNemi, 1)} %`,
+          deger: `${yuzdeBicim(h.nem / 100)} · ${yuzdeBicim(h.yakitNemi / 100)}`,
           yuk: 28,
           ust: s.nemUst,
           seriler: [
@@ -245,8 +253,8 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
   return (
     <div className="relative select-none">
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
-      <div className="grid h-[30px] grid-cols-[196px_1fr] items-center border-b border-white/[0.05]">
-        <SeritAdi ikon={<IkonHedef boyut={13} />} ad={t('olayDuzeni.seritler.olaylar')} deger={String(veri.olaylar.length)} />
+      <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.05]">
+        <SeritAdi ikon={<IkonBayrak boyut={14} />} ad={t('olayDuzeni.seritler.olaylar')} deger={String(veri.olaylar.length)} />
         <div className="relative h-full" style={{ marginRight: SAG }}>
           {veri.olaylar.map((o) => (
             <button
@@ -255,29 +263,31 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
               onClick={() => git(o)}
               title={`${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`}
               aria-label={`${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`}
-              className={`absolute top-1/2 z-20 grid size-[18px] -translate-1/2 place-items-center rounded-full bg-olaylar hover:scale-125 ${
-                o.zaman > zaman ? 'opacity-55' : ''
-              }`}
+              className="absolute top-1/2 z-20 grid size-[16px] -translate-1/2 place-items-center"
               style={{ left: `${oran(o.zaman) * 100}%` }}
             >
-              <OlayIkonu tur={o.tur} boyut={12} />
+              <span
+                className="size-[7px] rotate-45 rounded-[1px] ring-1 ring-black transition-transform group-hover:scale-150 hover:scale-150"
+                style={{ background: OLAY_RENGI[o.tur] }}
+              />
             </button>
           ))}
         </div>
       </div>
 
       {seritler.map((sr) => (
-        <div key={sr.kimlik} className="grid grid-cols-[196px_1fr] items-center border-b border-white/[0.05]" style={{ height: sr.yuk + 10 }}>
+        <div key={sr.kimlik} className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.05]" style={{ height: sr.yuk + 10 }}>
           <SeritAdi ikon={sr.ikon} ad={sr.ad} deger={sr.deger} />
           <div style={{ marginRight: SAG, height: sr.yuk }}>
-            <SeritGrafigi seriler={sr.seriler} ust={sr.ust} imlec={imlec} />
+            <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
           </div>
         </div>
       ))}
 
       {/* Gün ekseni */}
-      <div className="relative h-[22px] text-[11px] text-silik" style={{ marginLeft: ETIKET, marginRight: SAG }}>
-        {s.gunler.map((x) => (
+      <div className="relative h-[22px] text-[11px] whitespace-nowrap text-silik" style={{ marginLeft: ETIKET, marginRight: SAG }}>
+        <span className="absolute top-[3px] left-0">{gunAySaat(baslangic)}</span>
+        {s.gunler.filter((x) => oran(x) > 0.06 && oran(x) < 0.97).map((x) => (
           <span key={x} className="absolute top-[3px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
             {gunAy(x)}
           </span>
@@ -319,10 +329,9 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
   )
 }
 
-/** Tek şeridin SVG grafiği; imleçten sonrası soluk çizilir. */
-function SeritGrafigi({ seriler, ust, imlec }: { seriler: Seri[]; ust: number; imlec: number }) {
+/** Tek şeridin SVG grafiği: yarı ve tam ölçekte silik kılavuz çizgileri, altta taban çizgisi. */
+function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
   const [ref, { gen, yuk }] = useBoyut<HTMLDivElement>()
-  const kimlik = useId().replace(/:/g, '')
   const yollar = useMemo(() => {
     if (!gen || !yuk) return []
     return seriler.map((sr) => {
@@ -333,29 +342,21 @@ function SeritGrafigi({ seriler, ust, imlec }: { seriler: Seri[]; ust: number; i
       return { ...sr, cizgi, alan: sr.dolgu ? `${cizgi}L${gen},${yuk}L0,${yuk}Z` : null }
     })
   }, [seriler, ust, gen, yuk])
-  const ix = imlec * gen
-  const ciz = (soluk: boolean) =>
-    yollar.map((y, i) => (
-      <g key={i} opacity={soluk ? 0.38 : 1}>
-        {y.alan && <path d={y.alan} fill={y.dolgu} />}
-        <path d={y.cizgi} fill="none" stroke={y.renk} strokeWidth={y.kesik ? 1.3 : 1.6} strokeDasharray={y.kesik ? '4 3' : undefined} />
-      </g>
-    ))
+  const kilavuz = (oran: number) => yuk - 1 - oran * (yuk - 3)
   return (
     <div ref={ref} className="relative h-full">
       {gen > 0 && (
         <svg width={gen} height={yuk} className="absolute inset-0 overflow-visible">
-          <defs>
-            <clipPath id={`gecmis-${kimlik}`}>
-              <rect x={0} y={-2} width={ix} height={yuk + 4} />
-            </clipPath>
-            <clipPath id={`gelecek-${kimlik}`}>
-              <rect x={ix} y={-2} width={gen} height={yuk + 4} />
-            </clipPath>
-          </defs>
-          <line x1={0} x2={gen} y1={yuk - 0.5} y2={yuk - 0.5} className="stroke-cizgi" />
-          <g clipPath={`url(#gelecek-${kimlik})`}>{ciz(true)}</g>
-          <g clipPath={`url(#gecmis-${kimlik})`}>{ciz(false)}</g>
+          {[0.5, 1].map((o) => (
+            <line key={o} x1={0} x2={gen} y1={kilavuz(o)} y2={kilavuz(o)} stroke="#1f1f1f" />
+          ))}
+          <line x1={0} x2={gen} y1={yuk - 0.5} y2={yuk - 0.5} stroke="#333" />
+          {yollar.map((y, i) => (
+            <g key={i}>
+              {y.alan && <path d={y.alan} fill={y.dolgu} />}
+              <path d={y.cizgi} fill="none" stroke={y.renk} strokeWidth={y.kesik ? 1.3 : 1.7} strokeDasharray={y.kesik ? '4 3' : undefined} />
+            </g>
+          ))}
         </svg>
       )}
     </div>
