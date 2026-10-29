@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useHarita } from '../../durum/harita'
 import { useOlay } from '../../durum/olay'
 import { Sahne } from '../../sahne/Sahne'
@@ -41,8 +41,19 @@ export function Harita() {
           )}
         </div>
       )}
-      <p className="pointer-events-none absolute bottom-4 left-4 rounded-[4px] bg-black/65 ring-1 ring-white/10 px-2 py-1 text-[11.5px] text-white/90 backdrop-blur-sm">
-        {t(kip === '3B' ? 'harita.ipucu3B' : 'harita.ipucu2B')}
+      <p className="pointer-events-none absolute bottom-4 left-4 flex items-center whitespace-nowrap rounded-md bg-black/70 px-2.5 py-1.5 text-[12px] leading-none text-white/80 ring-1 ring-white/10 backdrop-blur-sm">
+        {kip === '3B' ? (
+          <Trans
+            i18nKey="harita.ipucu3B"
+            components={{
+              tus: (
+                <kbd className="mr-1.5 rounded-[4px] border border-white/25 border-b-white/40 bg-white/10 px-1.5 py-[3px] font-sans text-[11px] font-medium text-white" />
+              ),
+            }}
+          />
+        ) : (
+          t('harita.ipucu2B')
+        )}
       </p>
     </div>
   )
