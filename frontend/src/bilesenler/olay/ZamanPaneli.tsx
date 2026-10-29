@@ -2,12 +2,22 @@ import { useMemo, useRef, type PointerEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAy, gunAySaat, sayi, yuzdeBicim } from '../../bicim'
 import { useHarita } from '../../durum/harita'
-import { useOlayDuzeni } from '../../durum/olayDuzeni'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { IkonAlev, IkonAsagi, IkonBayrak, IkonDamla, IkonDuraklat, IkonIleri, IkonOynat, IkonRuzgar, IkonSimsek, IkonTermometre } from '../ikonlar'
+import {
+  IkonAlev,
+  IkonAsagi,
+  IkonBayrak,
+  IkonDamla,
+  IkonDuraklat,
+  IkonIleri,
+  IkonOynat,
+  IkonRuzgar,
+  IkonSimsek,
+  IkonTermometre,
+} from '../ikonlar'
 
 const SAAT = 3_600_000
 const DAKIKA = 60_000
@@ -45,45 +55,29 @@ interface Serit {
 
 /**
  * Olay ekranının alt paneli: oynatma denetimleri ve aynı zaman ekseninde alt alta şeritler.
- * Kapalıyken yalnızca olaylar ve yanan alan; açıkken cephe hızı, rüzgâr, sıcaklık ve nem de.
+ * Şeritler her zaman açık: olaylar, yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi.
  * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   const { t } = useTranslation()
-  const acik = useOlayDuzeni((d) => d.seritlerAcik)
-  const seritleriDegistir = useOlayDuzeni((d) => d.seritleriDegistir)
   return (
     <section className="shrink-0 border-t border-cizgi bg-olaylar">
       <div className="flex h-[50px] items-center gap-2 border-b border-cizgi px-3.5 whitespace-nowrap">
         <Denetimler veri={veri} />
-        <span className="ml-3 truncate text-[12px] text-soluk">
-          {acik ? (
-            t('olayDuzeni.seritAciklama')
-          ) : (
-            <span className="flex items-center gap-3.5">
-              <Lejant renk="#f06a45">{t('olayDuzeni.lejant.model')}</Lejant>
-              <Lejant renk="#f2b84a" kesik>
-                {t('olayDuzeni.lejant.firms')}
-              </Lejant>
-              <span className="flex items-center gap-1.5">
-                <span className="size-[7px] rotate-45 rounded-[1px] bg-mavi" />
-                {t('olayDuzeni.lejant.olaylar')}
-              </span>
-            </span>
-          )}
+        <span className="ml-3 flex items-center gap-3.5 truncate text-[12px] text-soluk">
+          <Lejant renk="#f06a45">{t('olayDuzeni.lejant.model')}</Lejant>
+          <Lejant renk="#f2b84a" kesik>
+            {t('olayDuzeni.lejant.firms')}
+          </Lejant>
+          <span className="flex items-center gap-1.5">
+            <span className="size-[7px] rotate-45 rounded-[1px] bg-mavi" />
+            {t('olayDuzeni.lejant.olaylar')}
+          </span>
+          <span className="text-silik">· {t('olayDuzeni.seritAciklama')}</span>
         </span>
-        <button
-          type="button"
-          onClick={seritleriDegistir}
-          aria-expanded={acik}
-          className="ml-auto flex h-[30px] shrink-0 items-center gap-1.5 rounded-[7px] border border-cizgi bg-yuzey px-2.5 text-[12.5px] font-medium hover:bg-yuzey-acik"
-        >
-          <IkonAsagi boyut={13} className={acik ? '' : 'rotate-180'} />
-          {t(acik ? 'olayDuzeni.seritleriKapat' : 'olayDuzeni.seritleriAc')}
-        </button>
       </div>
-      {veri && <Seritler veri={veri} acik={acik} />}
+      {veri && <Seritler veri={veri} />}
     </section>
   )
 }
@@ -133,7 +127,7 @@ function Denetimler({ veri }: { veri: OlayVerisi | null }) {
   )
 }
 
-function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
+function Seritler({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const baslangic = useZaman((d) => d.baslangic)
   const bitis = useZaman((d) => d.bitis)
@@ -186,57 +180,55 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
     ikon: <IkonAlev boyut={14} />,
     ad: t('olayDuzeni.seritler.yananAlan'),
     deger: basladi ? `${sayi(veri.yananAlanHa(an))} ha` : tire,
-    yuk: acik ? 60 : 46,
+    yuk: 60,
     ust: s.alanUst,
     seriler: [
       { ys: s.model, renk: '#f06a45', dolgu: 'rgba(236,90,58,0.24)' },
       { ys: s.firms, renk: '#f2b84a', kesik: true },
     ],
   }
-  const seritler: Serit[] = acik
-    ? [
-        alan,
-        {
-          kimlik: 'hiz',
-          ikon: <IkonSimsek boyut={14} />,
-          ad: t('olayDuzeni.seritler.cepheHizi'),
-          deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire,
-          yuk: 34,
-          ust: s.hizUst,
-          seriler: [{ ys: s.hiz, renk: '#f06a45' }],
-        },
-        {
-          kimlik: 'ruzgar',
-          ikon: <IkonRuzgar boyut={14} />,
-          ad: t('olayDuzeni.seritler.ruzgar'),
-          deger: `${t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })} ${pusulaYonu(h.ruzgarYonu)}`,
-          yuk: 34,
-          ust: s.ruzgarUst,
-          seriler: [{ ys: s.ruzgar, renk: '#9fc7ef' }],
-        },
-        {
-          kimlik: 'sicaklik',
-          ikon: <IkonTermometre boyut={14} />,
-          ad: t('olayDuzeni.seritler.sicaklik'),
-          deger: t('hava.derece', { deger: Math.round(h.sicaklik) }),
-          yuk: 28,
-          ust: s.sicaklikUst,
-          seriler: [{ ys: s.sicaklik, renk: '#e8a04a' }],
-        },
-        {
-          kimlik: 'nem',
-          ikon: <IkonDamla boyut={14} />,
-          ad: t('olayDuzeni.seritler.nem'),
-          deger: `${yuzdeBicim(h.nem / 100)} · ${yuzdeBicim(h.yakitNemi / 100)}`,
-          yuk: 28,
-          ust: s.nemUst,
-          seriler: [
-            { ys: s.nem, renk: '#5f9fdc' },
-            { ys: s.yakit, renk: '#7cc46e' },
-          ],
-        },
-      ]
-    : [alan]
+  const seritler: Serit[] = [
+    alan,
+    {
+      kimlik: 'hiz',
+      ikon: <IkonSimsek boyut={14} />,
+      ad: t('olayDuzeni.seritler.cepheHizi'),
+      deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire,
+      yuk: 34,
+      ust: s.hizUst,
+      seriler: [{ ys: s.hiz, renk: '#f06a45' }],
+    },
+    {
+      kimlik: 'ruzgar',
+      ikon: <IkonRuzgar boyut={14} />,
+      ad: t('olayDuzeni.seritler.ruzgar'),
+      deger: `${t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })} ${pusulaYonu(h.ruzgarYonu)}`,
+      yuk: 34,
+      ust: s.ruzgarUst,
+      seriler: [{ ys: s.ruzgar, renk: '#9fc7ef' }],
+    },
+    {
+      kimlik: 'sicaklik',
+      ikon: <IkonTermometre boyut={14} />,
+      ad: t('olayDuzeni.seritler.sicaklik'),
+      deger: t('hava.derece', { deger: Math.round(h.sicaklik) }),
+      yuk: 28,
+      ust: s.sicaklikUst,
+      seriler: [{ ys: s.sicaklik, renk: '#e8a04a' }],
+    },
+    {
+      kimlik: 'nem',
+      ikon: <IkonDamla boyut={14} />,
+      ad: t('olayDuzeni.seritler.nem'),
+      deger: `${yuzdeBicim(h.nem / 100)} · ${yuzdeBicim(h.yakitNemi / 100)}`,
+      yuk: 28,
+      ust: s.nemUst,
+      seriler: [
+        { ys: s.nem, renk: '#5f9fdc' },
+        { ys: s.yakit, renk: '#7cc46e' },
+      ],
+    },
+  ]
 
   const sec = (e: PointerEvent) => {
     const r = ref.current?.getBoundingClientRect()
@@ -276,7 +268,11 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
       </div>
 
       {seritler.map((sr) => (
-        <div key={sr.kimlik} className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.05]" style={{ height: sr.yuk + 10 }}>
+        <div
+          key={sr.kimlik}
+          className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.05]"
+          style={{ height: sr.yuk + 10 }}
+        >
           <SeritAdi ikon={sr.ikon} ad={sr.ad} deger={sr.deger} />
           <div style={{ marginRight: SAG, height: sr.yuk }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
@@ -287,11 +283,13 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
       {/* Gün ekseni */}
       <div className="relative h-[22px] text-[11px] whitespace-nowrap text-silik" style={{ marginLeft: ETIKET, marginRight: SAG }}>
         <span className="absolute top-[3px] left-0">{gunAySaat(baslangic)}</span>
-        {s.gunler.filter((x) => oran(x) > 0.06 && oran(x) < 0.97).map((x) => (
-          <span key={x} className="absolute top-[3px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
-            {gunAy(x)}
-          </span>
-        ))}
+        {s.gunler
+          .filter((x) => oran(x) > 0.06 && oran(x) < 0.97)
+          .map((x) => (
+            <span key={x} className="absolute top-[3px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
+              {gunAy(x)}
+            </span>
+          ))}
       </div>
 
       {/* Tıkla / sürükle katmanı ve seçili an çizgisi */}
@@ -316,7 +314,10 @@ function Seritler({ veri, acik }: { veri: OlayVerisi; acik: boolean }) {
           if (e.key === 'ArrowLeft') zamanaGit(zaman - SAAT)
         }}
       >
-        <div className="pointer-events-none absolute -top-[30px] bottom-0 w-[1.5px] -translate-x-1/2 bg-metin" style={{ left: `${imlec * 100}%` }}>
+        <div
+          className="pointer-events-none absolute -top-[30px] bottom-0 w-[1.5px] -translate-x-1/2 bg-metin"
+          style={{ left: `${imlec * 100}%` }}
+        >
           <span
             className="absolute -top-px left-1/2 rounded-[5px] bg-metin px-[7px] py-[2px] text-[11.5px] font-semibold whitespace-nowrap text-zemin"
             style={{ transform: `translateX(-${etiketKaymasi(imlec)}%)` }}
@@ -339,7 +340,11 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
       const px = (i: number) => (i / Math.max(n - 1, 1)) * gen
       const py = (v: number) => yuk - 1 - (Math.min(Math.max(v, 0), ust) / ust) * (yuk - 3)
       const cizgi = sr.ys.map((v, i) => `${i ? 'L' : 'M'}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join('')
-      return { ...sr, cizgi, alan: sr.dolgu ? `${cizgi}L${gen},${yuk}L0,${yuk}Z` : null }
+      return {
+        ...sr,
+        cizgi,
+        alan: sr.dolgu ? `${cizgi}L${gen},${yuk}L0,${yuk}Z` : null,
+      }
     })
   }, [seriler, ust, gen, yuk])
   const kilavuz = (oran: number) => yuk - 1 - oran * (yuk - 3)
@@ -354,7 +359,13 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
           {yollar.map((y, i) => (
             <g key={i}>
               {y.alan && <path d={y.alan} fill={y.dolgu} />}
-              <path d={y.cizgi} fill="none" stroke={y.renk} strokeWidth={y.kesik ? 1.3 : 1.7} strokeDasharray={y.kesik ? '4 3' : undefined} />
+              <path
+                d={y.cizgi}
+                fill="none"
+                stroke={y.renk}
+                strokeWidth={y.kesik ? 1.3 : 1.7}
+                strokeDasharray={y.kesik ? '4 3' : undefined}
+              />
             </g>
           ))}
         </svg>
@@ -384,7 +395,17 @@ function Lejant({ renk, kesik = false, children }: { renk: string; kesik?: boole
   )
 }
 
-function KucukDugme({ etiket, pasif = false, onClick, children }: { etiket: string; pasif?: boolean; onClick: () => void; children: ReactNode }) {
+function KucukDugme({
+  etiket,
+  pasif = false,
+  onClick,
+  children,
+}: {
+  etiket: string
+  pasif?: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
   return (
     <button
       type="button"

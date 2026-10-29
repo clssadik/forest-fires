@@ -1,64 +1,50 @@
 import { create } from 'zustand'
 
 /**
- * Olay ekranının yerleşimi: soldaki çekmecede hangi sekmenin açık olduğu (yoksa null) ve alttaki
- * zaman panelinin şeritlerinin açık olup olmadığı. Bu tarayıcıda (localStorage) hatırlanır;
- * depolama kapalıysa varsayılanla açılır.
+ * Olay ekranının yerleşimi: soldaki çekmecede hangi sekmenin açık olduğu (yoksa null). Bu
+ * tarayıcıda (localStorage) hatırlanır; depolama kapalıysa varsayılanla açılır. Alttaki zaman
+ * şeritleri her zaman açıktır, seçenek değildir.
  */
 export const CEKMECELER = ['katmanlar', 'analiz', 'kanitlar', 'notlar'] as const
 export type Cekmece = (typeof CEKMECELER)[number]
 
-interface Duzen {
-  cekmece: Cekmece | null
-  seritlerAcik: boolean
-}
-
 const ANAHTAR = 'orman.olayDuzeni'
-export const VARSAYILAN_DUZEN: Duzen = { cekmece: 'katmanlar', seritlerAcik: false }
+export const VARSAYILAN_CEKMECE: Cekmece | null = 'katmanlar'
 
-export function duzenOku(depo: Storage | undefined = globalThis.localStorage): Duzen {
+export function cekmeceOku(depo: Storage | undefined = globalThis.localStorage): Cekmece | null {
   try {
-    const ham = JSON.parse(depo?.getItem(ANAHTAR) ?? 'null') as Partial<Duzen> | null
-    if (!ham || typeof ham !== 'object') return VARSAYILAN_DUZEN
-    return {
-      cekmece: ham.cekmece === null || CEKMECELER.includes(ham.cekmece as Cekmece) ? (ham.cekmece as Cekmece | null) : VARSAYILAN_DUZEN.cekmece,
-      seritlerAcik: typeof ham.seritlerAcik === 'boolean' ? ham.seritlerAcik : VARSAYILAN_DUZEN.seritlerAcik,
-    }
+    const ham = JSON.parse(depo?.getItem(ANAHTAR) ?? 'null') as { cekmece?: unknown } | null
+    if (!ham || typeof ham !== 'object' || !('cekmece' in ham)) return VARSAYILAN_CEKMECE
+    if (ham.cekmece === null || CEKMECELER.includes(ham.cekmece as Cekmece)) return ham.cekmece as Cekmece | null
+    return VARSAYILAN_CEKMECE
   } catch {
-    return VARSAYILAN_DUZEN
+    return VARSAYILAN_CEKMECE
   }
 }
 
-function duzenYaz(duzen: Duzen, depo: Storage | undefined = globalThis.localStorage) {
+function cekmeceYaz(cekmece: Cekmece | null, depo: Storage | undefined = globalThis.localStorage) {
   try {
-    depo?.setItem(ANAHTAR, JSON.stringify(duzen))
+    depo?.setItem(ANAHTAR, JSON.stringify({ cekmece }))
   } catch {
     // Depolama kapalı: yerleşim yalnızca bu oturumda geçerli.
   }
 }
 
-interface OlayDuzeniDurumu extends Duzen {
+interface OlayDuzeniDurumu {
+  cekmece: Cekmece | null
   /** Aynı sekmeye yeniden basılırsa çekmece kapanır. */
   cekmeceDegistir: (cekmece: Cekmece) => void
   cekmeceKapat: () => void
-  seritleriDegistir: () => void
 }
 
-export const useOlayDuzeni = create<OlayDuzeniDurumu>((set, get) => {
-  const kaydet = () => duzenYaz({ cekmece: get().cekmece, seritlerAcik: get().seritlerAcik })
-  return {
-    ...duzenOku(),
-    cekmeceDegistir: (cekmece) => {
-      set((d) => ({ cekmece: d.cekmece === cekmece ? null : cekmece }))
-      kaydet()
-    },
-    cekmeceKapat: () => {
-      set({ cekmece: null })
-      kaydet()
-    },
-    seritleriDegistir: () => {
-      set((d) => ({ seritlerAcik: !d.seritlerAcik }))
-      kaydet()
-    },
-  }
-})
+export const useOlayDuzeni = create<OlayDuzeniDurumu>((set, get) => ({
+  cekmece: cekmeceOku(),
+  cekmeceDegistir: (cekmece) => {
+    set((d) => ({ cekmece: d.cekmece === cekmece ? null : cekmece }))
+    cekmeceYaz(get().cekmece)
+  },
+  cekmeceKapat: () => {
+    set({ cekmece: null })
+    cekmeceYaz(null)
+  },
+}))

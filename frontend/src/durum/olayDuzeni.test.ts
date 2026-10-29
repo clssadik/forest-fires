@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { duzenOku, VARSAYILAN_DUZEN } from './olayDuzeni'
+import { cekmeceOku, VARSAYILAN_CEKMECE } from './olayDuzeni'
 
 const depo = (deger: string | null) =>
   ({
     getItem: () => deger,
   }) as unknown as Storage
 
-describe('duzenOku', () => {
+describe('cekmeceOku', () => {
   it('kayıt yoksa varsayılanı döner', () => {
-    expect(duzenOku(depo(null))).toEqual(VARSAYILAN_DUZEN)
+    expect(cekmeceOku(depo(null))).toBe(VARSAYILAN_CEKMECE)
   })
   it('geçerli kaydı okur', () => {
-    expect(duzenOku(depo('{"cekmece":null,"seritlerAcik":true}'))).toEqual({ cekmece: null, seritlerAcik: true })
-    expect(duzenOku(depo('{"cekmece":"analiz","seritlerAcik":false}'))).toEqual({ cekmece: 'analiz', seritlerAcik: false })
+    expect(cekmeceOku(depo('{"cekmece":null}'))).toBeNull()
+    expect(cekmeceOku(depo('{"cekmece":"analiz","seritlerAcik":false}'))).toBe('analiz')
   })
   it('bozuk ya da bilinmeyen değerde varsayılana düşer', () => {
-    expect(duzenOku(depo('{bozuk'))).toEqual(VARSAYILAN_DUZEN)
-    expect(duzenOku(depo('{"cekmece":"iha","seritlerAcik":"evet"}'))).toEqual(VARSAYILAN_DUZEN)
+    expect(cekmeceOku(depo('{bozuk'))).toBe(VARSAYILAN_CEKMECE)
+    expect(cekmeceOku(depo('{"cekmece":"iha"}'))).toBe(VARSAYILAN_CEKMECE)
   })
   it('depolama hata atarsa varsayılanı döner', () => {
     const atan = {
@@ -24,6 +24,6 @@ describe('duzenOku', () => {
         throw new Error('engelli')
       },
     } as unknown as Storage
-    expect(duzenOku(atan)).toEqual(VARSAYILAN_DUZEN)
+    expect(cekmeceOku(atan)).toBe(VARSAYILAN_CEKMECE)
   })
 })

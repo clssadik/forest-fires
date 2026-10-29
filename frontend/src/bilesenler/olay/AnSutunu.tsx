@@ -2,9 +2,8 @@ import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
 import { useHarita } from '../../durum/harita'
-import { useOlayDuzeni } from '../../durum/olayDuzeni'
 import { useZaman } from '../../durum/zaman'
-import { pusulaYonu, type OlayVerisi } from '../../olay/veri'
+import type { OlayVerisi } from '../../olay/veri'
 import { CizgiGrafigi } from '../altSerit/CizgiGrafigi'
 import { TEMALAR } from '../altSerit/grafikTemalari'
 import { OnemliOlaylar, OlayAyrintisi } from '../altSerit/OnemliOlaylar'
@@ -15,21 +14,19 @@ const DAKIKA = 60_000
 
 /**
  * Olay ekranının sağ sütunu: imlecin durduğu an. Son olay, modelin ve FIRMS'in o ana kadarki alanı,
- * tutuşma noktasındaki hava (şeritler kapalıyken; açıkken şeritlerde zaten var), bitişteki
- * doğruluk, yükseklik profili ve önemli olaylar listesi.
+ * bitişteki doğruluk, yükseklik profili ve önemli olaylar listesi. Hava ve cephe hızı alttaki
+ * şeritlerde.
  */
 export function AnSutunu({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   // Sayılar dakikada bir yeniden çizilir; her karede değil.
   const an = useZaman((d) => Math.floor(d.t / DAKIKA) * DAKIKA)
-  const seritlerAcik = useOlayDuzeni((d) => d.seritlerAcik)
   const zamanaGit = useZaman((d) => d.zamanaGit)
   const odaklanIste = useHarita((d) => d.odaklanIste)
 
   const basladi = an >= veri.tutusmaMs
   const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
   const sonOlay = veri.olaylar.findLast((o) => o.zaman <= an)
-  const h = veri.hava(an)
   const m = veri.bilgi.model
   const daireyiGeciyor = m.daire_dice !== null && m.bitis_dice !== null && m.bitis_dice > m.daire_dice
   const tire = t('hava.baslamadi')
@@ -58,8 +55,11 @@ export function AnSutunu({ veri }: { veri: OlayVerisi }) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[11.5px] text-soluk">
-                {t('olayDuzeni.sonOlay')} · {t('olaylar.saat', { saat: sayi((sonOlay.zaman - veri.tutusmaMs) / SAAT, 1) })} ·{' '}
-                {gunAySaat(sonOlay.zaman)}
+                {t('olayDuzeni.sonOlay')} ·{' '}
+                {t('olaylar.saat', {
+                  saat: sayi((sonOlay.zaman - veri.tutusmaMs) / SAAT, 1),
+                })}{' '}
+                · {gunAySaat(sonOlay.zaman)}
               </span>
               <span className="block font-semibold">{t(`olaylar.turler.${sonOlay.tur}`)}</span>
               <OlayAyrintisi olay={sonOlay} />
@@ -79,22 +79,6 @@ export function AnSutunu({ veri }: { veri: OlayVerisi }) {
             <Birim>ha</Birim>
           </Sayi>
         </div>
-
-        {!seritlerAcik && (
-          <div className="mt-3 grid grid-cols-3 gap-x-3 gap-y-2.5 border-t border-cizgi pt-3 text-[13.5px] font-semibold">
-            <Kucuk etiket={t('hava.ruzgar')}>
-              {t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })}
-              <span className="block text-[11.5px] font-normal text-soluk">{pusulaYonu(h.ruzgarYonu)}</span>
-            </Kucuk>
-            <Kucuk etiket={t('hava.sicaklik')}>{t('hava.derece', { deger: Math.round(h.sicaklik) })}</Kucuk>
-            <Kucuk etiket={t('hava.nem')}>{yuzdeBicim(h.nem / 100)}</Kucuk>
-            <Kucuk etiket={t('hava.yakitNemi')}>{sayi(h.yakitNemi, 1)} %</Kucuk>
-            <Kucuk etiket={t('hava.cepheHizi')}>{basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire}</Kucuk>
-            <Kucuk etiket={t('olayDuzeni.cepheUzakligi')}>
-              {basladi ? t('olayDuzeni.km', { deger: sayi(veri.cepheM(an) / 1000, 1) }) : tire}
-            </Kucuk>
-          </div>
-        )}
 
         <div className="mt-3 border-t border-cizgi pt-3">
           <div className="flex items-baseline justify-between">
@@ -140,7 +124,10 @@ function Profil({ veri }: { veri: OlayVerisi }) {
         veri={noktalar}
         xAlan={[0, km]}
         yAlan={[alt, ust]}
-        xTikler={Array.from({ length: Math.floor(km / adim) + 1 }, (_, i) => ({ x: i * adim, etiket: String(i * adim) }))}
+        xTikler={Array.from({ length: Math.floor(km / adim) + 1 }, (_, i) => ({
+          x: i * adim,
+          etiket: String(i * adim),
+        }))}
         yTikler={[alt, ust].map((y) => ({ y, etiket: sayi(y) }))}
         imlec={veri.eksendeCepheKm(zaman)}
         tema={TEMALAR.profil}
@@ -164,12 +151,3 @@ function Sayi({ etiket, renk, children }: { etiket: string; renk: string; childr
 }
 
 const Birim = ({ children }: { children: ReactNode }) => <span className="ml-1 text-[12px] font-medium text-soluk">{children}</span>
-
-function Kucuk({ etiket, children }: { etiket: string; children: ReactNode }) {
-  return (
-    <div className="min-w-0 leading-[17px]">
-      <div className="truncate text-[11.5px] font-normal text-soluk">{etiket}</div>
-      <div className="whitespace-nowrap">{children}</div>
-    </div>
-  )
-}

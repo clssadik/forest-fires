@@ -1,28 +1,21 @@
-import { useTranslation } from "react-i18next";
-import { sayi } from "../../bicim";
-import { useHarita, type GorunumKipi } from "../../durum/harita";
-import type { OlayVerisi } from "../../olay/veri";
-import { IkonAsagi, IkonHedef, IkonTamEkran } from "../ikonlar";
-import { OlcekCubugu } from "./OlcekCubugu";
+import { useTranslation } from 'react-i18next'
+import { sayi } from '../../bicim'
+import { useHarita, type GorunumKipi } from '../../durum/harita'
+import type { OlayVerisi } from '../../olay/veri'
+import { IkonAsagi, IkonHedef, IkonTamEkran } from '../ikonlar'
+import { OlcekCubugu } from './OlcekCubugu'
 
-const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10];
-const koyuKutu =
-  "rounded-[5px] bg-black/75 ring-1 ring-white/10 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm";
+const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10]
+const koyuKutu = 'rounded-[5px] bg-black/75 ring-1 ring-white/10 text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm'
 
 /**
  * Harita kontrolleri: sağ üstte 2B/3B, tutuşmaya git, yakınlaştırma, tam ekran; sağ altta ölçek.
  * Sahne dar olabildiği için ölçek, sol alttaki ipucuyla çakışmasın diye ayrı köşede.
  */
-export function HaritaKontrolleri({
-  veri,
-  tamEkran,
-}: {
-  veri: OlayVerisi;
-  tamEkran: () => void;
-}) {
-  const { t } = useTranslation();
-  const { kip, zoom, kipAyarla, zoomIste, odaklanIste } = useHarita();
-  const { tutusma } = veri.bilgi;
+export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkran: () => void }) {
+  const { t } = useTranslation()
+  const { kip, zoom, kipAyarla, zoomIste, odaklanIste } = useHarita()
+  const { tutusma } = veri.bilgi
 
   return (
     <>
@@ -31,30 +24,30 @@ export function HaritaKontrolleri({
       </div>
       <div className="absolute top-3 right-4 flex items-start gap-2">
         <div className={`flex p-[3px] text-[13px] font-semibold ${koyuKutu}`}>
-          {(["2B", "3B"] as GorunumKipi[]).map((k) => (
+          {(['2B', '3B'] as GorunumKipi[]).map((k) => (
             <button
               key={k}
               type="button"
               onClick={() => kipAyarla(k)}
               aria-pressed={kip === k}
-              className={`h-[26px] rounded-[4px] px-2.5 ${kip === k ? "bg-ates" : "text-white/60 hover:text-white"}`}
+              className={`h-[26px] rounded-[4px] px-2.5 ${kip === k ? 'bg-ates' : 'text-white/60 hover:text-white'}`}
             >
-              {t(k === "2B" ? "harita.kip2B" : "harita.kip3B")}
+              {t(k === '2B' ? 'harita.kip2B' : 'harita.kip3B')}
             </button>
           ))}
         </div>
         <button
           type="button"
           onClick={() => odaklanIste(tutusma.x, tutusma.z)}
-          title={t("harita.tutusmayaGit")}
-          aria-label={t("harita.tutusmayaGit")}
+          title={t('harita.tutusmayaGit')}
+          aria-label={t('harita.tutusmayaGit')}
           className={`flex h-[32px] items-center gap-1.5 px-2.5 text-[13px] hover:bg-black/95 ${koyuKutu}`}
         >
           <IkonHedef boyut={15} className="text-ates-acik" />
-          {t("harita.tutusma")}
+          {t('harita.tutusma')}
         </button>
         <label className={`relative flex h-[32px] items-center ${koyuKutu}`}>
-          <span className="sr-only">{t("harita.zoom")}</span>
+          <span className="sr-only">{t('harita.zoom')}</span>
           <select
             value=""
             onChange={(e) => zoomIste(Number(e.target.value))}
@@ -74,15 +67,10 @@ export function HaritaKontrolleri({
             <IkonAsagi boyut={12} />
           </span>
         </label>
-        <button
-          type="button"
-          onClick={tamEkran}
-          title={t("harita.tamEkran")}
-          className={`grid size-[32px] place-items-center ${koyuKutu}`}
-        >
+        <button type="button" onClick={tamEkran} title={t('harita.tamEkran')} className={`grid size-[32px] place-items-center ${koyuKutu}`}>
           <IkonTamEkran boyut={16} />
         </button>
       </div>
     </>
-  );
+  )
 }
