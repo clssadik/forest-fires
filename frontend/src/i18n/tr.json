@@ -187,10 +187,27 @@
     "git": "Bu ana ve yere git",
     "saat": "+{{saat}} sa",
     "turler": {
-      "tutusma": "Tutuşma",
-      "uyduGecisi": "Uydu geçişi (FIRMS)",
-      "hizliBuyume": "Hızlı büyüme (model)",
-      "sirtaUlasma": "Sırta ulaşma (model)"
+      "tutusma": "Yangın başladı",
+      "uyduGecisi": "Uydu yangını gördü",
+      "hizliBuyume": "Yangın hızlandı",
+      "sirtaUlasma": "Yangın sırta ulaştı"
+    },
+    "kaynak": {
+      "tutusma": "kayıt",
+      "uyduGecisi": "uydu",
+      "hizliBuyume": "model",
+      "sirtaUlasma": "model"
+    },
+    "aciklama": {
+      "tutusma": "Yangının başladığı kabul edilen an ve yer. Model yayılımı buradan başlatıyor.",
+      "uyduGecisi": "NASA FIRMS uydusu bu geçişte toplam {{firms}} ha yanan alan gördü. Model aynı anda {{model}} ha tahmin ediyor: {{durum}}.",
+      "hizliBuyume": "Modele göre yanan alan bu saatte saatte {{deger}} ha büyüdü; yangının en hızlı yayıldığı saatlerden biri.",
+      "sirtaUlasma": "Modele göre ateş burada {{deger}} m yükseklikteki sırtın tepesine ulaştı."
+    },
+    "durum": {
+      "geride": "model gerçeğin gerisinde",
+      "onde": "model gerçeğin önünde",
+      "yakin": "ikisi yakın"
     },
     "ayrinti": {
       "uyduGecisi": "FIRMS {{firms}} ha · model {{model}} ha",
@@ -419,7 +436,7 @@
       "firms": "FIRMS"
     },
     "olayKarti": {
-      "grup": "{{sayi}} olay",
+      "grup": "{{sayi}} olay · {{aralik}}",
       "kapat": "Kapat"
     },
     "seritler": {

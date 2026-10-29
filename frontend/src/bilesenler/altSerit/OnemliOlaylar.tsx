@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi } from '../../bicim'
 import { useHarita } from '../../durum/harita'
@@ -76,6 +77,24 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
       </ul>
     </section>
   )
+}
+
+/** Olayın ne anlama geldiğini anlatan cümle (sayılarıyla). */
+export function olayAciklamasi(olay: OnemliOlay, t: TFunction): string {
+  const h = olay.ham
+  if (olay.tur === 'uyduGecisi' && h?.firms_ha !== undefined && h.model_ha !== undefined) {
+    const oran = h.model_ha / Math.max(h.firms_ha, 1)
+    const durum = oran < 0.8 ? 'geride' : oran > 1.25 ? 'onde' : 'yakin'
+    return t('olaylar.aciklama.uyduGecisi', {
+      firms: sayi(h.firms_ha),
+      model: sayi(h.model_ha),
+      durum: t(`olaylar.durum.${durum}`),
+    })
+  }
+  if (olay.tur === 'hizliBuyume' && h?.ha_sa !== undefined) return t('olaylar.aciklama.hizliBuyume', { deger: sayi(h.ha_sa) })
+  if (olay.tur === 'sirtaUlasma' && h?.yukseklik_m !== undefined)
+    return t('olaylar.aciklama.sirtaUlasma', { deger: sayi(h.yukseklik_m) })
+  return olay.tur === 'tutusma' ? t('olaylar.aciklama.tutusma') : ''
 }
 
 /** Olayın bir satırlık ayrıntısı (FIRMS ve model alanı, büyüme hızı, sırt yüksekliği). */

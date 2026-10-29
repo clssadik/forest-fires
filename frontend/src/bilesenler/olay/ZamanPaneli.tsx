@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAy, gunAySaat, sayi, yuzdeBicim } from '../../bicim'
+import { gunAy, gunAySaat, saat as saatBicim, sayi, yuzdeBicim } from '../../bicim'
 import { useHarita } from '../../durum/harita'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { OlayAyrintisi } from '../altSerit/OnemliOlaylar'
+import { olayAciklamasi } from '../altSerit/OnemliOlaylar'
 import { OlayIkonu } from '../OlayIkonu'
 import {
   IkonAlev,
@@ -380,7 +380,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-/** Olay işaretine tıklanınca üstünde açılan kart: gruptaki her olay, zamanı ve ayrıntısıyla. */
+/**
+ * Olay işaretine tıklanınca üstünde açılan kart: gruptaki her olay ne olduğunu anlatan bir başlık,
+ * kaynağı (kayıt, uydu ya da model), zamanı ve sayılarıyla bir açıklama cümlesiyle.
+ */
 function OlayKarti({
   kartRef,
   olaylar,
@@ -403,33 +406,43 @@ function OlayKarti({
         ref={kartRef}
         role="dialog"
         aria-label={t('olayDuzeni.seritler.olaylar')}
-        className="pointer-events-auto absolute bottom-0 w-[280px] rounded-[10px] border border-cizgi bg-panel p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+        className="pointer-events-auto absolute bottom-0 w-[320px] rounded-[10px] border border-cizgi bg-panel p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
         style={{ left: `${oran * 100}%`, transform: `translateX(-${etiketKaymasi(oran)}%)` }}
       >
         <div className="flex items-center justify-between px-2 pt-1 pb-1.5 text-[11.5px] text-soluk">
-          <span>{olaylar.length > 1 ? t('olayDuzeni.olayKarti.grup', { sayi: olaylar.length }) : t('olaylar.baslik')}</span>
+          <span>
+            {olaylar.length > 1
+              ? t('olayDuzeni.olayKarti.grup', {
+                  sayi: olaylar.length,
+                  aralik: `${gunAySaat(olaylar[0].zaman)} – ${saatBicim(olaylar.at(-1)!.zaman)}`,
+                })
+              : gunAySaat(olaylar[0].zaman)}
+          </span>
           <button type="button" onClick={kapat} aria-label={t('olayDuzeni.olayKarti.kapat')} className="px-1 text-[14px] leading-none hover:text-metin">
             ×
           </button>
         </div>
-        <ul className="max-h-[220px] overflow-y-auto">
+        <ul className="max-h-[300px] overflow-y-auto">
           {olaylar.map((o) => (
             <li key={`${o.tur}-${o.zaman}`}>
               <button
                 type="button"
                 onClick={() => git(o)}
                 title={t('olaylar.git')}
-                className="flex w-full gap-2.5 rounded-[7px] px-2 py-1.5 text-left text-[12.5px] leading-[16px] hover:bg-yuzey"
+                className="flex w-full gap-2.5 rounded-[7px] px-2 py-2 text-left text-[12.5px] leading-[16px] hover:bg-yuzey"
               >
                 <span className="mt-[1px] grid size-[22px] shrink-0 place-items-center rounded-[6px] bg-yuzey">
                   <OlayIkonu tur={o.tur} boyut={13} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
-                  <span className="block text-[11.5px] text-soluk">
-                    {gunAySaat(o.zaman)} · {t('olaylar.saat', { saat: sayi(Math.max(o.zaman - tutusmaMs, 0) / SAAT, 1) })}
+                  <span className="flex items-baseline gap-2">
+                    <span className="font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
+                    <span className="rounded-[4px] bg-yuzey px-1.5 text-[10.5px] leading-[16px] text-soluk">{t(`olaylar.kaynak.${o.tur}`)}</span>
+                    <span className="ml-auto text-[11.5px] whitespace-nowrap text-soluk">
+                      {saatBicim(o.zaman)} · {t('olaylar.saat', { saat: sayi(Math.max(o.zaman - tutusmaMs, 0) / SAAT, 1) })}
+                    </span>
                   </span>
-                  <OlayAyrintisi olay={o} />
+                  <span className="mt-1 block text-[12px] leading-[17px] text-metin/80">{olayAciklamasi(o, t)}</span>
                 </span>
               </button>
             </li>
