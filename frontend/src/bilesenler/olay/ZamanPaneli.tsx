@@ -47,8 +47,6 @@ interface Seri {
 interface Serit {
   kimlik: string
   ad: string
-  /** Etiket hücresinde serilerin üstüne konan içerik (yanan alanda seçili an). */
-  baslik?: ReactNode
   yuk: number
   ust: number
   seriler: Seri[]
@@ -59,7 +57,7 @@ interface Serit {
  * Şeritler her zaman açık: yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi. Olaylar
  * yanan alan grafiğinin içinde noktalardır: uydu gözlemi FIRMS çizgisinde, model olayı model
  * eğrisinde, tutuşma tabanda. Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür;
- * beyaz çizgi seçili an, tarihi yanan alan satırının solunda. Şeritler
+ * beyaz çizgi seçili an. En üst satırda solda seçili an, sağda gün ekseni. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
@@ -167,13 +165,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const alan: Serit = {
     kimlik: 'alan',
     ad: t('olayDuzeni.seritler.yananAlan'),
-    baslik: (
-      <div className="mb-1 flex items-baseline gap-2">
-        <span className="text-[13px] font-semibold text-metin tabular-nums">{gunAySaat(an)}</span>
-        <span className="text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
-      </div>
-    ),
-    yuk: 86,
+    yuk: 70,
     ust: s.alanUst,
     seriler: [
       {
@@ -284,13 +276,32 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           kapat={kapat}
         />
       )}
+      {/* Üst satır: solda seçili an, sağda gün ekseni */}
+      <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.12]">
+        <div className="flex items-baseline gap-2 px-3.5 whitespace-nowrap">
+          <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
+          <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
+        </div>
+        <div className="relative h-full text-[11px] whitespace-nowrap text-silik" style={{ marginRight: SAG }}>
+          <span className="absolute top-[8px] left-0">{gunAySaat(baslangic)}</span>
+          {s.gunler
+            // Baştaki tarih yazısıyla ve sağ kenarla çakışan gün yazıları atlanır.
+            .filter((x) => oran(x) * olayGen > 115 && (1 - oran(x)) * olayGen > 25)
+            .map((x) => (
+              <span key={x} className="absolute top-[8px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
+                {gunAy(x)}
+              </span>
+            ))}
+        </div>
+      </div>
+
       {seritler.map((sr) => (
         <div
           key={sr.kimlik}
           className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.12]"
           style={{ height: sr.yuk + 10 }}
         >
-          <SeritAdi ad={sr.ad} seriler={sr.seriler} baslik={sr.baslik} />
+          <SeritAdi ad={sr.ad} seriler={sr.seriler} />
           <div ref={sr.kimlik === 'alan' ? olayRef : undefined} className="relative" style={{ marginRight: SAG, height: sr.yuk }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
@@ -325,22 +336,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         </div>
       ))}
 
-      {/* Gün ekseni */}
-      <div className="grid h-[28px] grid-cols-[212px_1fr] items-center">
-        <div />
-        <div className="relative h-full text-[11px] whitespace-nowrap text-silik" style={{ marginRight: SAG }}>
-          <span className="absolute top-[6px] left-0">{gunAySaat(baslangic)}</span>
-          {s.gunler
-            // Baştaki tarih yazısıyla ve sağ kenarla çakışan gün yazıları atlanır.
-            .filter((x) => oran(x) * olayGen > 115 && (1 - oran(x)) * olayGen > 25)
-            .map((x) => (
-              <span key={x} className="absolute top-[6px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
-                {gunAy(x)}
-              </span>
-            ))}
-        </div>
-      </div>
-
       {/* Tıkla / sürükle katmanı ve seçili an çizgisi */}
       <div
         ref={ref}
@@ -364,7 +359,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         }}
       >
         <div
-          className="pointer-events-none absolute top-0 bottom-[28px] w-[1.5px] -translate-x-1/2 bg-metin"
+          className="pointer-events-none absolute top-0 bottom-0 w-[1.5px] -translate-x-1/2 bg-metin"
           style={{ left: `${imlec * 100}%` }}
         />
       </div>
@@ -477,10 +472,9 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 }
 
 /** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
-function SeritAdi({ ad, seriler, baslik }: { ad: string; seriler: Seri[]; baslik?: ReactNode }) {
+function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5 px-3.5 text-[12px] leading-[15px] whitespace-nowrap">
-      {baslik}
       {seriler.map((sr) => (
         <div key={sr.renk} className="flex items-center gap-2">
           <svg width="10" height="4" aria-hidden className="shrink-0">
