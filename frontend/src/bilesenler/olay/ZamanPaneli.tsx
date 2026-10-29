@@ -35,8 +35,6 @@ const SAG = 16
 const ONEMLI_RENK = '#ec5a3a'
 const OLAY_RENGI = '#8c8c8c'
 const TOPLAMA_PX = 14
-/** Eksende imleç etiketinin iki yanında gün yazısı gösterilmeyen genişlik (px). */
-const ETIKET_BOSLUK = 70
 
 interface Seri {
   ys: number[]
@@ -60,26 +58,25 @@ interface Serit {
  * Olay ekranının alt paneli: oynatma denetimleri ve aynı zaman ekseninde alt alta şeritler.
  * Şeritler her zaman açık: olaylar, yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi.
  * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an, tarihi
- * eksende. Birbirine yakın olaylar tek işarette toplanır. Şeritler
+ * eksenin solunda. Birbirine yakın olaylar tek işarette toplanır. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   return (
     <section className="shrink-0 border-t border-cizgi bg-olaylar">
       <div className="flex h-[50px] items-center gap-2 border-b border-cizgi px-3.5 whitespace-nowrap">
-        <Denetimler veri={veri} />
+        <Denetimler />
       </div>
       {veri && <Seritler veri={veri} />}
     </section>
   )
 }
 
-function Denetimler({ veri }: { veri: OlayVerisi | null }) {
+function Denetimler() {
   const { t } = useTranslation()
   const { bitis, oynatiliyor, hiz } = useZaman()
   const an = useZaman((d) => Math.floor(d.t / DAKIKA) * DAKIKA)
   const { oynatDuraklat, zamanaGit, hizAyarla } = useZaman.getState()
-  const saatSonra = veri ? Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0) : 0
   return (
     <>
       <button
@@ -112,8 +109,6 @@ function Denetimler({ veri }: { veri: OlayVerisi | null }) {
         </select>
         <IkonAsagi boyut={11} className="pointer-events-none absolute top-[10px] right-2 text-soluk" />
       </label>
-      <span className="ml-2 text-[15px] font-semibold">{gunAySaat(an)}</span>
-      {veri && <span className="text-[12px] text-soluk">· {t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>}
     </>
   )
 }
@@ -268,6 +263,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     if (o.x !== undefined && o.z !== undefined) odaklanIste(o.x, o.z)
   }
   const imlec = oran(zaman)
+  const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
   // Zaman sırasıyla; bir öncekinden TOPLAMA_PX'ten yakın olay aynı gruba girer.
   const gruplar: OnemliOlay[][] = []
   for (const o of [...veri.olaylar].sort((a, b) => a.zaman - b.zaman)) {
@@ -342,17 +338,23 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         </div>
       ))}
 
-      {/* Gün ekseni */}
-      <div className="relative h-[22px] text-[11px] whitespace-nowrap text-silik" style={{ marginLeft: ETIKET, marginRight: SAG }}>
-        {/* İmlecin tarih etiketi eksende durur; ona yakın gün yazıları gizlenir. */}
-        {imlec * olayGen > ETIKET_BOSLUK + 50 && <span className="absolute top-[3px] left-0">{gunAySaat(baslangic)}</span>}
-        {s.gunler
-          .filter((x) => oran(x) > 0.06 && oran(x) < 0.97 && Math.abs(oran(x) - imlec) * olayGen > ETIKET_BOSLUK)
-          .map((x) => (
-            <span key={x} className="absolute top-[3px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
-              {gunAy(x)}
-            </span>
-          ))}
+      {/* Gün ekseni; solunda seçili an */}
+      <div className="grid h-[28px] grid-cols-[212px_1fr] items-center">
+        <div className="flex items-baseline gap-2 px-3.5 whitespace-nowrap">
+          <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
+          <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
+        </div>
+        <div className="relative h-full text-[11px] whitespace-nowrap text-silik" style={{ marginRight: SAG }}>
+          <span className="absolute top-[6px] left-0">{gunAySaat(baslangic)}</span>
+          {s.gunler
+            // Baştaki tarih yazısıyla ve sağ kenarla çakışan gün yazıları atlanır.
+            .filter((x) => oran(x) * olayGen > 90 && (1 - oran(x)) * olayGen > 20)
+            .map((x) => (
+              <span key={x} className="absolute top-[6px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
+                {gunAy(x)}
+              </span>
+            ))}
+        </div>
       </div>
 
       {/* Tıkla / sürükle katmanı ve seçili an çizgisi */}
@@ -378,16 +380,9 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         }}
       >
         <div
-          className="pointer-events-none absolute -top-[30px] bottom-0 w-[1.5px] -translate-x-1/2 bg-metin"
+          className="pointer-events-none absolute -top-[30px] bottom-[28px] w-[1.5px] -translate-x-1/2 bg-metin"
           style={{ left: `${imlec * 100}%` }}
-        >
-          <span
-            className="absolute bottom-[2px] left-1/2 rounded-[5px] bg-metin px-[7px] py-[2px] text-[11.5px] font-semibold whitespace-nowrap text-zemin"
-            style={{ transform: `translateX(-${etiketKaymasi(imlec)}%)` }}
-          >
-            {gunAySaat(an)}
-          </span>
-        </div>
+        />
       </div>
     </div>
   )
