@@ -47,7 +47,7 @@ export function Harita() {
             i18nKey="harita.ipucu3B"
             components={{
               tus: (
-                <kbd className="mr-1.5 rounded-[4px] border border-white/25 border-b-white/40 bg-white/10 px-1.5 py-[3px] font-sans text-[11px] font-medium text-white" />
+                <kbd className="rounded-[4px] border border-white/25 border-b-white/40 bg-white/10 px-1.5 py-[3px] font-sans text-[11px] font-medium text-white" />
               ),
             }}
           />
