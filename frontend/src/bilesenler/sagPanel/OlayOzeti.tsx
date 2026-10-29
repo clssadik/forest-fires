@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { sayi, tamTarih } from '../../bicim'
+import { sayi, tamTarih, yuzdeBicim } from '../../bicim'
 import type { OlayVerisi } from '../../olay/veri'
 import { Kart } from './Kart'
 
@@ -9,7 +9,7 @@ export function OlayOzeti({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const { bilgi } = veri
   const m = bilgi.model
-  const daireyiGeciyor = m.daire_iou !== null && m.esit_alan_iou > m.daire_iou
+  const daireyiGeciyor = m.daire_dice !== null && m.bitis_dice !== null && m.bitis_dice > m.daire_dice
   const satirlar: [string, ReactNode][] = [
     [t('olayOzeti.ad'), bilgi.baslik],
     [t('olayOzeti.konum'), bilgi.konum],
@@ -18,13 +18,13 @@ export function OlayOzeti({ veri }: { veri: OlayVerisi }) {
     [t('olayOzeti.toplamAlan'), t('olayOzeti.hektar', { deger: sayi(bilgi.gercek_ha) })],
     [t('olayOzeti.model'), t('olayOzeti.modelDeger', { ad: m.aciklama, sayi: m.calisma_sayisi })],
     [
-      t('olayOzeti.iou'),
-      <span key="iou">
-        {sayi(m.esit_alan_iou, 3)}
-        {m.daire_iou !== null && (
+      t('olayOzeti.sorensen'),
+      <span key="sorensen">
+        {m.bitis_dice === null ? '—' : yuzdeBicim(m.bitis_dice)}
+        {m.daire_dice !== null && m.bitis_dice !== null && (
           <span className={`ml-1 font-normal ${daireyiGeciyor ? 'text-[#3f6b33]' : 'text-ates'}`}>
             {t(daireyiGeciyor ? 'olayOzeti.daireyiGeciyor' : 'olayOzeti.daireyiGecemiyor', {
-              deger: sayi(m.daire_iou, 3),
+              deger: yuzdeBicim(m.daire_dice),
             })}
           </span>
         )}

@@ -71,6 +71,7 @@ TOHUM_OLCUTLERI = {
     "esit_alan_kappa": lambda o: o.esit_alan.kappa,
     "esit_alan_saat": lambda o: o.esit_alan_saat,
     "bitis_iou": lambda o: o.bitis.iou,
+    "bitis_dice": lambda o: o.bitis.dice,
     "bitis_kappa": lambda o: o.bitis.kappa,
     "bitis_model_ha": lambda o: o.bitis.model_ha,
     "zaman_ortanca_saat": lambda o: o.zaman.ortanca_saat,
@@ -192,21 +193,24 @@ def deneyleri_calistir(
 
 
 def _tablo(sonuclar: list[DeneySonucu]) -> str:
+    # Ana ölçüt: bitişte Sørensen (daire: gerçek alanla aynı büyüklükte, yani bitişi eşit alandır).
     satirlar = [
         (
-            f"{'Deney':<36} {'IoU (eş.)':>9} {'Kappa (eş.)':>11} {'IoU (bitiş)':>11} "
+            f"{'Deney':<36} {'Sørensen':>8} {'Yakalama':>8} {'İsabet':>7} {'IoU (eş.)':>9} "
             f"{'Alan (bitiş)':>12} {'Zaman farkı':>11}"
         )
     ]
     for s in sonuclar:
         o = s.topluluk
+        b = o.bitis or o.esit_alan
         bitis = (
-            f"{o.bitis.iou:>11.3f} {o.bitis.model_ha:>9,.0f} ha {o.zaman.ortanca_saat:>+9.1f} sa"
+            f"{o.bitis.model_ha:>9,.0f} ha {o.zaman.ortanca_saat:>+9.1f} sa"
             if o.bitis
-            else f"{'—':>11} {'—':>12} {'—':>11}"
+            else f"{'—':>12} {'—':>11}"
         )
         satirlar.append(
-            f"{s.aciklama:<36} {o.esit_alan.iou:>9.3f} {o.esit_alan.kappa:>11.3f} {bitis}"
+            f"{s.aciklama:<36} {b.dice:>8.1%} {b.duyarlilik:>8.1%} {b.isabet:>7.1%} "
+            f"{o.esit_alan.iou:>9.3f} {bitis}"
         )
     return "\n".join(satirlar)
 

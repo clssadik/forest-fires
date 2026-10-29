@@ -56,11 +56,10 @@
       "notlar": "Notlar"
     },
     "analiz": {
-      "iouBaslik": "Eşit alanda IoU · {{sayi}} tohum",
       "sapma": "± {{deger}}",
       "daireyiGeciyor": "Daireyi geçiyor ({{deger}})",
       "daireyiGecemiyor": "Daireyi geçemiyor ({{deger}})",
-      "deneyler": "Deneyler (eşit alanda IoU)",
+      "deneyler": "Deneyler (bitişte Sørensen)",
       "deneyAdlari": {
         "model_v1": "Model v1",
         "model_v2": "Model v2",
@@ -70,10 +69,9 @@
         "ruzgarsiz": "Rüzgârsız",
         "egimsiz": "Eğimsiz",
         "ruzgarsiz_egimsiz": "Rüzgârsız, eğimsiz",
-        "daire": "Daire (baseline)"
+        "daire": "Daire (baseline)",
+        "model_v6": "Model v6"
       },
-      "dice": "Dice",
-      "kappa": "Kappa",
       "onIkiSaat": "±12 sa içinde",
       "hataBaslik": "Model nerede yanıldı?",
       "hataAlt": "(alan eşitken, +{{saat}} sa)",
@@ -87,7 +85,11 @@
       "zamanOzet": "Ortanca {{ortanca}} sa · ±12 sa içinde {{oran}}",
       "zamanIpucu": "Kutu: hücrelerin ortadaki yarısı. Eksi: model erken.",
       "saatEtiket": "{{deger}} sa",
-      "bitis": "Bitişte model {{model}} ha yakıyor, gerçek alan {{gercek}} ha: model söndürmeyi ve durmayı bilmiyor."
+      "bitis": "Bitişte model {{model}} ha yakıyor, gerçek alan {{gercek}} ha.",
+      "puanBaslik": "Bitişte Sørensen · {{sayi}} tohum",
+      "puanIpucu": "Yakalama ile isabetin dengesi; her yeri yakmak puanı düşürür.",
+      "yakalama": "Yakalama",
+      "isabet": "İsabet"
     },
     "kanitlar": {
       "sentinel": "Sentinel-2 dNBR",
@@ -143,9 +145,9 @@
     "hektar": "{{deger}} ha",
     "model": "Model",
     "modelDeger": "{{ad}}, {{sayi}} tohum",
-    "iou": "IoU (eş. alan)",
-    "daireyiGeciyor": "daire {{deger}}'ü geçiyor",
-    "daireyiGecemiyor": "daire {{deger}}'ü geçemiyor"
+    "daireyiGeciyor": "daireyi ({{deger}}) geçiyor",
+    "daireyiGecemiyor": "daireyi ({{deger}}) geçemiyor",
+    "sorensen": "Sørensen (bitiş)"
   },
   "hava": {
     "baslik": "Hava ve Yangın",
@@ -254,26 +256,28 @@
       "baslik": "Seçili an",
       "model": "Model tahmini",
       "gozlenen": "Gözlenen yanık",
-      "iou": "Örtüşme (IoU)",
-      "aciklama": "Gözlenen yanık: gerçek yanmış alanın FIRMS uydularının o ana kadar gördüğü kısmı. Son anda gerçek alanın tamamı sayılır. Alanlar yaklaşıktır."
+      "aciklama": "Gözlenen yanık: gerçek yanmış alanın FIRMS uydularının o ana kadar gördüğü kısmı. Son anda gerçek alanın tamamı sayılır. Alanlar yaklaşıktır.",
+      "sorensen": "Örtüşme (Sørensen)"
     },
     "sonuc": {
       "baslik": "Doğrulama sonucu",
       "calisma": "{{calisma}} çalıştırmanın topluluğu",
-      "esitAlan": "Şekil başarısı (alan eşitlenmiş)",
+      "esitAlan": "Şekil (alan eşitlenince)",
       "esitAlanAciklama": "Model gerçek alan kadar yaktığı anda ({{saat}}. saat) gerçek alanla karşılaştırılır; zaman hızından bağımsızdır.",
       "esitAlanDurdu": "Model gerçek alana ulaşmadan durdu ({{ha}} ha); yaktığı tüm alan gerçek alanla karşılaştırılır.",
       "bitis": "Bitişte ({{zaman}})",
       "isabet": "İsabet",
-      "duyarlilik": "Duyarlılık",
+      "duyarlilik": "Yakalama",
       "karisiklik": "Karışıklık matrisi",
       "alanlar": "Model {{model}} yaktı; gerçekte yanan {{gercek}}.",
       "zaman": "Zaman",
-      "zamanAciklama": "Model bir hücreye FIRMS'ten ortanca {{fark}} saat sonra varıyor. ±12 saat içinde uyuşan alan: {{oran}}."
+      "zamanAciklama": "Model bir hücreye FIRMS'ten ortanca {{fark}} saat sonra varıyor. ±12 saat içinde uyuşan alan: {{oran}}.",
+      "sorensen": "Sørensen",
+      "sorensenAciklama": "Ana ölçüt: yakalama ile isabetin dengesi. Her yeri yakmak puanı düşürür."
     },
     "baseline": {
       "baslik": "Basit yöntemlerle kıyas",
-      "olcut": "alan eşitlenmiş IoU",
+      "olcut": "bitişte Sørensen",
       "adlar": {
         "model_v1": "Model v1 (rüzgâr + eğim)",
         "model_v2": "Model v2 (+ yakıt türü)",
@@ -283,7 +287,8 @@
         "ruzgarsiz": "Rüzgârsız model",
         "egimsiz": "Eğimsiz model",
         "ruzgarsiz_egimsiz": "Rüzgârsız ve eğimsiz",
-        "daire": "Aynı alanlı daire"
+        "daire": "Aynı alanlı daire",
+        "model_v6": "Model v6 (+ büyümeye bağlı söndürme)"
       },
       "gecemiyor": "En iyi model, {{modelAd}}, {{model}} ile bu yangında {{ad}} yönteminin ({{en}}) gerisinde.",
       "kaynak": "Kaynak: orman-dogrula raporu ({{calisma}} çalıştırma)."

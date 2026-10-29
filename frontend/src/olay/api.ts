@@ -30,6 +30,10 @@ export interface OlayBilgisi {
     esit_alan_iou: number
     esit_alan_iou_sapma: number | null
     daire_iou: number | null
+    /** Ana ölçüt: bitişte Sørensen (yakalama ve isabetin harmonik ortalaması). */
+    bitis_dice: number | null
+    bitis_dice_sapma: number | null
+    daire_dice: number | null
     /** Model alanı gerçek alana eşitlenince karışıklık matrisi (ha) ve ölçütler. */
     esit_alan: {
       dogru_ha: number
@@ -41,8 +45,8 @@ export interface OlayBilgisi {
     }
     /** Alanın eşitlendiği an (tutuşmadan sonra dakika); hata katmanı buna göre çizilir. */
     esit_alan_esik_dk: number
-    /** Modelin bitişte yaktığı alan (durmayı bilmediği için gerçekten büyük). */
-    bitis: { model_ha: number; iou: number } | null
+    /** Modelin bitişte yaktığı alan ve ölçütleri; isabet: tahminin doğru oranı, duyarlılık: yakalama. */
+    bitis: { model_ha: number; iou: number; dice: number; isabet: number; duyarlilik: number } | null
     /** Model − FIRMS varış farkı (saat); pozitif: model geç. */
     zaman: {
       ortanca_saat: number
@@ -50,8 +54,8 @@ export interface OlayBilgisi {
       ceyrek_ust_saat: number
       oran_12_saat_icinde: number
     } | null
-    /** `orman-dogrula` deneyleri (eşit alanda IoU). */
-    deneyler: { ad: string; aciklama: string; iou: number }[]
+    /** `orman-dogrula` deneyleri: eşit alanda IoU ve bitişte Sørensen. */
+    deneyler: { ad: string; aciklama: string; iou: number; dice: number }[]
   }
   izgara: {
     satir: number

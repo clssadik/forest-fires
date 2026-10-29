@@ -117,6 +117,13 @@ export function boya(
   return { model: nModel, gozlenen: nGozlenen, kesisim: nKesisim }
 }
 
+/** Sørensen (ana ölçüt): 2 · kesişim / (model + gözlenen); her yeri yakmak puanı düşürür.
+ *  İkisi de boşsa null. */
+export function sorensen(s: AnlikSayilar): number | null {
+  const toplam = s.model + s.gozlenen
+  return toplam > 0 ? (2 * s.kesisim) / toplam : null
+}
+
 /** Kesişim / birleşim; ikisi de boşsa null. */
 export function iou(s: AnlikSayilar): number | null {
   const birlesim = s.model + s.gozlenen - s.kesisim

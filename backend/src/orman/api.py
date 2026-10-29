@@ -131,6 +131,9 @@ def _baseline_ozeti(ad: str) -> dict | None:
                 "esit_alan_iou": t["esit_alan"]["iou"],
                 "esit_alan_iou_sapma": d["tohumlar"].get("esit_alan_iou", {}).get("sapma"),
                 "bitis_iou": t["bitis"]["iou"] if t["bitis"] else None,
+                # Ana ölçüt. Daire gerçek alanla aynı büyüklükte: bitişi eşit alan bakışıdır.
+                "bitis_dice": (t["bitis"] or t["esit_alan"])["dice"],
+                "bitis_dice_sapma": d["tohumlar"].get("bitis_dice", {}).get("sapma"),
             }
         )
     return {"calisma_sayisi": rapor["calisma_sayisi"], "deneyler": deneyler}
@@ -307,6 +310,7 @@ def _model_ozeti(kayit: dict, baseline: dict | None) -> dict:
     deneyler = (baseline or {}).get("deneyler", [])
     daire = next((x for x in deneyler if x["ad"] == "daire"), None)
     alanlar = ("dogru_ha", "yanlis_alarm_ha", "kacirilan_ha", "iou", "dice", "kappa")
+    bitis = olc.get("bitis")
     zaman = olc.get("zaman")
     return {
         "ad": kayit["model"],
@@ -315,10 +319,16 @@ def _model_ozeti(kayit: dict, baseline: dict | None) -> dict:
         "esit_alan_iou": olc["esit_alan"]["iou"],
         "esit_alan_iou_sapma": kayit.get("tohumlar", {}).get("esit_alan_iou", {}).get("sapma"),
         "daire_iou": daire["esit_alan_iou"] if daire else None,
+        # Ana ölçüt: bitişte Sørensen (yakalama ve isabetin harmonik ortalaması).
+        "bitis_dice": bitis["dice"] if bitis else None,
+        "bitis_dice_sapma": kayit.get("tohumlar", {}).get("bitis_dice", {}).get("sapma"),
+        "daire_dice": daire["bitis_dice"] if daire else None,
         "esit_alan": {a: olc["esit_alan"][a] for a in alanlar},
         # Model alanının gerçek alana eşitlendiği an; ön yüz hata katmanını bununla çizer.
         "esit_alan_esik_dk": olc["esit_alan_esik"],
-        "bitis": {a: olc["bitis"][a] for a in ("model_ha", "iou")} if olc.get("bitis") else None,
+        "bitis": {a: bitis[a] for a in ("model_ha", "iou", "dice", "isabet", "duyarlilik")}
+        if bitis
+        else None,
         "zaman": {
             a: zaman[a]
             for a in ("ortanca_saat", "ceyrek_alt_saat", "ceyrek_ust_saat", "oran_12_saat_icinde")
@@ -326,7 +336,13 @@ def _model_ozeti(kayit: dict, baseline: dict | None) -> dict:
         if zaman
         else None,
         "deneyler": [
-            {"ad": x["ad"], "aciklama": x["aciklama"], "iou": x["esit_alan_iou"]} for x in deneyler
+            {
+                "ad": x["ad"],
+                "aciklama": x["aciklama"],
+                "iou": x["esit_alan_iou"],
+                "dice": x["bitis_dice"],
+            }
+            for x in deneyler
         ],
     }
 

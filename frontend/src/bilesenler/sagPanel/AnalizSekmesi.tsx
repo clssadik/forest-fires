@@ -9,34 +9,37 @@ import { IkonTik } from '../ikonlar'
 const HATA_RENKLERI = { dogru: '#d4472a', yanlisAlarm: '#f0b43c', kacirilan: '#455c80' } as const
 
 /**
- * Analiz sekmesi: yangının tamamı için doğrulama karnesi. Eşit alanda IoU ve baseline'larla
- * karşılaştırma, modelin hatasının dağılımı (haritada da gösterilebilir) ve varış zamanı farkı.
+ * Analiz sekmesi: yangının tamamı için doğrulama karnesi. Bitişte Sørensen (ana ölçüt) ve
+ * baseline'larla karşılaştırma, modelin hatasının dağılımı (haritada da gösterilebilir) ve varış
+ * zamanı farkı.
  */
 export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const { bilgi } = veri
   const m = bilgi.model
-  const daireyiGeciyor = m.daire_iou !== null && m.esit_alan_iou > m.daire_iou
-  const deneyler = [...m.deneyler].sort((a, b) => b.iou - a.iou)
-  const enBuyuk = Math.max(...deneyler.map((d) => d.iou), m.esit_alan_iou)
+  const puan = m.bitis_dice
+  const daireyiGeciyor = m.daire_dice !== null && puan !== null && puan > m.daire_dice
+  const deneyler = [...m.deneyler].sort((a, b) => b.dice - a.dice)
+  const enBuyuk = Math.max(...deneyler.map((d) => d.dice), puan ?? 0)
 
   return (
     <div className="space-y-3.5 px-3 pt-2.5 pb-3 text-[12px] leading-[16px]">
       <section>
-        <div className="text-soluk">{t('sagPanel.analiz.iouBaslik', { sayi: m.calisma_sayisi })}</div>
+        <div className="text-soluk">{t('sagPanel.analiz.puanBaslik', { sayi: m.calisma_sayisi })}</div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[24px] leading-[30px] font-semibold">{ucBasamak(m.esit_alan_iou)}</span>
-          {m.esit_alan_iou_sapma !== null && (
-            <span className="text-soluk">{t('sagPanel.analiz.sapma', { deger: ucBasamak(m.esit_alan_iou_sapma) })}</span>
+          <span className="text-[24px] leading-[30px] font-semibold">{puan === null ? '—' : yuzdeBicim(puan)}</span>
+          {m.bitis_dice_sapma !== null && (
+            <span className="text-soluk">{t('sagPanel.analiz.sapma', { deger: yuzdeBicim(m.bitis_dice_sapma) })}</span>
           )}
         </div>
-        {m.daire_iou !== null && (
+        {m.daire_dice !== null && puan !== null && (
           <div className={daireyiGeciyor ? 'text-[#3f6b33]' : 'text-ates'}>
             {t(daireyiGeciyor ? 'sagPanel.analiz.daireyiGeciyor' : 'sagPanel.analiz.daireyiGecemiyor', {
-              deger: ucBasamak(m.daire_iou),
+              deger: yuzdeBicim(m.daire_dice),
             })}
           </div>
         )}
+        <div className="text-[11px] text-soluk">{t('sagPanel.analiz.puanIpucu')}</div>
       </section>
 
       {deneyler.length > 0 && (
@@ -53,17 +56,17 @@ export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
                   <span className="h-[7px] rounded-[1px] bg-cizgi">
                     <span
                       className={`block h-full rounded-[1px] ${guncel ? 'bg-ates' : d.ad === 'daire' ? 'bg-koyu' : 'bg-silik'}`}
-                      style={{ width: `${(d.iou / enBuyuk) * 100}%` }}
+                      style={{ width: `${(d.dice / enBuyuk) * 100}%` }}
                     />
                   </span>
-                  <span className={`text-right tabular-nums ${guncel ? 'font-semibold' : ''}`}>{ucBasamak(d.iou)}</span>
+                  <span className={`text-right tabular-nums ${guncel ? 'font-semibold' : ''}`}>{yuzdeBicim(d.dice)}</span>
                 </li>
               )
             })}
           </ul>
           <div className="mt-2 grid grid-cols-3 gap-1 text-center">
-            <Kutucuk etiket={t('sagPanel.analiz.dice')} deger={sayi(m.esit_alan.dice, 2)} />
-            <Kutucuk etiket={t('sagPanel.analiz.kappa')} deger={sayi(m.esit_alan.kappa, 2)} />
+            {m.bitis && <Kutucuk etiket={t('sagPanel.analiz.yakalama')} deger={yuzdeBicim(m.bitis.duyarlilik)} />}
+            {m.bitis && <Kutucuk etiket={t('sagPanel.analiz.isabet')} deger={yuzdeBicim(m.bitis.isabet)} />}
             {m.zaman && (
               <Kutucuk etiket={t('sagPanel.analiz.onIkiSaat')} deger={yuzdeBicim(m.zaman.oran_12_saat_icinde)} />
             )}
@@ -82,8 +85,6 @@ export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
     </div>
   )
 }
-
-const ucBasamak = (n: number) => n.toLocaleString('tr-TR', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
 
 function Kutucuk({ etiket, deger }: { etiket: string; deger: string }) {
   return (

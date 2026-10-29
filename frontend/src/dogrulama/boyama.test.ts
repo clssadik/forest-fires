@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KARSILASTIRMA_RENKLERI, YAS_DURAKLARI, YOK, boya, iou, paketle, type Rasterlar } from './boyama'
+import { KARSILASTIRMA_RENKLERI, YAS_DURAKLARI, YOK, boya, iou, paketle, sorensen, type Rasterlar } from './boyama'
 
 // 1 × 4'lük ızgara. Hücreler: model 10. dk'da yakar; FIRMS 30. dk'da görür; ikisi de;
 // hiçbiri (yalnızca gerçek alanda, FIRMS görmedi).
@@ -26,6 +26,7 @@ describe('boya', () => {
     const s = boya(r, 100, 100, 'yayilim', new Uint32Array(4))
     expect(s).toEqual({ model: 2, gozlenen: 3, kesisim: 1 })
     expect(iou(s)).toBeCloseTo(1 / 4)
+    expect(sorensen(s)).toBeCloseTo((2 * 1) / (2 + 3))
   })
 
   it('yayılım kipinde yeni tutuşan hücre cephe rengini alır, yanmayan saydamdır', () => {
@@ -57,4 +58,13 @@ describe('boya', () => {
 
 describe('iou', () => {
   it('boş kümede null', () => expect(iou({ model: 0, gozlenen: 0, kesisim: 0 })).toBeNull())
+})
+
+describe('sorensen', () => {
+  it('boş kümede null', () => expect(sorensen({ model: 0, gozlenen: 0, kesisim: 0 })).toBeNull())
+  it('her yeri yakmak puanı düşürür', () => {
+    // Gerçek 10 hücre, hepsi yakalanmış; model 10 da yakarsa 1, 100 yakarsa 0,18.
+    expect(sorensen({ model: 10, gozlenen: 10, kesisim: 10 })).toBeCloseTo(1)
+    expect(sorensen({ model: 100, gozlenen: 10, kesisim: 10 })).toBeCloseTo(20 / 110)
+  })
 })

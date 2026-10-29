@@ -154,6 +154,14 @@ def test_olay_uc_noktalari():
     assert ea["dogru_ha"] + ea["kacirilan_ha"] == pytest.approx(bilgi["gercek_ha"], rel=0.01)
     assert model["esit_alan_esik_dk"] > 0
     assert any(d["ad"] == "daire" for d in model["deneyler"])
+    # Ana ölçüt: bitişte Sørensen (yakalama ve isabetin harmonik ortalaması).
+    b = model["bitis"]
+    assert model["bitis_dice"] == pytest.approx(b["dice"])
+    assert b["dice"] == pytest.approx(
+        2 * b["isabet"] * b["duyarlilik"] / (b["isabet"] + b["duyarlilik"]), rel=1e-6
+    )
+    assert model["daire_dice"] is not None
+    assert all(0 <= d["dice"] <= 1 for d in model["deneyler"])
     kanit = bilgi["kanitlar"]
     assert kanit["firms"]["toplam"] == sum(kanit["firms"]["kaynaklar"].values())
     assert kanit["sentinel2"]["yanmis_ha"] == pytest.approx(bilgi["gercek_ha"], rel=0.01)

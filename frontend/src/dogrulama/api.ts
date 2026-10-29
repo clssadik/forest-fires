@@ -6,6 +6,9 @@ export interface BaselineDeneyi {
   esit_alan_iou: number
   esit_alan_iou_sapma: number | null
   bitis_iou: number | null
+  /** Ana ölçüt: bitişte Sørensen (daire için eşit alan, çünkü gerçek alanla aynı büyüklükte). */
+  bitis_dice: number
+  bitis_dice_sapma: number | null
 }
 
 export interface YanginBilgisi {
