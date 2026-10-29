@@ -28,13 +28,12 @@ const TEMEL_HIZ = 60
 const ETIKET = 212
 const SAG = 16
 
-/** Olaylar şeridindeki elmasların renkleri (türe göre). */
-const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
-  tutusma: '#ec5a3a',
-  uyduGecisi: '#5f9fdc',
-  hizliBuyume: '#f2b84a',
-  sirtaUlasma: '#cfcfcf',
-}
+/** Olaylar şeridi: tutuşma turuncu, diğerleri gri; bu kadar pikselden yakın olaylar tek işarette toplanır. */
+const ONEMLI_RENK = '#ec5a3a'
+const OLAY_RENGI = '#8c8c8c'
+const TOPLAMA_PX = 14
+/** Eksende imleç etiketinin iki yanında gün yazısı gösterilmeyen genişlik (px). */
+const ETIKET_BOSLUK = 70
 
 interface Seri {
   ys: number[]
@@ -48,6 +47,7 @@ interface Serit {
   ikon: ReactNode
   ad: string
   deger: string
+  lejant?: ReactNode
   yuk: number
   ust: number
   seriler: Seri[]
@@ -56,26 +56,15 @@ interface Serit {
 /**
  * Olay ekranının alt paneli: oynatma denetimleri ve aynı zaman ekseninde alt alta şeritler.
  * Şeritler her zaman açık: olaylar, yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi.
- * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an. Şeritler
+ * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an, tarihi
+ * eksende. Birbirine yakın olaylar tek işarette toplanır. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
-  const { t } = useTranslation()
   return (
     <section className="shrink-0 border-t border-cizgi bg-olaylar">
       <div className="flex h-[50px] items-center gap-2 border-b border-cizgi px-3.5 whitespace-nowrap">
         <Denetimler veri={veri} />
-        <span className="ml-3 flex items-center gap-3.5 truncate text-[12px] text-soluk">
-          <Lejant renk="#f06a45">{t('olayDuzeni.lejant.model')}</Lejant>
-          <Lejant renk="#f2b84a" kesik>
-            {t('olayDuzeni.lejant.firms')}
-          </Lejant>
-          <span className="flex items-center gap-1.5">
-            <span className="size-[7px] rotate-45 rounded-[1px] bg-mavi" />
-            {t('olayDuzeni.lejant.olaylar')}
-          </span>
-          <span className="text-silik">· {t('olayDuzeni.seritAciklama')}</span>
-        </span>
       </div>
       {veri && <Seritler veri={veri} />}
     </section>
@@ -88,7 +77,6 @@ function Denetimler({ veri }: { veri: OlayVerisi | null }) {
   const an = useZaman((d) => Math.floor(d.t / DAKIKA) * DAKIKA)
   const { oynatDuraklat, zamanaGit, hizAyarla } = useZaman.getState()
   const saatSonra = veri ? Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0) : 0
-  const toplam = veri ? Math.round((veri.bitisMs - veri.tutusmaMs) / SAAT) : 0
   return (
     <>
       <button
@@ -122,7 +110,7 @@ function Denetimler({ veri }: { veri: OlayVerisi | null }) {
         <IkonAsagi boyut={11} className="pointer-events-none absolute top-[10px] right-2 text-soluk" />
       </label>
       <span className="ml-2 text-[15px] font-semibold">{gunAySaat(an)}</span>
-      {veri && <span className="text-[12px] text-soluk">· {t('olayDuzeni.saatSayaci', { saat: saatSonra, toplam })}</span>}
+      {veri && <span className="text-[12px] text-soluk">· {t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>}
     </>
   )
 }
@@ -136,6 +124,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const zamanaGit = useZaman((d) => d.zamanaGit)
   const odaklanIste = useHarita((d) => d.odaklanIste)
   const ref = useRef<HTMLDivElement>(null)
+  const [olayRef, { gen: olayGen }] = useBoyut<HTMLDivElement>()
 
   const oran = (x: number) => Math.min(Math.max((x - baslangic) / Math.max(bitis - baslangic, 1), 0), 1)
 
@@ -180,6 +169,14 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     ikon: <IkonAlev boyut={14} />,
     ad: t('olayDuzeni.seritler.yananAlan'),
     deger: basladi ? `${sayi(veri.yananAlanHa(an))} ha` : tire,
+    lejant: (
+      <>
+        <Lejant renk="#f06a45">{t('olayDuzeni.lejant.model')}</Lejant>
+        <Lejant renk="#f2b84a" kesik>
+          {t('olayDuzeni.lejant.firms')}
+        </Lejant>
+      </>
+    ),
     yuk: 60,
     ust: s.alanUst,
     seriler: [
@@ -241,29 +238,43 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     if (o.x !== undefined && o.z !== undefined) odaklanIste(o.x, o.z)
   }
   const imlec = oran(zaman)
+  // Zaman sırasıyla; bir öncekinden TOPLAMA_PX'ten yakın olay aynı gruba girer.
+  const gruplar: OnemliOlay[][] = []
+  for (const o of [...veri.olaylar].sort((a, b) => a.zaman - b.zaman)) {
+    const son = gruplar.at(-1)
+    const onceki = son?.at(-1)
+    if (son && onceki && (oran(o.zaman) - oran(onceki.zaman)) * olayGen < TOPLAMA_PX) son.push(o)
+    else gruplar.push([o])
+  }
 
   return (
     <div className="relative select-none">
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
       <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.05]">
         <SeritAdi ikon={<IkonBayrak boyut={14} />} ad={t('olayDuzeni.seritler.olaylar')} deger={String(veri.olaylar.length)} />
-        <div className="relative h-full" style={{ marginRight: SAG }}>
-          {veri.olaylar.map((o) => (
-            <button
-              key={`${o.tur}-${o.zaman}`}
-              type="button"
-              onClick={() => git(o)}
-              title={`${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`}
-              aria-label={`${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`}
-              className="absolute top-1/2 z-20 grid size-[16px] -translate-1/2 place-items-center"
-              style={{ left: `${oran(o.zaman) * 100}%` }}
-            >
-              <span
-                className="size-[7px] rotate-45 rounded-[1px] ring-1 ring-black transition-transform group-hover:scale-150 hover:scale-150"
-                style={{ background: OLAY_RENGI[o.tur] }}
-              />
-            </button>
-          ))}
+        <div ref={olayRef} className="relative h-full" style={{ marginRight: SAG }}>
+          {gruplar.map((g) => {
+            const ilk = g[0]
+            const onemli = g.some((o) => o.tur === 'tutusma')
+            const metin = g.map((o) => `${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`).join('\n')
+            return (
+              <button
+                key={`${ilk.tur}-${ilk.zaman}`}
+                type="button"
+                onClick={() => git(ilk)}
+                title={metin}
+                aria-label={metin}
+                className="group absolute top-1/2 z-20 flex h-[16px] -translate-y-1/2 items-center gap-1 pl-[4.5px]"
+                style={{ left: `calc(${oran(ilk.zaman) * 100}% - 8px)` }}
+              >
+                <span
+                  className="size-[7px] rotate-45 rounded-[1px] transition-transform group-hover:scale-150"
+                  style={{ background: onemli ? ONEMLI_RENK : OLAY_RENGI }}
+                />
+                {g.length > 1 && <span className="text-[10.5px] leading-none font-medium text-soluk">{g.length}</span>}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -273,7 +284,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           className="grid grid-cols-[212px_1fr] items-center border-b border-white/[0.05]"
           style={{ height: sr.yuk + 10 }}
         >
-          <SeritAdi ikon={sr.ikon} ad={sr.ad} deger={sr.deger} />
+          <SeritAdi ikon={sr.ikon} ad={sr.ad} deger={sr.deger} lejant={sr.lejant} />
           <div style={{ marginRight: SAG, height: sr.yuk }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
           </div>
@@ -282,9 +293,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
 
       {/* Gün ekseni */}
       <div className="relative h-[22px] text-[11px] whitespace-nowrap text-silik" style={{ marginLeft: ETIKET, marginRight: SAG }}>
-        <span className="absolute top-[3px] left-0">{gunAySaat(baslangic)}</span>
+        {/* İmlecin tarih etiketi eksende durur; ona yakın gün yazıları gizlenir. */}
+        {imlec * olayGen > ETIKET_BOSLUK + 50 && <span className="absolute top-[3px] left-0">{gunAySaat(baslangic)}</span>}
         {s.gunler
-          .filter((x) => oran(x) > 0.06 && oran(x) < 0.97)
+          .filter((x) => oran(x) > 0.06 && oran(x) < 0.97 && Math.abs(oran(x) - imlec) * olayGen > ETIKET_BOSLUK)
           .map((x) => (
             <span key={x} className="absolute top-[3px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
               {gunAy(x)}
@@ -319,7 +331,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           style={{ left: `${imlec * 100}%` }}
         >
           <span
-            className="absolute -top-px left-1/2 rounded-[5px] bg-metin px-[7px] py-[2px] text-[11.5px] font-semibold whitespace-nowrap text-zemin"
+            className="absolute bottom-[2px] left-1/2 rounded-[5px] bg-metin px-[7px] py-[2px] text-[11.5px] font-semibold whitespace-nowrap text-zemin"
             style={{ transform: `translateX(-${etiketKaymasi(imlec)}%)` }}
           >
             {gunAySaat(an)}
@@ -374,12 +386,15 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
   )
 }
 
-function SeritAdi({ ikon, ad, deger }: { ikon: ReactNode; ad: string; deger: string }) {
+function SeritAdi({ ikon, ad, deger, lejant }: { ikon: ReactNode; ad: string; deger: string; lejant?: ReactNode }) {
   return (
-    <div className="flex min-w-0 items-center gap-2 px-3.5 text-[12px] whitespace-nowrap">
-      <span className="shrink-0 text-soluk">{ikon}</span>
-      <span className="truncate text-soluk">{ad}</span>
-      <span className="ml-auto font-semibold">{deger}</span>
+    <div className="min-w-0 px-3.5 text-[12px] whitespace-nowrap">
+      <div className="flex items-center gap-2">
+        <span className="shrink-0 text-soluk">{ikon}</span>
+        <span className="truncate text-soluk">{ad}</span>
+        <span className="ml-auto font-semibold">{deger}</span>
+      </div>
+      {lejant && <div className="mt-1.5 flex items-center gap-3 pl-[22px] text-[11px] text-silik">{lejant}</div>}
     </div>
   )
 }
