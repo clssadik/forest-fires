@@ -49,42 +49,6 @@ button:disabled {
   cursor: default;
 }
 
-/* Katman listesindeki küçük saydamlık kaydırıcısı */
-.kaydirici {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 14px;
-  background: transparent;
-}
-.kaydirici::-webkit-slider-runnable-track {
-  height: 2px;
-  background: linear-gradient(to right, var(--color-metin) var(--dolu), var(--color-eksen) var(--dolu));
-  border-radius: 1px;
-}
-.kaydirici::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
-  margin-top: -4px;
-  border-radius: 50%;
-  background: var(--color-metin);
-}
-.kaydirici::-moz-range-track {
-  height: 2px;
-  background: var(--color-eksen);
-}
-.kaydirici::-moz-range-progress {
-  height: 2px;
-  background: var(--color-metin);
-}
-.kaydirici::-moz-range-thumb {
-  width: 10px;
-  height: 10px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--color-metin);
-}
-
 /* Klavye odağı: siyah zeminde görünür halka */
 :focus-visible {
   outline: 2px solid var(--color-ates-acik);

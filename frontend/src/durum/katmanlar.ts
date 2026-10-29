@@ -15,7 +15,7 @@ export type KatmanKimligi =
 export interface Katman {
   kimlik: KatmanKimligi
   acik: boolean
-  /** 0..1; saydamlık kaydırıcısı olmayan katmanlarda null. */
+  /** 0..1 sabit çizim saydamlığı; null ise tam opak. */
   opaklik: number | null
 }
 
@@ -34,7 +34,6 @@ export const VARSAYILAN_KATMANLAR: Katman[] = [
 interface KatmanDurumu {
   katmanlar: Katman[]
   degistir: (kimlik: KatmanKimligi) => void
-  opaklikAyarla: (kimlik: KatmanKimligi, opaklik: number) => void
 }
 
 export const useKatmanlar = create<KatmanDurumu>((set) => ({
@@ -43,15 +42,9 @@ export const useKatmanlar = create<KatmanDurumu>((set) => ({
     set((d) => ({
       katmanlar: d.katmanlar.map((k) => (k.kimlik === kimlik ? { ...k, acik: !k.acik } : k)),
     })),
-  opaklikAyarla: (kimlik, opaklik) =>
-    set((d) => ({
-      katmanlar: d.katmanlar.map((k) =>
-        k.kimlik === kimlik && k.opaklik !== null ? { ...k, opaklik: Math.min(Math.max(opaklik, 0), 1) } : k,
-      ),
-    })),
 }))
 
-/** Katmanın etkin opaklığı: kapalıysa 0, kaydırıcısızsa 1. */
+/** Katmanın etkin opaklığı: kapalıysa 0, opaklığı tanımsızsa 1. */
 export const etkinOpaklik = (katmanlar: Katman[], kimlik: KatmanKimligi) => {
   const k = katmanlar.find((x) => x.kimlik === kimlik)
   if (!k || !k.acik) return 0
