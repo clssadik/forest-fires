@@ -37,7 +37,7 @@ interface Seri {
   kesik?: boolean
   /** Seçili andaki değer; etiket sütununda serinin çizgi örneğiyle yazılır. */
   deger: string
-  /** Birden çok serili şeritte ikincil serinin kısa adı. */
+  /** Etiket sütunundaki adı; yoksa şeridin adı. */
   etiket?: string
 }
 
@@ -168,14 +168,13 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         renk: '#f06a45',
         dolgu: 'rgba(236,90,58,0.24)',
         deger: basladi ? `${sayi(veri.yananAlanHa(an))} ha` : tire,
-        etiket: t('olayDuzeni.lejant.model'),
       },
       {
         ys: s.firms,
         renk: '#f2b84a',
         kesik: true,
         deger: basladi ? `${sayi(veri.firmsAlanHa(an))} ha` : tire,
-        etiket: t('olayDuzeni.lejant.firms'),
+        etiket: t('olayDuzeni.uyduAlani'),
       },
     ],
   }
@@ -207,11 +206,11 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     {
       kimlik: 'nem',
       ad: t('olayDuzeni.seritler.nem'),
-      yuk: 28,
+      yuk: 34,
       ust: s.nemUst,
       seriler: [
-        { ys: s.nem, renk: '#5f9fdc', deger: yuzdeBicim(h.nem / 100), etiket: t('olayDuzeni.lejant.hava') },
-        { ys: s.yakit, renk: '#7cc46e', deger: yuzdeBicim(h.yakitNemi / 100), etiket: t('olayDuzeni.lejant.yakit') },
+        { ys: s.nem, renk: '#5f9fdc', deger: yuzdeBicim(h.nem / 100) },
+        { ys: s.yakit, renk: '#7cc46e', deger: yuzdeBicim(h.yakitNemi / 100), etiket: t('olayDuzeni.yakitNemi') },
       ],
     },
   ]
@@ -279,9 +278,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       )}
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
       <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.05]">
-        <div className="flex items-baseline gap-2 px-3.5 text-[11.5px] text-soluk">
+        <div className="flex items-center gap-2 px-3.5 text-[12px] text-soluk">
+          <span className="w-[10px]" />
           {t('olayDuzeni.seritler.olaylar')}
-          <span className="text-metin/70 tabular-nums">{veri.olaylar.length}</span>
+          <span className="ml-auto font-medium text-metin tabular-nums">{veri.olaylar.length}</span>
         </div>
         <div ref={olayRef} className="relative h-full" style={{ marginRight: SAG }}>
           {gruplar.map((g) => {
@@ -342,7 +342,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           <span className="absolute top-[6px] left-0">{gunAySaat(baslangic)}</span>
           {s.gunler
             // Baştaki tarih yazısıyla ve sağ kenarla çakışan gün yazıları atlanır.
-            .filter((x) => oran(x) * olayGen > 90 && (1 - oran(x)) * olayGen > 20)
+            .filter((x) => oran(x) * olayGen > 115 && (1 - oran(x)) * olayGen > 25)
             .map((x) => (
               <span key={x} className="absolute top-[6px] -translate-x-1/2" style={{ left: `${oran(x) * 100}%` }}>
                 {gunAy(x)}
@@ -491,26 +491,19 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
   )
 }
 
-/**
- * Şeridin etiket hücresi: üstte silik ad, altta her serinin çizgi örneği ve seçili andaki değeri.
- * Çizgi örneği grafikteki çizgiyle aynı renk ve desende; ayrı bir lejant gerekmez.
- */
+/** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
 function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
-  const coklu = seriler.length > 1
   return (
-    <div className="min-w-0 px-3.5 whitespace-nowrap">
-      <div className="text-[11.5px] leading-[14px] text-soluk">{ad}</div>
-      <div className="mt-1 flex items-center gap-3.5">
-        {seriler.map((sr) => (
-          <span key={sr.renk} className="flex items-center gap-1.5">
-            <svg width="10" height="4" aria-hidden className="shrink-0">
-              <line x1="0" x2="10" y1="2" y2="2" stroke={sr.renk} strokeWidth="2" strokeDasharray={sr.kesik ? '3 2' : undefined} />
-            </svg>
-            {coklu && sr.etiket && <span className="text-[11px] text-silik">{sr.etiket}</span>}
-            <span className="text-[13px] leading-[16px] font-medium text-metin/90 tabular-nums">{sr.deger}</span>
-          </span>
-        ))}
-      </div>
+    <div className="flex min-w-0 flex-col gap-1.5 px-3.5 text-[12px] leading-[15px] whitespace-nowrap">
+      {seriler.map((sr) => (
+        <div key={sr.renk} className="flex items-center gap-2">
+          <svg width="10" height="4" aria-hidden className="shrink-0">
+            <line x1="0" x2="10" y1="2" y2="2" stroke={sr.renk} strokeWidth="2" strokeDasharray={sr.kesik ? '3 2' : undefined} />
+          </svg>
+          <span className="truncate text-soluk">{sr.etiket ?? ad}</span>
+          <span className="ml-auto font-medium tabular-nums">{sr.deger}</span>
+        </div>
+      ))}
     </div>
   )
 }

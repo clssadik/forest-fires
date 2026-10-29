@@ -413,18 +413,14 @@
     "olayYok": "Henüz olay yok",
     "modelAlani": "Model alanı",
     "firmsGordugu": "FIRMS'in gördüğü",
+    "yakitNemi": "Yakıt nemi",
+    "uyduAlani": "Uydu (FIRMS)",
     "uyum": "Bitişte uyum (Sørensen)",
     "daireGeciyor": "aynı alanlı daire {{deger}} · geçiyor",
     "daireGecemiyor": "aynı alanlı daire {{deger}} · geçemiyor",
     "profil": "Yükseklik profili",
     "profilAlt": "ana eksen, {{km}} km",
     "geri": "Bir saat geri",
-    "lejant": {
-      "model": "model",
-      "firms": "FIRMS",
-      "hava": "hava",
-      "yakit": "yakıt"
-    },
     "olayKarti": {
       "grup": "{{sayi}} olay · {{aralik}}",
       "kapat": "Kapat"
