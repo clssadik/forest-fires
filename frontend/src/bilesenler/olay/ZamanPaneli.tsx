@@ -53,7 +53,7 @@ interface Serit {
  * Olay ekranının alt paneli: oynatma denetimleri ve aynı zaman ekseninde alt alta şeritler.
  * Şeritler her zaman açık: olaylar, yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi.
  * Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür; beyaz çizgi seçili an, tarihi
- * eksenin solunda. Birbirine yakın olaylar tek işarette toplanır. Şeritler
+ * olaylar satırının solunda. Birbirine yakın olaylar tek işarette toplanır. Şeritler
  * baştan sona aynı parlaklıkta çizilir (karşılaştırma için); geçmiş/gelecek ayrımını imleç yapar.
  */
 export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
@@ -278,10 +278,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       )}
       {/* Olaylar şeridi: işaretler tıklanınca o ana ve yere gider. */}
       <div className="grid h-[30px] grid-cols-[212px_1fr] items-center border-b border-white/[0.12]">
-        <div className="flex items-center gap-2 px-3.5 text-[12px] text-soluk">
-          <span className="w-[10px]" />
-          {t('olayDuzeni.seritler.olaylar')}
-          <span className="ml-auto font-medium text-metin tabular-nums">{veri.olaylar.length}</span>
+        {/* Seçili an: olay işaretleriyle aynı satırda, şerit adlarının üstünde. */}
+        <div className="flex items-baseline gap-2 px-3.5 whitespace-nowrap">
+          <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
+          <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
         </div>
         <div ref={olayRef} className="relative h-full" style={{ marginRight: SAG }}>
           {gruplar.map((g) => {
@@ -332,12 +332,9 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         </div>
       ))}
 
-      {/* Gün ekseni; solunda seçili an */}
+      {/* Gün ekseni */}
       <div className="grid h-[28px] grid-cols-[212px_1fr] items-center">
-        <div className="flex items-baseline gap-2 px-3.5 whitespace-nowrap">
-          <span className="text-[13px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-          <span className="text-[12px] text-soluk">{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
-        </div>
+        <div />
         <div className="relative h-full text-[11px] whitespace-nowrap text-silik" style={{ marginRight: SAG }}>
           <span className="absolute top-[6px] left-0">{gunAySaat(baslangic)}</span>
           {s.gunler
