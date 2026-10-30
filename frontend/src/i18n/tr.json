@@ -58,21 +58,14 @@
     },
     "acik": "Açık",
     "analiz": {
-      "dogruluk": "Tahmin doğruluğu",
-      "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla uydudaki gerçek yanık alanın örtüşmesi",
-      "sapma": "± {{deger}}",
-      "sapmaAciklama": "{{sayi}} çalıştırma arasındaki oynama",
-      "dahaIyi": "Basit tahminden iyi",
-      "dahaZayif": "Basit tahminin gerisinde",
       "modelAlani": "Model alanı",
       "gercekAlan": "Gerçek alan",
       "yakalama": "Yakalama",
       "yakalamaAlt": "Gerçek alanın bulunan kısmı",
       "isabet": "İsabet",
       "isabetAlt": "Tahminin doğru çıkan kısmı",
-      "deneyler": "Sürüm karşılaştırması",
+      "deneyler": "Diğer sürümler",
       "deneylerAlt": "Bitişte doğruluk",
-      "buModel": "Bu model",
       "deneyAdlari": {
         "model_v1": "Model v1",
         "model_v2": "Model v2",
@@ -85,7 +78,6 @@
         "ruzgarsiz_egimsiz": "Rüzgâr ve eğim kapalı",
         "daire": "Basit daire"
       },
-      "daireAciklama": "Tutuşma noktasında, gerçek alanla aynı büyüklükte bir daire: modelin geçmesi beklenen en basit tahmin",
       "hataBaslik": "Model nerede yanıldı?",
       "hataAlt": "{{saat}}. saatte, alanlar eşit büyüklükteyken",
       "hataAltDurdu": "Model durduğunda",
@@ -106,7 +98,8 @@
       "ortancaGec": "{{deger}} sa geç",
       "ortancaErken": "{{deger}} sa erken",
       "onIkiSaat": "12 saatten az sapan",
-      "kutuIpucu": "Kutu, noktaların ortadaki yarısını gösterir."
+      "kutuIpucu": "Kutu, noktaların ortadaki yarısını gösterir.",
+      "bitisBaslik": "Yangın sonunda"
     },
     "kanitlar": {
       "ozet": "Olay özeti",

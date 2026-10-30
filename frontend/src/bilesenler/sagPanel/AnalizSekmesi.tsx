@@ -3,7 +3,7 @@ import { sayi, yuzdeBicim } from '../../bicim'
 import { gercekAlanaUlasti } from '../../dogrulama/api'
 import { useKatmanlar } from '../../durum/katmanlar'
 import type { OlayVerisi } from '../../olay/veri'
-import { AnahtarGorseli, Bolum, Rozet, SayiKarti } from './ortak'
+import { AnahtarGorseli, Bolum, SayiKarti } from './ortak'
 
 /** Hata katmanının renkleri (sahne/yanginMalzemesi.ts ile aynı). */
 const HATA_RENKLERI = { dogru: '#d4472a', yanlisAlarm: '#f0b43c', kacirilan: '#455c80' } as const
@@ -11,15 +11,15 @@ const HATA_RENKLERI = { dogru: '#d4472a', yanlisAlarm: '#f0b43c', kacirilan: '#4
 type Model = OlayVerisi['bilgi']['model']
 
 /**
- * Analiz sekmesi: yangının tamamı için doğrulama karnesi. Bitişte doğruluk (Sørensen) ve basit
- * daireyle karşılaştırma, sürümler, modelin hatasının dağılımı (haritada da gösterilebilir) ve
- * varış zamanı farkı.
+ * Analiz sekmesi: yangının tamamı için doğrulama ayrıntısı. Bitişteki doğruluk ve basit daire sağ
+ * sütunda olduğu için burada tekrarlanmaz; burada bitişteki alanlar, öteki sürümler, modelin
+ * hatasının dağılımı (haritada da gösterilebilir) ve varış zamanı farkı var.
  */
 export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
   const m = veri.bilgi.model
   return (
     <>
-      <Karne veri={veri} />
+      <Bitis veri={veri} />
       <Surumler m={m} />
       <HataDagilimi m={m} />
       {m.zaman && <ZamanFarki zaman={m.zaman} />}
@@ -27,43 +27,19 @@ export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-function Karne({ veri }: { veri: OlayVerisi }) {
+/** Yangın sonunda model ve gerçek alan, yakalama ve isabet. */
+function Bitis({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
-  const m = veri.bilgi.model
-  const puan = m.bitis_dice
-  const iyi = m.daire_dice !== null && puan !== null && puan > m.daire_dice
-
+  const b = veri.bilgi.model.bitis
   return (
-    <Bolum>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div title={t('sagPanel.analiz.dogrulukAciklama')} className="cursor-help text-[12px] leading-4 font-medium text-ikincil">
-            {t('sagPanel.analiz.dogruluk')}
-          </div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-[32px] leading-9 font-semibold tracking-[-0.5px] tabular-nums">
-              {puan === null ? '—' : yuzdeBicim(puan)}
-            </span>
-            {m.bitis_dice_sapma !== null && (
-              <span title={t('sagPanel.analiz.sapmaAciklama', { sayi: m.calisma_sayisi })} className="cursor-help text-[13px] text-ikincil tabular-nums">
-                {t('sagPanel.analiz.sapma', { deger: yuzdeBicim(m.bitis_dice_sapma) })}
-              </span>
-            )}
-          </div>
-        </div>
-        {m.daire_dice !== null && puan !== null && (
-          <Rozet iyi={iyi}>{t(iyi ? 'sagPanel.analiz.dahaIyi' : 'sagPanel.analiz.dahaZayif')}</Rozet>
-        )}
-      </div>
-      <p className="mt-1.5 text-[12.5px] leading-[18px] text-ikincil">{t('sagPanel.analiz.dogrulukAciklama')}</p>
-
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        {m.bitis && <SayiKarti etiket={t('sagPanel.analiz.modelAlani')} deger={t('sagPanel.analiz.hektar', { deger: sayi(m.bitis.model_ha) })} />}
+    <Bolum baslik={t('sagPanel.analiz.bitisBaslik')}>
+      <div className="grid grid-cols-2 gap-2">
+        {b && <SayiKarti etiket={t('sagPanel.analiz.modelAlani')} deger={t('sagPanel.analiz.hektar', { deger: sayi(b.model_ha) })} />}
         <SayiKarti etiket={t('sagPanel.analiz.gercekAlan')} deger={t('sagPanel.analiz.hektar', { deger: sayi(veri.bilgi.gercek_ha) })} />
-        {m.bitis && (
+        {b && (
           <>
-            <SayiKarti etiket={t('sagPanel.analiz.yakalama')} deger={yuzdeBicim(m.bitis.duyarlilik)} alt={t('sagPanel.analiz.yakalamaAlt')} />
-            <SayiKarti etiket={t('sagPanel.analiz.isabet')} deger={yuzdeBicim(m.bitis.isabet)} alt={t('sagPanel.analiz.isabetAlt')} />
+            <SayiKarti etiket={t('sagPanel.analiz.yakalama')} deger={yuzdeBicim(b.duyarlilik)} alt={t('sagPanel.analiz.yakalamaAlt')} />
+            <SayiKarti etiket={t('sagPanel.analiz.isabet')} deger={yuzdeBicim(b.isabet)} alt={t('sagPanel.analiz.isabetAlt')} />
           </>
         )}
       </div>
@@ -71,42 +47,24 @@ function Karne({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-/** Bütün deneylerin bitişteki doğruluğu; güncel model turuncu, basit daire açık gri. */
+/** Öteki sürümlerin ve deneylerin bitişteki doğruluğu; güncel model ve basit daire sağ sütunda. */
 function Surumler({ m }: { m: Model }) {
   const { t } = useTranslation()
-  if (!m.deneyler.length) return null
-  const deneyler = [...m.deneyler].sort((a, b) => b.dice - a.dice)
+  const deneyler = m.deneyler.filter((d) => d.ad !== m.ad && d.ad !== 'daire').sort((a, b) => b.dice - a.dice)
+  if (!deneyler.length) return null
 
   return (
     <Bolum baslik={t('sagPanel.analiz.deneyler')} alt={t('sagPanel.analiz.deneylerAlt')}>
       <ul className="space-y-2">
-        {deneyler.map((d) => {
-          const guncel = d.ad === m.ad
-          const daire = d.ad === 'daire'
-          return (
-            <li
-              key={d.ad}
-              title={daire ? t('sagPanel.analiz.daireAciklama') : undefined}
-              className="grid grid-cols-[minmax(0,1fr)_88px_36px] items-center gap-3"
-            >
-              <span className={`flex min-w-0 items-center gap-1.5 text-[12.5px] leading-4 ${guncel ? 'font-semibold' : ''}`}>
-                <span className="truncate">{t(`sagPanel.analiz.deneyAdlari.${d.ad}`, { defaultValue: d.aciklama })}</span>
-                {guncel && (
-                  <span className="shrink-0 rounded-[4px] bg-ates/15 px-1.5 py-px text-[10.5px] leading-[14px] font-semibold text-ates-acik">
-                    {t('sagPanel.analiz.buModel')}
-                  </span>
-                )}
-              </span>
-              <span className="h-1.5 overflow-hidden rounded-full bg-yuzey-acik">
-                <span
-                  className={`block h-full rounded-full ${guncel ? 'bg-ates-acik' : daire ? 'bg-guclu' : 'bg-white/30'}`}
-                  style={{ width: `${Math.min(Math.max(d.dice, 0), 1) * 100}%` }}
-                />
-              </span>
-              <span className={`text-right text-[12.5px] leading-4 tabular-nums ${guncel ? 'font-semibold' : ''}`}>{yuzdeBicim(d.dice)}</span>
-            </li>
-          )
-        })}
+        {deneyler.map((d) => (
+          <li key={d.ad} className="grid grid-cols-[minmax(0,1fr)_88px_36px] items-center gap-3">
+            <span className="truncate text-[12.5px] leading-4">{t(`sagPanel.analiz.deneyAdlari.${d.ad}`, { defaultValue: d.aciklama })}</span>
+            <span className="h-1.5 overflow-hidden rounded-full bg-yuzey-acik">
+              <span className="block h-full rounded-full bg-white/35" style={{ width: `${Math.min(Math.max(d.dice, 0), 1) * 100}%` }} />
+            </span>
+            <span className="text-right text-[12.5px] leading-4 tabular-nums">{yuzdeBicim(d.dice)}</span>
+          </li>
+        ))}
       </ul>
     </Bolum>
   )

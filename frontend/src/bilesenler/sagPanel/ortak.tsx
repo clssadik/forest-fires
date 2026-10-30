@@ -33,18 +33,6 @@ export function SayiKarti({ etiket, deger, alt }: { etiket: string; deger: React
   )
 }
 
-export function Rozet({ iyi, children }: { iyi: boolean; children: ReactNode }) {
-  return (
-    <span
-      className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] leading-4 font-semibold ${
-        iyi ? 'bg-yesil/15 text-yesil' : 'bg-ates/15 text-ates-acik'
-      }`}
-    >
-      {children}
-    </span>
-  )
-}
-
 /** Açma/kapama anahtarının görünüşü; tıklamayı onu saran satır (`role="switch"`) alır. */
 export function AnahtarGorseli({ acik }: { acik: boolean }) {
   return (
