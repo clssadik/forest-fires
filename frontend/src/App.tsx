@@ -28,17 +28,20 @@ function App() {
     <div className="flex h-full flex-col">
       <UstBar />
       {ekran === 'olay' ? (
-        // Paneller sabit; sahne aralarında kendi alanında durur, hiçbir şey üstüne binmez.
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex min-h-0 flex-1">
-            <SolRay />
-            <SolCekmece veri={veri} />
-            <main className="flex min-w-0 flex-1 flex-col">
-              <Harita />
-            </main>
-            {veri && <AnSutunu veri={veri} />}
+        // Paneller sabit; sahne aralarında kendi alanında durur, hiçbir şey üstüne binmez. Sol ray ve
+        // çekmece tam boy bir kenar çubuğu; zaman paneli onun sağından başlar, kenarlar hizalı kalır.
+        <div className="flex min-h-0 flex-1">
+          <SolRay />
+          <SolCekmece veri={veri} />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1">
+              <main className="flex min-w-0 flex-1 flex-col">
+                <Harita />
+              </main>
+              {veri && <AnSutunu veri={veri} />}
+            </div>
+            <ZamanPaneli veri={veri} />
           </div>
-          <ZamanPaneli veri={veri} />
         </div>
       ) : ekran === 'dogrulama' ? (
         <DogrulamaEkrani />
