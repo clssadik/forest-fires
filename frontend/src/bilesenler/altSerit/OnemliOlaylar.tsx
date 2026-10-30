@@ -7,11 +7,9 @@ import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
 import { OlayIkonu } from '../OlayIkonu'
 
-const SAAT = 3_600_000
-
 /**
  * Önemli olaylar çizelgesi (arka ucun otomatik bulduğu olaylar): dikey zaman çizgisi, her olayın
- * tutuşmadan sonraki saati, adı ve bir satırlık ayrıntısı. Tıklanınca zaman o ana atlar ve
+ * adı, tarihi ve kısa özeti. Tıklanınca zaman o ana atlar ve
  * kamera olayın yerine uçar. İmleçten önceki son olay vurgulanır, gelecektekiler soluk.
  */
 export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
@@ -34,17 +32,19 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
 
   return (
     <section className="flex min-h-0 flex-1 flex-col border-t border-cizgi">
-      <header className="flex h-[36px] shrink-0 items-baseline gap-2 px-[18px] pt-2.5">
-        <h2 className="text-[14px] font-semibold">{t('olaylar.baslik')}</h2>
-        <span className="text-[11.5px] text-soluk">{t('olaylar.otomatik')}</span>
+      <header className="flex shrink-0 items-center gap-2 px-5 pt-4 pb-2">
+        <h2 className="text-[13.5px] leading-[18px] font-semibold">{t('olaylar.baslik')}</h2>
+        <span className="rounded-full bg-yuzey px-2 py-0.5 text-[11.5px] leading-4 font-medium text-ikincil tabular-nums">
+          {veri.olaylar.length}
+        </span>
       </header>
-      <ul ref={liste} className="relative flex-1 overflow-y-auto px-3 pb-2">
-        {/* Dikey zaman çizgisi */}
-        <span className="pointer-events-none absolute top-1 bottom-1 left-[21px] w-[2px] bg-cizgi" />
+      <ul ref={liste} className="relative flex-1 overflow-y-auto px-3 pb-3">
+        {/* Dikey zaman çizgisi: ikonların ortasından geçer (12 px liste + 8 px düğme + 12 px yarım ikon). */}
+        <span className="pointer-events-none absolute top-3 bottom-3 left-[31px] w-px bg-cizgi" />
         {veri.olaylar.map((o) => {
           const gelecek = o.zaman > zaman
           const seciliMi = o === secili
-          const saat = Math.round(((o.zaman - veri.tutusmaMs) / SAAT) * 10) / 10
+          const ozet = olayOzeti(o, t)
           return (
             <li key={`${o.tur}-${o.zaman}`} className="relative">
               <button
@@ -52,23 +52,23 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                 data-secili={seciliMi}
                 onClick={() => git(o)}
                 title={t('olaylar.git')}
-                className={`my-[3px] flex w-full gap-2 rounded-[5px] py-1 pr-2 pl-0.5 text-left text-[12.5px] leading-[16px] ${
-                  seciliMi ? 'bg-yuzey-acik text-metin' : 'hover:bg-white/[0.05]'
-                } ${gelecek ? 'opacity-50' : ''}`}
+                className={`flex w-full items-start gap-3 rounded-[10px] px-2 py-2 text-left ${
+                  seciliMi ? 'bg-yuzey-acik' : 'hover:bg-white/[0.05]'
+                } ${gelecek ? 'opacity-55' : ''}`}
               >
                 <span
-                  className={`relative z-10 mt-[1px] grid size-[18px] shrink-0 place-items-center rounded-full ${
-                    seciliMi ? 'bg-zemin' : 'bg-panel'
+                  className={`relative z-10 grid size-6 shrink-0 place-items-center rounded-full ring-4 ${
+                    seciliMi ? 'bg-zemin ring-yuzey-acik' : 'bg-yuzey ring-panel'
                   }`}
                 >
                   <OlayIkonu tur={o.tur} boyut={13} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[11.5px] text-soluk">
-                    {t('olaylar.saat', { saat: sayi(saat, 1) })} · {gunAySaat(o.zaman)}
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-[13px] leading-[18px] font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
+                    <span className="shrink-0 text-[11.5px] leading-4 text-ikincil tabular-nums">{gunAySaat(o.zaman)}</span>
                   </span>
-                  <span className="block font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
-                  <OlayAyrintisi olay={o} />
+                  {ozet && <span className="mt-0.5 block truncate text-[12px] leading-4 text-ikincil tabular-nums">{ozet}</span>}
                 </span>
               </button>
             </li>
@@ -87,19 +87,4 @@ export function olayOzeti(olay: OnemliOlay, t: TFunction): string {
   if (olay.tur === 'hizliBuyume' && h?.ha_sa !== undefined) return t('olaylar.ozet.hizliBuyume', { deger: sayi(h.ha_sa) })
   if (olay.tur === 'sirtaUlasma' && h?.yukseklik_m !== undefined) return t('olaylar.ozet.sirtaUlasma', { deger: sayi(h.yukseklik_m) })
   return ''
-}
-
-/** Olayın bir satırlık ayrıntısı (FIRMS ve model alanı, büyüme hızı, sırt yüksekliği). */
-export function OlayAyrintisi({ olay }: { olay: OnemliOlay }) {
-  const { t } = useTranslation()
-  const h = olay.ham
-  if (!h) return null
-  let metin: string | null = null
-  if (h.tur === 'uyduGecisi' && h.firms_ha !== undefined && h.model_ha !== undefined)
-    metin = t('olaylar.ayrinti.uyduGecisi', { firms: sayi(h.firms_ha), model: sayi(h.model_ha) })
-  else if (h.tur === 'hizliBuyume' && h.ha_sa !== undefined)
-    metin = t('olaylar.ayrinti.hizliBuyume', { deger: sayi(h.ha_sa) })
-  else if (h.tur === 'sirtaUlasma' && h.yukseklik_m !== undefined)
-    metin = t('olaylar.ayrinti.sirtaUlasma', { deger: sayi(h.yukseklik_m) })
-  return metin ? <span className="block truncate text-[11.5px] opacity-80">{metin}</span> : null
 }

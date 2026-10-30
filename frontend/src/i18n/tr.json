@@ -179,14 +179,11 @@
     "yayilmaHiziBirim": "(m/dk)",
     "profil": "Yükseklik Profili",
     "profilAlt": "(ana yayılım ekseni)",
-    "secenekler": "Grafik seçenekleri",
     "km": "{{deger}} km"
   },
   "olaylar": {
-    "baslik": "Önemli Olaylar",
-    "otomatik": "otomatik tespit",
+    "baslik": "Önemli olaylar",
     "git": "Bu ana ve yere git",
-    "saat": "+{{saat}} sa",
     "turler": {
       "tutusma": "Yangın başladı",
       "uyduGecisi": "Uydu yangını gördü",
@@ -197,11 +194,6 @@
       "uyduGecisi": "Uydu {{firms}} ha · model {{model}} ha",
       "hizliBuyume": "Saatte {{deger}} ha büyüdü",
       "sirtaUlasma": "{{deger}} m yükseklikte"
-    },
-    "ayrinti": {
-      "uyduGecisi": "FIRMS {{firms}} ha · model {{model}} ha",
-      "hizliBuyume": "{{deger}} ha/sa",
-      "sirtaUlasma": "Sırt zirvesi {{deger}} m"
     }
   },
   "dogrulama": {
@@ -410,18 +402,10 @@
     "seciliAn": "Seçili an",
     "saatSayaci": "+{{saat}} sa",
     "sureAciklama": "Tutuşmadan bu yana geçen süre",
-    "saatEtiketi": "+{{saat}} sa",
-    "sonOlay": "Son olay",
-    "olayYok": "Henüz olay yok",
-    "modelAlani": "Model alanı",
-    "firmsGordugu": "FIRMS'in gördüğü",
     "yakitNemi": "Yakıt nemi",
     "uyduAlani": "Uydu (FIRMS)",
-    "uyum": "Bitişte uyum (Sørensen)",
-    "daireGeciyor": "aynı alanlı daire {{deger}} · geçiyor",
-    "daireGecemiyor": "aynı alanlı daire {{deger}} · geçemiyor",
-    "profil": "Yükseklik profili",
-    "profilAlt": "ana eksen, {{km}} km",
+    "profil": "Arazi yüksekliği",
+    "profilAlt": "{{km}} km yayılım hattı",
     "olayKarti": {
       "grup": "{{sayi}} olay · {{aralik}}",
       "kapat": "Kapat"
@@ -433,6 +417,17 @@
       "ruzgar": "Rüzgâr",
       "sicaklik": "Sıcaklık",
       "nem": "Nem"
-    }
+    },
+    "yanginSaati": "{{saat}}. saat",
+    "baslamadi": "Başlamadı",
+    "modelTahmini": "Model tahmini",
+    "uyduGozlemi": "Uydu gözlemi",
+    "dogruluk": "Tahmin doğruluğu",
+    "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
+    "buModel": "Bu model",
+    "daire": "Basit daire",
+    "daireAciklama": "Tutuşma noktasında, gerçek alanla aynı büyüklükte bir daire: modelin geçmesi beklenen en basit tahmin",
+    "dahaIyi": "Basit tahminden iyi",
+    "dahaZayif": "Basit tahminin gerisinde"
   }
 }
