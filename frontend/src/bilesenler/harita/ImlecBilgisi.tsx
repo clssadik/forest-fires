@@ -39,7 +39,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
 
   return (
     <div className="pointer-events-none absolute top-3 right-4 z-30 w-[256px] rounded-[8px] bg-black/90 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
-      <div className="font-semibold">{t('imlec.baslik')}</div>
+      <div className="text-[14px] leading-[20px] font-semibold">{t('imlec.baslik')}</div>
       <div className="text-[11.5px] text-white/75 tabular-nums">
         {sayi(enlem, 2)}° K · {sayi(boylam, 2)}° D
       </div>
@@ -75,7 +75,10 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
 function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
   return (
     <div className="mt-2.5 border-t border-white/10 pt-2">
-      <div className="mb-1 text-[10.5px] font-semibold tracking-[0.06em] text-white/70 uppercase">{baslik}</div>
+      <div className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.07em] text-ates-acik uppercase">
+        <span aria-hidden className="h-[11px] w-[3px] rounded-full bg-ates-acik" />
+        {baslik}
+      </div>
       <dl className="flex flex-col gap-[3px]">{children}</dl>
     </div>
   )
