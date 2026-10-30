@@ -377,11 +377,11 @@
     "yuklenemedi": "Olay verisi yüklenemedi"
   },
   "imlec": {
-    "baslik": "İmleçteki hücre",
+    "baslik": "Detaylar",
+    "arazi": "Arazi",
+    "yangin": "Yangın",
     "koordinat": "Koordinat",
     "yukseklik": "Yükseklik",
-    "egimBaki": "Eğim · bakı",
-    "duz": "düz",
     "ortu": "Örtü",
     "model": "Model",
     "yanmiyor": "Yanmıyor",
@@ -391,7 +391,7 @@
     "gercek": "Gerçek alan",
     "icinde": "İçinde",
     "disinda": "Dışında",
-    "firms": "FIRMS ilk",
+    "firms": "FIRMS ilk tespit",
     "yok": "—",
     "ortuler": {
       "diger": "Çıplak / diğer",
