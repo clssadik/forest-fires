@@ -13,7 +13,9 @@ export function Pusula() {
   const kip = useHarita((d) => d.kip)
   const { kuzeyeDon, donmeIste } = useHarita.getState()
   return (
-    <div className="absolute top-3 left-4 flex flex-col items-center gap-2 select-none">
+    // Dönen "K" harfi pusula merkezinden ~36 px uzağa kadar uzanır; üst boşluk ve düğmelere aralık
+    // ona göre: hangi yöne dönerse dönsün kesilmez, düğmelerin üstüne binmez.
+    <div className="absolute top-5 left-4 flex flex-col items-center gap-[18px] select-none">
       <button
         type="button"
         onClick={kuzeyeDon}

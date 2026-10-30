@@ -8,7 +8,7 @@ import { pusulaYonu, type OlayVerisi } from '../../olay/veri'
 const SAAT = 3_600_000
 
 /**
- * Fare altındaki hücrenin bilgisi (sağ üst): koordinat, yükseklik, eğim, bakı, örtü,
+ * Fare altındaki hücrenin bilgisi (sağ üst, kontrollerin altında): koordinat, yükseklik, eğim, bakı, örtü,
  * modelin varışı (t anına göre), yanma olasılığı, gerçek yanmış alanın içinde mi, FIRMS ilk tespiti.
  */
 export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
@@ -45,7 +45,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
   ]
 
   return (
-    <div className="pointer-events-none absolute top-3 right-4 w-[236px] rounded-[5px] bg-black/75 ring-1 ring-white/10 px-3 py-2 text-[12px] leading-[18px] text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm">
+    <div className="pointer-events-none absolute top-[54px] right-4 w-[236px] rounded-[5px] bg-black/75 ring-1 ring-white/10 px-3 py-2 text-[12px] leading-[18px] text-white shadow-[0_1px_4px_rgba(0,0,0,0.3)] backdrop-blur-sm">
       <div className="mb-1 font-semibold">{t('imlec.baslik')}</div>
       <dl className="grid grid-cols-[92px_1fr] gap-x-2">
         {satirlar.map(([etiket, deger]) => (

@@ -5,7 +5,8 @@ import type { WebGLProgramParametersWithUniforms } from 'three'
  * bir model varış zamanı (aToa, tutuşmadan sonra saat) taşır; global zaman `uT`
  * değiştikçe yalnızca uniform güncellenir, geometri yeniden kurulmaz.
  *
- * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR), modelin yanma
+ * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR; görünüm için
+ * yumuşatılmışı aGercekYumusak), modelin yanma
  * olasılığını (aOlasilik), FIRMS varışını (aFirms) ve köşenin modelde hiç yanıp yanmadığını
  * (aYandi) taşır.
  */
@@ -52,7 +53,7 @@ uniform float uHata;
 uniform float uHataEsik;
 `
 
-const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'Olasilik', 'Firms', 'Orman']
+const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'GercekYumusak', 'Olasilik', 'Firms', 'Orman']
 
 /** Arazi malzemesi için onBeforeCompile. */
 export function araziGolgelendirici(s: WebGLProgramParametersWithUniforms) {
@@ -101,7 +102,7 @@ float yas = uT - toa;
 float modelde = step(0.999, vYandi);
 
 // Yanık izi: Sentinel-2'nin gördüğü gerçek yanmış alan (zamandan bağımsız, yangın sonrası)
-float gercekIc = smoothstep(0.35, 0.65, vGercek + (n2 - 0.5) * 0.2);
+float gercekIc = smoothstep(0.35, 0.65, vGercekYumusak + (n2 - 0.5) * 0.2);
 // Soluk kül kahvesi: FIRMS'in kırmızısı ve modelin karası üstünde okunabilsin.
 renk = mix(renk, vec3(0.38, 0.3, 0.26) * (0.85 + 0.3 * n3), uYanikIzi * gercekIc * 0.6);
 
@@ -121,14 +122,18 @@ float w = fwidth(f);
 float iso = 1.0 - smoothstep(0.0, w * 1.3, abs(fract(f - 0.5) - 0.5));
 renk = mix(renk, vec3(0.95, 0.55, 0.15), iso * 0.6 * yandi * uYayilim * uIzokron * step(0.5, vToa));
 
-// FIRMS: uydunun t anına kadar gördüğü yanan pikseller; yeni olanlar parlak
+// FIRMS: uydunun t anına kadar gördüğü yanan pikseller; hafif düz dolgu ve ince kenar, yeni olanlar parlak
 float firmsYas = uT - vFirms;
-float benek = step(0.7, yGurultu(yp * 10.0));
-if (firmsYas >= 0.0) renk = mix(renk, mix(vec3(1.0, 0.22, 0.08), vec3(0.62, 0.1, 0.07), smoothstep(0.0, 24.0, firmsYas)), benek * uFirms);
+float firmsEski = smoothstep(0.0, 24.0, firmsYas);
+float firmsIc = step(0.0, firmsYas);
+float firmsKenar = min(fwidth(firmsIc), 1.0);
+vec3 firmsRengi = mix(vec3(1.0, 0.3, 0.1), vec3(0.75, 0.16, 0.1), firmsEski);
+renk = mix(renk, firmsRengi, firmsIc * (0.32 - 0.14 * firmsEski) * uFirms);
+renk = mix(renk, firmsRengi, firmsKenar * 0.85 * uFirms);
 
-// Gerçek alanın sınırı (beyaz kesikli)
-float gs = fwidth(vGercek);
-float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercek - 0.5));
+// Gerçek alanın sınırı (beyaz kesikli); yumuşatılmış orandan, küçük lekelerin çevresine çizilmesin
+float gs = fwidth(vGercekYumusak);
+float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercekYumusak - 0.5));
 float kesik = step(0.5, fract((yp.x + yp.y) * 2.2));
 renk = mix(renk, vec3(0.97, 0.96, 0.92), sinir * kesik * 0.9 * uYanikIzi);
 

@@ -19,6 +19,36 @@ const ORTU_RENGI: Record<OrtuSinifi, Color> = {
 const kaya = new Color('#a39a8c')
 const yuksek = new Color('#b19a7e')
 
+/**
+ * Izgara üzerinde 3 × 3 kutu bulanıklığı (`gecis` kez). Sentinel-2 oranının tek hücrelik lekeleri
+ * 0,5'in altına iner; yanık izi ve sınırı yalnızca bütünlüklü alanların çevresine çizilir.
+ */
+function kutuBulanikligi(a: Float32Array, satir: number, sutun: number, gecis: number) {
+  let kaynak = a
+  for (let g = 0; g < gecis; g++) {
+    const hedef = new Float32Array(kaynak.length)
+    for (let i = 0; i < satir; i++) {
+      for (let j = 0; j < sutun; j++) {
+        let top = 0
+        let say = 0
+        for (let di = -1; di <= 1; di++) {
+          const ii = i + di
+          if (ii < 0 || ii >= satir) continue
+          for (let dj = -1; dj <= 1; dj++) {
+            const jj = j + dj
+            if (jj < 0 || jj >= sutun) continue
+            top += kaynak[ii * sutun + jj]
+            say++
+          }
+        }
+        hedef[i * sutun + j] = top / say
+      }
+    }
+    kaynak = hedef
+  }
+  return kaynak
+}
+
 /** Gerçek DEM'den arazi örgüsü; köşe başına model varışı, gerçek yanık, olasılık, FIRMS taşır. */
 export function Arazi({ veri }: { veri: OlayVerisi }) {
   const imlecAyarla = useOlay((d) => d.imlecAyarla)
@@ -76,6 +106,7 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     g.setAttribute('aToa', new BufferAttribute(toa, 1))
     g.setAttribute('aYandi', new BufferAttribute(yandi, 1))
     g.setAttribute('aGercek', new BufferAttribute(gercek, 1))
+    g.setAttribute('aGercekYumusak', new BufferAttribute(kutuBulanikligi(gercek, satir, sutun, 2), 1))
     g.setAttribute('aOlasilik', new BufferAttribute(olasilik, 1))
     g.setAttribute('aFirms', new BufferAttribute(firms, 1))
     g.setAttribute('aOrman', new BufferAttribute(orman, 1))
