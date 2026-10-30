@@ -1,58 +1,20 @@
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
+import { sayi, yuzdeBicim } from '../../bicim'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi } from '../../olay/veri'
 import { CizgiGrafigi } from '../altSerit/CizgiGrafigi'
 import { TEMALAR } from '../altSerit/grafikTemalari'
 import { OnemliOlaylar } from '../altSerit/OnemliOlaylar'
 
-const SAAT = 3_600_000
-const DAKIKA = 60_000
-
 /**
- * Olay ekranının sağ sütunu: imlecin durduğu an. Tek boşluk ölçeği: bölümler 20 px yan, 16 px
- * dikey boşlukla; kartların içi 12 px, kartlar arası 8 px. Sırayla seçili an, modelin ve uydunun
- * o ana kadarki alanı, bitişteki doğruluk, yükseklik profili ve önemli olaylar (son olay listede
- * vurgulu).
+ * Olay ekranının sağ sütunu: bitişteki doğruluk, yükseklik profili ve önemli olaylar. Seçili an ve
+ * o ana kadarki alanlar alttaki zaman panelinde olduğu için burada tekrarlanmaz. Tek boşluk ölçeği:
+ * bölümler 20 px yan, 16 px dikey boşlukla.
  */
 export function AnSutunu({ veri }: { veri: OlayVerisi }) {
-  const { t } = useTranslation()
-  // Sayılar dakikada bir yeniden çizilir; her karede değil.
-  const an = useZaman((d) => Math.floor(d.t / DAKIKA) * DAKIKA)
-
-  const basladi = an >= veri.tutusmaMs
-  const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
-  const tire = t('hava.baslamadi')
-
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col border-l border-cizgi bg-panel">
-      <section className="shrink-0 px-5 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-[12px] leading-4 font-medium text-ikincil">{t('olayDuzeni.seciliAn')}</div>
-            <div className="mt-1 text-[22px] leading-7 font-semibold tracking-[-0.3px] tabular-nums">{gunAySaat(an)}</div>
-          </div>
-          <span
-            title={t('olayDuzeni.sureAciklama')}
-            className={`rounded-full px-2.5 py-1 text-[12px] leading-4 font-semibold tabular-nums ${
-              basladi ? 'bg-ates/15 text-ates-acik' : 'bg-yuzey text-ikincil'
-            }`}
-          >
-            {basladi ? t('olayDuzeni.yanginSaati', { saat: saatSonra }) : t('olayDuzeni.baslamadi')}
-          </span>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <Sayi etiket={t('olayDuzeni.modelTahmini')} renk="bg-ates-acik">
-            {basladi ? sayi(veri.yananAlanHa(an)) : tire}
-          </Sayi>
-          <Sayi etiket={t('olayDuzeni.uyduGozlemi')} renk="bg-sari">
-            {basladi ? sayi(veri.firmsAlanHa(an)) : tire}
-          </Sayi>
-        </div>
-      </section>
-
+    <aside className="flex w-[340px] shrink-0 flex-col border-l border-cizgi bg-panel [&>*:first-child]:border-t-0">
       <Dogruluk veri={veri} />
       <Profil veri={veri} />
       <OnemliOlaylar veri={veri} />
@@ -140,20 +102,5 @@ function Profil({ veri }: { veri: OlayVerisi }) {
         />
       </div>
     </section>
-  )
-}
-
-function Sayi({ etiket, renk, children }: { etiket: string; renk: string; children: ReactNode }) {
-  return (
-    <div className="min-w-0 rounded-[10px] bg-yuzey p-3">
-      <div className="flex items-center gap-1.5 text-[12px] leading-4 font-medium text-ikincil">
-        <span className={`size-2 shrink-0 rounded-full ${renk}`} />
-        <span className="truncate">{etiket}</span>
-      </div>
-      <div className="mt-1.5 text-[21px] leading-[26px] font-semibold tracking-[-0.3px] whitespace-nowrap tabular-nums">
-        {children}
-        <span className="ml-1 text-[12.5px] font-medium tracking-normal text-ikincil">ha</span>
-      </div>
-    </div>
   )
 }

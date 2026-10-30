@@ -418,10 +418,6 @@
       "sicaklik": "Sıcaklık",
       "nem": "Nem"
     },
-    "yanginSaati": "{{saat}}. saat",
-    "baslamadi": "Başlamadı",
-    "modelTahmini": "Model tahmini",
-    "uyduGozlemi": "Uydu gözlemi",
     "dogruluk": "Tahmin doğruluğu",
     "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
     "buModel": "Bu model",
