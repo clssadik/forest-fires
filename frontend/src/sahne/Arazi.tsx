@@ -49,7 +49,9 @@ export function AraziMalzemesi({ geri = false }: { geri?: boolean }) {
       polygonOffsetFactor={geri ? 2 : 0}
       polygonOffsetUnits={geri ? 4 : 0}
       onBeforeCompile={araziGolgelendirici}
-      customProgramCacheKey={() => 'arazi-yangin'}
+      // Ayrı anahtar şart: çevre ile gerçek arazi aynı programı paylaşınca gerçek arazinin katman
+      // ve zaman uniform'ları ekrana yansımıyordu (anahtarlar haritayı değiştirmiyordu).
+      customProgramCacheKey={() => (geri ? 'arazi-yangin-cevre' : 'arazi-yangin')}
     />
   )
 }
