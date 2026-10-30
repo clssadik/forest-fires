@@ -38,7 +38,7 @@ function Dogruluk({ veri }: { veri: OlayVerisi }) {
         {daire !== null && (
           <span
             className={`rounded-full px-2.5 py-1 text-[11.5px] leading-4 font-semibold ${
-              iyi ? 'bg-yesil/15 text-yesil' : 'bg-ates/15 text-ates-acik'
+              'bg-white/10 text-metin'
             }`}
           >
             {t(iyi ? 'olayDuzeni.dahaIyi' : 'olayDuzeni.dahaZayif')}
@@ -46,7 +46,7 @@ function Dogruluk({ veri }: { veri: OlayVerisi }) {
         )}
       </div>
       <div className="mt-3 space-y-2.5">
-        <Cubuk etiket={t('olayDuzeni.buModel')} oran={m.bitis_dice} renk="bg-ates-acik" guclu />
+        <Cubuk etiket={t('olayDuzeni.buModel')} oran={m.bitis_dice} renk="bg-guclu" guclu />
         {daire !== null && <Cubuk etiket={t('olayDuzeni.daire')} oran={daire} renk="bg-ikincil/50" aciklama={t('olayDuzeni.daireAciklama')} />}
       </div>
     </section>

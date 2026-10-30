@@ -80,7 +80,7 @@ export function CizgiGrafigi({ veri, xAlan, yAlan, xTikler, yTikler, imlec, tema
             <circle key={y} cx={ix} cy={y} r={3.2} className="fill-zemin stroke-metin" strokeWidth={1.3} />
           ))}
           {kirmiziNokta ? (
-            <circle cx={ix} cy={iy} r={4.5} className="fill-ates stroke-metin" strokeWidth={1.2} />
+            <circle cx={ix} cy={iy} r={4.5} className="fill-guclu stroke-zemin" strokeWidth={1.2} />
           ) : (
             <circle cx={ix} cy={iy} r={3.2} className="fill-zemin stroke-metin" strokeWidth={1.3} />
           )}

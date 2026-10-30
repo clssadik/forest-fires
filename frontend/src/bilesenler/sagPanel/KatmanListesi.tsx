@@ -18,17 +18,8 @@ export function KatmanListesi() {
     <>
       {GRUPLAR.map((g) => {
         const satirlar = g.kimlikler.flatMap((k) => katmanlar.filter((x) => x.kimlik === k))
-        const acik = satirlar.filter((k) => k.acik).length
         return (
-          <Bolum
-            key={g.ad}
-            baslik={t(`katmanlar.gruplar.${g.ad}`)}
-            sag={
-              <span className="text-[12px] leading-[18px] text-ikincil tabular-nums">
-                {acik}/{satirlar.length} {t('sagPanel.acik').toLocaleLowerCase('tr')}
-              </span>
-            }
-          >
+          <Bolum key={g.ad} baslik={t(`katmanlar.gruplar.${g.ad}`)}>
             <ul className="-mx-2 space-y-0.5">
               {satirlar.map((k) => (
                 <KatmanSatiri key={k.kimlik} katman={k} />

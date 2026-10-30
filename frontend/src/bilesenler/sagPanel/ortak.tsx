@@ -39,10 +39,10 @@ export function AnahtarGorseli({ acik }: { acik: boolean }) {
     <span
       aria-hidden
       className={`relative h-[18px] w-[30px] shrink-0 rounded-full transition-colors ${
-        acik ? 'bg-ates' : 'bg-yuzey-acik shadow-[inset_0_0_0_1px_var(--color-eksen)]'
+        acik ? 'bg-guclu' : 'bg-yuzey-acik shadow-[inset_0_0_0_1px_var(--color-eksen)]'
       }`}
     >
-      <span className={`absolute top-[3px] left-[3px] size-3 rounded-full bg-white transition-transform ${acik ? 'translate-x-3' : ''}`} />
+      <span className={`absolute top-[3px] left-[3px] size-3 rounded-full transition-transform ${acik ? 'translate-x-3 bg-zemin' : 'bg-white'}`} />
     </span>
   )
 }

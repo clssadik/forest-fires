@@ -33,7 +33,7 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
               type="button"
               onClick={() => kipAyarla(k)}
               aria-pressed={kip === k}
-              className={`h-[24px] rounded-full px-2.5 ${kip === k ? 'bg-ates' : 'text-white/55 hover:text-white'}`}
+              className={`h-[24px] rounded-full px-2.5 ${kip === k ? 'bg-guclu text-zemin' : 'text-white/55 hover:text-white'}`}
             >
               {t(k === '2B' ? 'harita.kip2B' : 'harita.kip3B')}
             </button>
@@ -47,7 +47,7 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
           aria-label={t('harita.tutusmayaGit')}
           className="flex h-[28px] items-center gap-1.5 rounded-full px-2.5 hover:bg-white/10"
         >
-          <IkonHedef boyut={15} className="text-ates-acik" />
+          <IkonHedef boyut={15} />
           {t('harita.tutusma')}
         </button>
         <label className="relative flex h-[28px] items-center rounded-full hover:bg-white/10">

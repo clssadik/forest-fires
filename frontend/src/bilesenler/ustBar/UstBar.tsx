@@ -148,7 +148,7 @@ function KipSekmesi({
       {ikon}
       {ad}
       {rozet !== undefined && (
-        <span className="ml-0.5 grid size-[17px] place-items-center rounded-full bg-ates text-[10.5px] font-semibold text-white">
+        <span className="ml-0.5 grid size-[17px] place-items-center rounded-full bg-guclu text-[10.5px] font-semibold text-zemin">
           {rozet}
         </span>
       )}

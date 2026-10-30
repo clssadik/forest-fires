@@ -142,7 +142,7 @@ function ZamanFarki({ zaman }: { zaman: NonNullable<Model['zaman']> }) {
           className="absolute top-[5px] h-[14px] rounded-[3px] bg-white/15 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]"
           style={{ left: `${x(zaman.ceyrek_alt_saat)}%`, width: `${x(zaman.ceyrek_ust_saat) - x(zaman.ceyrek_alt_saat)}%` }}
         />
-        <span className="absolute top-[2px] h-5 w-[2px] -translate-x-1/2 rounded-full bg-ates-acik" style={{ left: `${x(zaman.ortanca_saat)}%` }} />
+        <span className="absolute top-[2px] h-5 w-[2px] -translate-x-1/2 rounded-full bg-guclu" style={{ left: `${x(zaman.ortanca_saat)}%` }} />
       </div>
       <div className="mt-1 grid grid-cols-3 text-[11.5px] leading-4 text-ikincil tabular-nums">
         <span>
