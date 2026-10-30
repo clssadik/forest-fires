@@ -195,6 +195,12 @@ export class OlayVerisi {
     return k < 0 ? 'diger' : ORTU_SIRASI[this.r.ortu[k]] ?? 'diger'
   }
 
+  /** En yakın hücrenin örtüsü; ızgara dışındaki nokta kenardaki hücreye kenetlenir (çevre arazisi için). */
+  ortuKenetli(x: number, z: number): OrtuSinifi {
+    const { i, j } = this.ic(x, z)
+    return ORTU_SIRASI[this.r.ortu[Math.round(i) * this.sutun + Math.round(j)]] ?? 'diger'
+  }
+
   /** Model varışı (tutuşmadan sonra saat); yanmadıysa Infinity. */
   toaSaat(x: number, z: number) {
     return this.zamanOku(this.r.modelToa, this.indeks(x, z))

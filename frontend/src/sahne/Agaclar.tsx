@@ -1,51 +1,135 @@
+import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Color, ConeGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three'
+import { Color, Fog, Group, InstancedBufferAttribute, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three'
 import { rastgeleUreteci } from '../model/gurultu'
-import { ORMAN_YOGUNLUGU, type OlayVerisi } from '../olay/veri'
+import { ORMAN_YOGUNLUGU, sahneY, type OlayVerisi } from '../olay/veri'
+import { agacGeometrisi, basitAgacGeometrisi, type AgacTuru } from './agacGeometrisi'
+import type { Cevre } from './cevre'
 import { agacGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
 
 /**
- * WorldCover orman ve maki hücrelerine serpilmiş düşük poligonlu ağaçlar (örneklenmiş çizim).
- * Ölçek stilize: ağaçlar görünür olsun diye gerçeğinden büyüktür; konumları gerçek örtüden gelir.
+ * WorldCover orman ve maki hücrelerine serpilmiş ağaçlar (örneklenmiş çizim): kızılçam,
+ * yükseklerde servi/göknar, makilikte çalı. Ölçek stilize: ağaçlar görünür olsun diye
+ * gerçeğinden büyüktür; konumları gerçek örtüden gelir. Karenin dışındaki çevre şeridine de
+ * sahte örtü yoğunluğuna göre ağaç dikilir (onlar hiç yanmaz).
+ *
+ * Ağaçlar karolara bölünür: görüş alanı dışındaki ve sisin ötesindeki karolar hiç çizilmez,
+ * uzak karolar basit modelle çizilir (ayrıntı düzeyi).
  */
 
-const ADET = 42_000
+const ICERI_ADET = 42_000
+const DISARI_ADET = 26_000
+/** Çevrede ağaç dikilen şeridin genişliği (km); ötesini sis ve zemin benekleri taşır. */
+const DISARI_SERIT_KM = 14
+/** Karo kenarı (km). */
+const KARO_KM = 10
+/** Bu uzaklıktan (km, karonun en yakın noktası) ötedeki karolar basit modelle çizilir. */
+const AYRINTI_KM = 7
 
-export function Agaclar({ veri, gorunur }: { veri: OlayVerisi; gorunur: boolean }) {
-  const ref = useRef<InstancedMesh>(null)
-  const geometri = useMemo(() => {
-    const g = new ConeGeometry(0.06, 0.24, 5, 1)
-    g.translate(0, 0.1, 0)
-    return g
-  }, [])
+interface Ornekler {
+  matrisler: Matrix4[]
+  renkler: Color[]
+  toa: number[]
+}
 
-  const { matrisler, renkler, toa } = useMemo(() => {
+const TURLER: AgacTuru[] = ['cam', 'servi', 'maki']
+const TON = ['#ffffff', '#e8efe0', '#f4f0dc', '#d9e2cf', '#fff6e4'].map((c) => new Color(c))
+
+/** Yoğunluk ve yükseklikten tür seçimi. */
+function turSec(yogunluk: number, hM: number, r: () => number): AgacTuru {
+  if (yogunluk < 0.8) return r() < 0.68 ? 'maki' : 'cam'
+  if (hM > 900 && r() < 0.55) return 'servi'
+  return r() < 0.2 ? 'servi' : 'cam'
+}
+
+export function Agaclar({ veri, cevre, gorunur }: { veri: OlayVerisi; cevre: Cevre; gorunur: boolean }) {
+  const geometriler = useMemo(() => Object.fromEntries(TURLER.map((t) => [t, agacGeometrisi(t)])), [])
+  const basitler = useMemo(() => Object.fromEntries(TURLER.map((t) => [t, basitAgacGeometrisi(t)])), [])
+
+  const ornekler = useMemo(() => {
     const r = rastgeleUreteci(2021)
-    const matrisler: Matrix4[] = []
-    const renkler: Color[] = []
-    const toa = new Float32Array(ADET)
+    const karolar = new Map<string, Ornekler>()
     const m = new Matrix4()
     const q = new Quaternion()
     const yukari = new Vector3(0, 1, 0)
-    const palet = ['#2f3d22', '#3a4a29', '#44542e', '#2a3520', '#4f5a33'].map((c) => new Color(c))
+    const ekle = (x: number, y: number, z: number, yogunluk: number, hM: number, toa: number) => {
+      const tur = turSec(yogunluk, hM, r)
+      const s = (0.6 + r() * 0.75) * (tur === 'maki' ? 1.3 : yogunluk < 1 ? 0.75 : 1)
+      q.setFromAxisAngle(yukari, r() * Math.PI * 2)
+      m.compose(new Vector3(x, y - 0.01, z), q, new Vector3(s, s * (0.85 + r() * 0.4), s))
+      const anahtar = `${tur}:${Math.floor(x / KARO_KM)}:${Math.floor(z / KARO_KM)}`
+      let o = karolar.get(anahtar)
+      if (!o) karolar.set(anahtar, (o = { matrisler: [], renkler: [], toa: [] }))
+      o.matrisler.push(m.clone())
+      o.renkler.push(TON[Math.floor(r() * TON.length)])
+      o.toa.push(toa)
+    }
+
+    // Kare: gerçek örtü ve model varışı
     const { genislikKm: G, yukseklikKm: Y } = veri
-    let deneme = 0
-    while (matrisler.length < ADET && deneme < ADET * 12) {
-      deneme++
+    let adet = 0
+    for (let deneme = 0; adet < ICERI_ADET && deneme < ICERI_ADET * 12; deneme++) {
       const x = (r() - 0.5) * G
       const z = (r() - 0.5) * Y
       const yogunluk = ORMAN_YOGUNLUGU[veri.ortu(x, z)]
       if (r() > yogunluk * yogunluk) continue
-      const s = (0.6 + r() * 0.75) * (yogunluk < 1 ? 0.7 : 1)
-      q.setFromAxisAngle(yukari, r() * Math.PI * 2)
-      m.compose(new Vector3(x, veri.araziY(x, z) - 0.01, z), q, new Vector3(s, s * (0.85 + r() * 0.4), s))
       const v = veri.toaSaat(x, z)
-      toa[matrisler.length] = Number.isFinite(v) ? v : YANMADI_SAAT
-      matrisler.push(m.clone())
-      renkler.push(palet[Math.floor(r() * palet.length)])
+      ekle(x, veri.araziY(x, z), z, yogunluk, veri.yukseklikM(x, z), Number.isFinite(v) ? v : YANMADI_SAAT)
+      adet++
     }
-    return { matrisler, renkler, toa: toa.slice(0, matrisler.length) }
-  }, [veri])
+
+    // Çevre şeridi: sahte örtü yoğunluğu
+    const Gd = G + 2 * DISARI_SERIT_KM
+    const Yd = Y + 2 * DISARI_SERIT_KM
+    adet = 0
+    for (let deneme = 0; adet < DISARI_ADET && deneme < DISARI_ADET * 30; deneme++) {
+      const x = (r() - 0.5) * Gd
+      const z = (r() - 0.5) * Yd
+      const d = cevre.uzaklik(x, z)
+      if (d <= 0.05) continue
+      // Uzaklaştıkça seyrelir (uzak ağaçlar sisin içinde zaten görünmez)
+      if (r() > 1 - (d / DISARI_SERIT_KM) * 0.6) continue
+      const p = cevre.nokta(x, z)
+      if (p.su > 0.3 || r() > p.orman * p.orman) continue
+      ekle(x, sahneY(p.hM), z, p.orman > 0.75 ? 1 : 0.55, p.hM, YANMADI_SAAT)
+      adet++
+    }
+    return [...karolar.entries()].map(([anahtar, o]) => ({ anahtar, tur: anahtar.split(':')[0] as AgacTuru, o }))
+  }, [veri, cevre])
+
+  // Sisin ötesindeki karoları gizle (ağaçlar orada zaten görünmez); uzaktakiler basit modelle.
+  const grup = useRef<Group>(null)
+  useFrame(({ camera, scene }) => {
+    const g = grup.current
+    if (!g) return
+    const sinir = scene.fog instanceof Fog ? scene.fog.far + KARO_KM : Infinity
+    for (const karo of g.children) {
+      const [ayrintili, basit] = karo.children as InstancedMesh[]
+      const k = ayrintili.boundingSphere
+      if (!k) continue
+      const d = camera.position.distanceTo(k.center) - k.radius
+      ayrintili.visible = d < AYRINTI_KM
+      basit.visible = d >= AYRINTI_KM && d < sinir
+    }
+  })
+
+  return (
+    <group ref={grup} visible={gorunur}>
+      {ornekler.map(({ anahtar, tur, o }) => (
+        <group key={anahtar}>
+          <AgacKumesi geometri={geometriler[tur]} ornekler={o} />
+          <AgacKumesi geometri={basitler[tur]} ornekler={o} />
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function AgacKumesi({ geometri, ornekler }: { geometri: ReturnType<typeof agacGeometrisi>; ornekler: Ornekler }) {
+  const ref = useRef<InstancedMesh>(null)
+  const { matrisler, renkler, toa } = ornekler
+  // Her karonun kendi varış niteliği var: geometri kopyalanır (köşe tamponları paylaşılır)
+  const kopya = useMemo(() => geometri.clone(), [geometri])
 
   useLayoutEffect(() => {
     const mesh = ref.current
@@ -57,13 +141,19 @@ export function Agaclar({ veri, gorunur }: { veri: OlayVerisi; gorunur: boolean 
     mesh.count = matrisler.length
     mesh.instanceMatrix.needsUpdate = true
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
-    mesh.geometry.setAttribute('aToa', new InstancedBufferAttribute(toa, 1))
+    mesh.geometry.setAttribute('aToa', new InstancedBufferAttribute(new Float32Array(toa), 1))
     mesh.computeBoundingSphere()
+    // Salınım ve kabartma için pay
+    mesh.boundingSphere?.expandByPoint(mesh.boundingSphere.center.clone().add(new Vector3(0, mesh.boundingSphere.radius * 0.1 + 0.3, 0)))
   }, [matrisler, renkler, toa])
 
   return (
-    <instancedMesh ref={ref} args={[geometri, undefined, ADET]} visible={gorunur} frustumCulled={false}>
-      <meshLambertMaterial flatShading onBeforeCompile={agacGolgelendirici} customProgramCacheKey={() => 'agac-yangin'} />
+    <instancedMesh
+      ref={ref}
+      args={[kopya, undefined, Math.max(matrisler.length, 1)]}
+      raycast={() => null}
+    >
+      <meshLambertMaterial vertexColors onBeforeCompile={agacGolgelendirici} customProgramCacheKey={() => 'agac-yangin'} />
     </instancedMesh>
   )
 }

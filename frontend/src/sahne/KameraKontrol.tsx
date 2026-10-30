@@ -1,5 +1,5 @@
 import { MapControls, OrthographicCamera, PerspectiveCamera } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import { OrthographicCamera as OrtoKamera, PerspectiveCamera as PerspektifKamera, Spherical, Vector3 } from 'three'
 import { useHarita } from '../durum/harita'
@@ -10,7 +10,8 @@ import type { OlayVerisi } from '../olay/veri'
  * Fare, Google Haritalar'daki gibi: sol tuşla sürükleme zeminde kaydırır, sağ tuş (ya da
  * ⇧ Shift / ⌘ / Ctrl + sol tuş; trackpad için kolay yol) 3B'de döndürüp eğer, tekerlek ve
  * iki parmak imlecin olduğu yere yakınlaşır. Döndürme düğmeleri ve pusula `donme` isteği verir.
- * Açılışta tutuşma ile ana yayılım ekseni arasına bakılır. Bakılan nokta arazinin dışına çıkamaz. "Tutuşmaya git" isteği yumuşak bir uçuşla uygulanır.
+ * Açılışta tutuşma ile ana yayılım ekseni arasına bakılır. Bakılan nokta karenin biraz dışına (sahte
+ * çevre arazisine) çıkabilir, sonra görünmez bir duvara dayanır. "Tutuşmaya git" isteği yumuşak bir uçuşla uygulanır.
  * Her karede pusula yönü, yakınlaştırma ve ölçek harita durumuna yazılır
  * (yalnızca belirgin değişimde, gereksiz yeniden çizimi önlemek için).
  */
@@ -20,8 +21,10 @@ const BASLANGIC_KAYMA = new Vector3(-11, 13, -11)
 const FOV = 38
 const VARSAYILAN_UZAKLIK = BASLANGIC_KAYMA.length()
 const VARSAYILAN_ORTO_ZOOM = 14
-/** Bakılan noktanın arazi kenarına en fazla yaklaşabileceği uzaklık (km). */
-const KENAR_PAYI_KM = 2
+/** Bakılan noktanın karenin (model ızgarası) en fazla ne kadar dışına çıkabileceği (km): görünmez duvar. */
+const DISARI_KM = 8
+/** 2B'de en uzak bakışta ekranın kenarı karenin en fazla bu kadar km dışını gösterir. */
+const ORTO_DIS_PAY_KM = 20
 /** Odaklanınca yakınlaştırma (varsayılana oran) ve uçuş süresi. */
 const ODAK_ZOOM = 1.8
 const UCUS_MS = 1200
@@ -64,8 +67,11 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
     const z = t.z + (e.z - t.z) * 0.35
     return new Vector3(x, veri.araziY(x, z), z)
   }, [veri])
-  const sinirX = veri.genislikKm / 2 - KENAR_PAYI_KM
-  const sinirZ = veri.yukseklikKm / 2 - KENAR_PAYI_KM
+  const sinirX = veri.genislikKm / 2 + DISARI_KM
+  const sinirZ = veri.yukseklikKm / 2 + DISARI_KM
+  const ekran = useThree((d) => d.size)
+  const ortoEnAzZoom =
+    Math.max(ekran.width, ekran.height) / 2 / (Math.max(veri.genislikKm, veri.yukseklikKm) / 2 + ORTO_DIS_PAY_KM)
   const son = useRef({ zoom: 0, yon: 0, pikselBasinaM: 0 })
   const yon = useRef(new Vector3())
   const ucus = useRef<Ucus | null>(null)
@@ -147,7 +153,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
         yon.current.subVectors(camera.position, hedef).setLength(VARSAYILAN_UZAKLIK / d.hedefZoom)
         camera.position.copy(hedef).add(yon.current)
       } else if (camera instanceof OrtoKamera) {
-        camera.zoom = VARSAYILAN_ORTO_ZOOM * d.hedefZoom
+        camera.zoom = Math.max(VARSAYILAN_ORTO_ZOOM * d.hedefZoom, ortoEnAzZoom)
         camera.updateProjectionMatrix()
       }
       kontrol?.update()
@@ -195,7 +201,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
           enableRotate={false}
           screenSpacePanning
           zoomToCursor
-          minZoom={4}
+          minZoom={ortoEnAzZoom}
           maxZoom={400}
         />
       </>
@@ -203,7 +209,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
   }
   return (
     <>
-      <PerspectiveCamera makeDefault position={acilisHedefi.clone().add(BASLANGIC_KAYMA).toArray()} fov={FOV} near={0.1} far={900} />
+      <PerspectiveCamera makeDefault position={acilisHedefi.clone().add(BASLANGIC_KAYMA).toArray()} fov={FOV} near={0.1} far={1200} />
       {/* MapControls: sol tuş kaydırır, sağ tuş döndürür; kaydırma zemin düzleminde. */}
       <MapControls
         makeDefault
@@ -214,7 +220,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
         zoomToCursor
         maxPolarAngle={Math.PI * 0.46}
         minDistance={2}
-        maxDistance={80}
+        maxDistance={70}
       />
     </>
   )

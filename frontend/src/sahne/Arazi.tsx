@@ -6,18 +6,53 @@ import { YOK } from '../olay/api'
 import { ORMAN_YOGUNLUGU, ORTU_SIRASI, sahneY, type OlayVerisi, type OrtuSinifi } from '../olay/veri'
 import { araziGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
 
-/** Örtü sınıfına göre zemin rengi (soluk; yangın katmanlarının önüne geçmesin). */
-const ORTU_RENGI: Record<OrtuSinifi, Color> = {
-  diger: new Color('#b8ab95'),
-  orman: new Color('#6f7446'),
-  maki: new Color('#8f8c5c'),
-  ot: new Color('#c4b486'),
-  tarim: new Color('#cdb78a'),
-  su: new Color('#6f93a6'),
+/** Örtü sınıfına göre zemin rengi (yangın katmanlarının önüne geçmeyecek kadar soluk). */
+export const ORTU_RENGI: Record<OrtuSinifi, Color> = {
+  diger: new Color('#b3a48a'),
+  orman: new Color('#5d6a38'),
+  maki: new Color('#858552'),
+  ot: new Color('#c2b07c'),
+  tarim: new Color('#c9b07e'),
+  su: new Color('#3f6f80'),
   yerlesim: new Color('#a9a198'),
 }
 const kaya = new Color('#a39a8c')
 const yuksek = new Color('#b19a7e')
+
+/**
+ * Köşe rengi: örtü, yükseklik ve eğim; vadiler biraz koyu, sırtlar biraz açık (eğrilikten
+ * yaklaşık ortam kapanması). Çevre arazisi de aynı kuralla boyanır, dikiş görünmesin.
+ */
+export function zeminRengi(hedef: Color, ortu: Color, hM: number, egim: number, cukurlukM: number, su: boolean) {
+  hedef.copy(ortu)
+  if (su) return hedef
+  hedef.lerp(yuksek, Math.min(Math.max((hM - 800) / 1200, 0), 1) * 0.5)
+  hedef.lerp(kaya, Math.min(Math.max((egim - 25) / 20, 0), 1) * 0.5)
+  return hedef.multiplyScalar(1 - Math.min(Math.max(cukurlukM / 120, -0.18), 0.3))
+}
+
+/** Çevresinin ortalamasına göre ne kadar çukurda (m; pozitif: vadi). */
+export function cukurluk(yukseklikM: (x: number, z: number) => number, x: number, z: number, r = 0.45) {
+  const h = yukseklikM(x, z)
+  const ort = (yukseklikM(x + r, z) + yukseklikM(x - r, z) + yukseklikM(x, z + r) + yukseklikM(x, z - r)) / 4
+  return ort - h
+}
+
+/** Arazi ve çevre örgüsünün ortak malzemesi (yangın ve su gölgelendiricisiyle). */
+export function AraziMalzemesi({ geri = false }: { geri?: boolean }) {
+  return (
+    <meshStandardMaterial
+      vertexColors
+      roughness={1}
+      metalness={0}
+      polygonOffset={geri}
+      polygonOffsetFactor={geri ? 2 : 0}
+      polygonOffsetUnits={geri ? 4 : 0}
+      onBeforeCompile={araziGolgelendirici}
+      customProgramCacheKey={() => 'arazi-yangin'}
+    />
+  )
+}
 
 /**
  * Izgara üzerinde 3 × 3 kutu bulanıklığı (`gecis` kez). Sentinel-2 oranının tek hücrelik lekeleri
@@ -63,7 +98,9 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     const olasilik = new Float32Array(n)
     const firms = new Float32Array(n)
     const orman = new Float32Array(n)
+    const su = new Float32Array(n)
     const c = new Color()
+    const yM = (x: number, z: number) => veri.yukseklikM(x, z)
     for (let i = 0; i < satir; i++) {
       for (let j = 0; j < sutun; j++) {
         const k = i * sutun + j
@@ -72,12 +109,8 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
         const ortu = ORTU_SIRASI[r.ortu[k]] ?? 'diger'
         konum.set([x, ortu === 'su' ? Math.max(sahneY(h), 0) : sahneY(h), z], k * 3)
         const { egim } = veri.egimVeBaki(x, z)
-        c.copy(ORTU_RENGI[ortu])
-        if (ortu !== 'su') {
-          c.lerp(yuksek, Math.min(Math.max((h - 800) / 1200, 0), 1) * 0.5)
-          c.lerp(kaya, Math.min(Math.max((egim - 25) / 20, 0), 1) * 0.5)
-        }
-        c.toArray(renk, k * 3)
+        zeminRengi(c, ORTU_RENGI[ortu], h, egim, cukurluk(yM, x, z), ortu === 'su').toArray(renk, k * 3)
+        su[k] = ortu === 'su' ? 1 : 0
         const model = r.modelToa[k]
         toa[k] = model === YOK ? YANMADI_SAAT : model / 60
         yandi[k] = model === YOK ? 0 : 1
@@ -110,6 +143,7 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     g.setAttribute('aOlasilik', new BufferAttribute(olasilik, 1))
     g.setAttribute('aFirms', new BufferAttribute(firms, 1))
     g.setAttribute('aOrman', new BufferAttribute(orman, 1))
+    g.setAttribute('aSu', new BufferAttribute(su, 1))
     g.computeVertexNormals()
     g.computeBoundingSphere()
     return g
@@ -119,13 +153,7 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
 
   return (
     <mesh geometry={geometri} receiveShadow onPointerMove={imlec} onPointerOut={() => imlecAyarla(null)}>
-      <meshStandardMaterial
-        vertexColors
-        roughness={1}
-        metalness={0}
-        onBeforeCompile={araziGolgelendirici}
-        customProgramCacheKey={() => 'arazi-yangin'}
-      />
+      <AraziMalzemesi />
     </mesh>
   )
 }
