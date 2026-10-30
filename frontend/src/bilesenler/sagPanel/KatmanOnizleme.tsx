@@ -8,7 +8,7 @@ import { rastgeleUreteci } from '../../model/gurultu'
  */
 
 const BOYUT = 52 // desenlerin çizim birimi
-const PIKSEL = 72 // tuval boyutu: 2x yoğunluk için CSS boyutunun (36 px) iki katı
+const PIKSEL = 64 // tuval boyutu: 2x yoğunluk için CSS boyutunun (32 px) iki katı
 
 type Ciz = (c: CanvasRenderingContext2D, r: () => number) => void
 
@@ -101,7 +101,7 @@ export function KatmanOnizleme({ kimlik, soluk }: { kimlik: KatmanKimligi; soluk
       ref={ref}
       width={PIKSEL}
       height={PIKSEL}
-      className={`size-9 shrink-0 rounded-[7px] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-opacity ${soluk ? 'opacity-45' : ''}`}
+      className={`size-8 shrink-0 rounded-[6px] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-opacity ${soluk ? 'opacity-45' : ''}`}
     />
   )
 }

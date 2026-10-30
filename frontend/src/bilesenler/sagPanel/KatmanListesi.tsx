@@ -10,7 +10,7 @@ const GRUPLAR: { ad: string; kimlikler: KatmanKimligi[] }[] = [
   { ad: 'zemin', kimlikler: ['arazi', 'goruntu', 'ruzgar'] },
 ]
 
-/** Katmanlar sekmesi: her satırda önizleme, ad, kısa açıklama ve açma/kapama anahtarı. */
+/** Katmanlar sekmesi: her satırda önizleme, ad ve açma/kapama anahtarı; kısa açıklama ipucunda. */
 export function KatmanListesi() {
   const { t } = useTranslation()
   const katmanlar = useKatmanlar((d) => d.katmanlar)
@@ -44,14 +44,12 @@ function KatmanSatiri({ katman }: { katman: Katman }) {
         role="switch"
         aria-checked={acik}
         onClick={() => degistir(kimlik)}
-        className="flex w-full items-center gap-3 rounded-[8px] px-2 py-2 text-left hover:bg-white/[0.04]"
+        title={t(`katmanlar.aciklamalar.${kimlik}`)}
+        className="flex w-full items-center gap-3 rounded-[8px] px-2 py-1.5 text-left hover:bg-white/[0.04]"
       >
         <KatmanOnizleme kimlik={kimlik} soluk={!acik} />
-        <span className="min-w-0 flex-1">
-          <span className={`block truncate text-[13px] leading-[18px] font-medium ${acik ? '' : 'text-ikincil'}`}>
-            {t(`katmanlar.adlar.${kimlik}`)}
-          </span>
-          <span className="block truncate text-[12px] leading-4 text-ikincil">{t(`katmanlar.aciklamalar.${kimlik}`)}</span>
+        <span className={`min-w-0 flex-1 truncate text-[13px] leading-[18px] font-medium ${acik ? '' : 'text-ikincil'}`}>
+          {t(`katmanlar.adlar.${kimlik}`)}
         </span>
         <AnahtarGorseli acik={acik} />
       </button>

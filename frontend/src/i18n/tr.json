@@ -63,8 +63,7 @@
       "yakalamaAlt": "Gerçek alanın bulunan kısmı",
       "isabet": "İsabet",
       "isabetAlt": "Tahminin doğru çıkan kısmı",
-      "deneyler": "Diğer sürümler",
-      "deneylerAlt": "Bitişte doğruluk",
+      "deneyler": "Diğer sürümlerin doğruluğu",
       "deneyAdlari": {
         "model_v1": "Model v1",
         "model_v2": "Model v2",
@@ -87,7 +86,6 @@
       "kacirilan": "Kaçırılan",
       "kacirilanAlt": "Gerçekte yandı, model görmedi",
       "hektar": "{{deger}} ha",
-      "haritadaGoster": "Haritada göster",
       "zamanBaslik": "Varış zamanı",
       "zamanAlt": "Ateşin her noktaya varışı, uydu tespitine göre",
       "erken": "Erken",
@@ -97,20 +95,9 @@
       "ortancaGec": "{{deger}} sa geç",
       "ortancaErken": "{{deger}} sa erken",
       "onIkiSaat": "12 saatten az sapan",
-      "kutuIpucu": "Kutu, noktaların ortadaki yarısını gösterir.",
       "bitisBaslik": "Yangın sonunda"
     },
     "kanitlar": {
-      "ozet": "Olay özeti",
-      "ad": "Yangın",
-      "konum": "Konum",
-      "baslangic": "Başlangıç",
-      "baslangicAciklama": "Tahmini tutuşma zamanı",
-      "bitis": "Model bitişi",
-      "gercekAlan": "Gerçek alan",
-      "model": "Model",
-      "modelDeger": "{{ad}} · {{sayi}} çalıştırma",
-      "kaynaklar": "Veri kaynakları",
       "sentinel": "Gerçek yanık alan",
       "sentinelKaynak": "Sentinel-2 uydusu",
       "yuksek": "Yüksek",
@@ -147,7 +134,7 @@
         },
         {
           "baslik": "Rüzgâr kaba ölçekte",
-          "metin": "Yaklaşık 25 km aralıklı ERA5 verisi, vadilerdeki yerel rüzgârı görmez."
+          "metin": "Vadilerdeki yerel rüzgâr dönüşlerini görmüyor."
         },
         {
           "baslik": "Yakıt sınıfları sınırlı",
@@ -155,7 +142,7 @@
         }
       ],
       "notlarim": "Notlarım",
-      "yerTutucu": "Bu yangınla ilgili notunu yaz",
+      "yerTutucu": "Not yaz",
       "saklama": "Yalnızca bu tarayıcıda saklanır.",
       "saklanamiyor": "Tarayıcı depolaması kapalı; not sayfa kapanınca kaybolur."
     }

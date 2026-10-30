@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAy, sayi, tamTarih, yuzdeBicim } from '../../bicim'
+import { gunAy, sayi, yuzdeBicim } from '../../bicim'
 import { firmsKaynakAdi, type OlayVerisi } from '../../olay/veri'
 import { IkonAlev, IkonHarita, IkonKare, IkonRuzgar, IkonUcgen, IkonYaprak } from '../ikonlar'
 import { Bolum } from './ortak'
@@ -10,52 +10,18 @@ const tarih = (iso: string | null) => (iso ? gunAy(Date.parse(`${iso}T12:00:00Z`
 /** Yanma şiddeti renkleri: koyudan açığa. */
 const SIDDET_RENKLERI = { yuksek: '#d4472a', orta: '#f08c2a', dusuk: '#f2c56a' } as const
 
-/** Kanıtlar sekmesi: olayın özeti ve doğrulamanın ve modelin dayandığı verilerin künyesi. */
+/**
+ * Kanıtlar sekmesi: doğrulamanın ve modelin dayandığı verilerin künyesi. Gerçek alan Analiz'de,
+ * tarihler üst barda ve zaman panelinde olduğu için burada tekrarlanmaz.
+ */
 export function KanitlarSekmesi({ veri }: { veri: OlayVerisi }) {
-  const { t } = useTranslation()
   return (
-    <>
-      <Ozet veri={veri} />
-      <Bolum baslik={t('sagPanel.kanitlar.kaynaklar')}>
-        <div className="space-y-2">
-          <Sentinel veri={veri} />
-          <Firms veri={veri} />
-          <DigerKaynaklar veri={veri} />
-        </div>
-      </Bolum>
-    </>
-  )
-}
-
-function Ozet({ veri }: { veri: OlayVerisi }) {
-  const { t } = useTranslation()
-  const { bilgi } = veri
-  const m = bilgi.model
-  const satirlar: [string, ReactNode, string?][] = [
-    [t('sagPanel.kanitlar.ad'), bilgi.baslik],
-    [t('sagPanel.kanitlar.konum'), bilgi.konum],
-    [t('sagPanel.kanitlar.baslangic'), tamTarih(veri.tutusmaMs), t('sagPanel.kanitlar.baslangicAciklama')],
-    [t('sagPanel.kanitlar.bitis'), tamTarih(veri.bitisMs)],
-    [t('sagPanel.kanitlar.gercekAlan'), t('sagPanel.kanitlar.ha', { deger: sayi(bilgi.gercek_ha) })],
-    [
-      t('sagPanel.kanitlar.model'),
-      t('sagPanel.kanitlar.modelDeger', {
-        ad: t(`sagPanel.analiz.deneyAdlari.${m.ad}`, { defaultValue: m.aciklama }),
-        sayi: m.calisma_sayisi,
-      }),
-      m.aciklama,
-    ],
-  ]
-  return (
-    <Bolum baslik={t('sagPanel.kanitlar.ozet')}>
-      <dl className="grid grid-cols-[104px_minmax(0,1fr)] gap-x-3 gap-y-2 text-[12.5px] leading-4">
-        {satirlar.map(([etiket, deger, aciklama]) => (
-          <div key={etiket} title={aciklama} className="contents">
-            <dt className="text-ikincil">{etiket}</dt>
-            <dd className="font-medium tabular-nums">{deger}</dd>
-          </div>
-        ))}
-      </dl>
+    <Bolum>
+      <div className="space-y-2">
+        <Sentinel veri={veri} />
+        <Firms veri={veri} />
+        <DigerKaynaklar veri={veri} />
+      </div>
     </Bolum>
   )
 }
@@ -110,7 +76,7 @@ function Sentinel({ veri }: { veri: OlayVerisi }) {
   ] as const
 
   return (
-    <KaynakKarti {...ortak} deger={t('sagPanel.kanitlar.ha', { deger: sayi(s2.yanmis_ha) })}>
+    <KaynakKarti {...ortak}>
       <div className="mb-2 text-[12px] leading-4 text-ikincil">{t('sagPanel.kanitlar.siddet')}</div>
       <div className="flex h-2 gap-[2px] overflow-hidden rounded-full">
         {parcalar.map((p) => (

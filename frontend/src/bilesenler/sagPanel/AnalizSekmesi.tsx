@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { sayi, yuzdeBicim } from '../../bicim'
 import { gercekAlanaUlasti } from '../../dogrulama/api'
-import { useKatmanlar } from '../../durum/katmanlar'
 import type { OlayVerisi } from '../../olay/veri'
-import { AnahtarGorseli, Bolum, SayiKarti } from './ortak'
+import { Bolum, SayiKarti } from './ortak'
 
 /** Hata katmanının renkleri (sahne/yanginMalzemesi.ts ile aynı). */
 const HATA_RENKLERI = { dogru: '#d4472a', yanlisAlarm: '#f0b43c', kacirilan: '#455c80' } as const
@@ -13,7 +12,7 @@ type Model = OlayVerisi['bilgi']['model']
 /**
  * Analiz sekmesi: yangının tamamı için doğrulama ayrıntısı. Bitişteki doğruluk ve basit daire sağ
  * sütunda olduğu için burada tekrarlanmaz; burada bitişteki alanlar, öteki sürümler, modelin
- * hatasının dağılımı (haritada da gösterilebilir) ve varış zamanı farkı var.
+ * hatasının dağılımı ve varış zamanı farkı var.
  */
 export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
   const m = veri.bilgi.model
@@ -54,7 +53,7 @@ function Surumler({ m }: { m: Model }) {
   if (!deneyler.length) return null
 
   return (
-    <Bolum baslik={t('sagPanel.analiz.deneyler')} alt={t('sagPanel.analiz.deneylerAlt')}>
+    <Bolum baslik={t('sagPanel.analiz.deneyler')}>
       <ul className="space-y-2">
         {deneyler.map((d) => (
           <li key={d.ad} className="grid grid-cols-[minmax(0,1fr)_88px_36px] items-center gap-3">
@@ -70,11 +69,9 @@ function Surumler({ m }: { m: Model }) {
   )
 }
 
-/** Doğru / fazla / kaçırılan: yığılmış çubuk, açıklamalı lejant ve haritada gösterme anahtarı. */
+/** Doğru / fazla / kaçırılan: yığılmış çubuk ve açıklamalı lejant (hektarlar ipucunda). */
 function HataDagilimi({ m }: { m: Model }) {
   const { t } = useTranslation()
-  const acik = useKatmanlar((d) => d.katmanlar.find((k) => k.kimlik === 'hata')?.acik ?? false)
-  const degistir = useKatmanlar((d) => d.degistir)
   const parcalar = [
     { anahtar: 'dogru', ha: m.esit_alan.dogru_ha },
     { anahtar: 'yanlisAlarm', ha: m.esit_alan.yanlis_alarm_ha },
@@ -98,29 +95,16 @@ function HataDagilimi({ m }: { m: Model }) {
       </div>
       <ul className="mt-3 space-y-2.5">
         {parcalar.map((p) => (
-          <li key={p.anahtar} className="flex items-start gap-2.5">
+          <li key={p.anahtar} title={t('sagPanel.analiz.hektar', { deger: sayi(p.ha) })} className="flex items-start gap-2.5">
             <span className="mt-[3px] size-2.5 shrink-0 rounded-[3px]" style={{ background: HATA_RENKLERI[p.anahtar] }} />
             <span className="min-w-0 flex-1">
               <span className="block text-[12.5px] leading-4 font-medium">{t(`sagPanel.analiz.${p.anahtar}`)}</span>
               <span className="block text-[12px] leading-4 text-ikincil">{t(`sagPanel.analiz.${p.anahtar}Alt`)}</span>
             </span>
-            <span className="text-right">
-              <span className="block text-[12.5px] leading-4 font-medium tabular-nums">{t('sagPanel.analiz.hektar', { deger: sayi(p.ha) })}</span>
-              <span className="block text-[12px] leading-4 text-ikincil tabular-nums">{yuzdeBicim(p.ha / toplam)}</span>
-            </span>
+            <span className="text-[12.5px] leading-4 font-semibold tabular-nums">{yuzdeBicim(p.ha / toplam)}</span>
           </li>
         ))}
       </ul>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={acik}
-        onClick={() => degistir('hata')}
-        className="mt-3 flex w-full items-center justify-between rounded-[10px] bg-yuzey px-3 py-2.5 text-[12.5px] leading-4 font-medium hover:bg-yuzey-acik"
-      >
-        {t('sagPanel.analiz.haritadaGoster')}
-        <AnahtarGorseli acik={acik} />
-      </button>
     </Bolum>
   )
 }
@@ -160,7 +144,6 @@ function ZamanFarki({ zaman }: { zaman: NonNullable<Model['zaman']> }) {
         />
         <SayiKarti etiket={t('sagPanel.analiz.onIkiSaat')} deger={yuzdeBicim(zaman.oran_12_saat_icinde)} />
       </div>
-      <p className="mt-2 text-[12px] leading-4 text-ikincil">{t('sagPanel.analiz.kutuIpucu')}</p>
     </Bolum>
   )
 }

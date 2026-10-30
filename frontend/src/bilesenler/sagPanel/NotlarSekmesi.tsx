@@ -11,19 +11,14 @@ export function NotlarSekmesi({ ad }: { ad: string }) {
   return (
     <>
       <Bolum baslik={t('sagPanel.notlar.sinirlar')}>
-        <ol className="space-y-2">
-          {sinirlar.map((s, i) => (
-            <li key={s.baslik} className="flex gap-3 rounded-[10px] bg-yuzey p-3">
-              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-zemin/60 text-[12px] leading-4 font-semibold text-ikincil tabular-nums">
-                {i + 1}
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[13px] leading-[18px] font-semibold">{s.baslik}</span>
-                <span className="mt-0.5 block text-[12.5px] leading-[18px] text-ikincil">{s.metin}</span>
-              </span>
+        <ul className="space-y-3">
+          {sinirlar.map((s) => (
+            <li key={s.baslik}>
+              <div className="text-[13px] leading-[18px] font-medium">{s.baslik}</div>
+              <div className="mt-0.5 text-[12.5px] leading-[18px] text-ikincil">{s.metin}</div>
             </li>
           ))}
-        </ol>
+        </ul>
       </Bolum>
       {/* Yangın değişince not alanı baştan kurulsun (key). */}
       <NotAlani key={ad} ad={ad} />
@@ -46,12 +41,11 @@ function NotAlani({ ad }: { ad: string }) {
           setSaklandi(notYaz(ad, e.target.value))
         }}
         placeholder={t('sagPanel.notlar.yerTutucu')}
+        title={t('sagPanel.notlar.saklama')}
         rows={7}
         className="block w-full resize-y rounded-[10px] border border-transparent bg-yuzey px-3 py-2.5 text-[13px] leading-[19px] placeholder:text-soluk focus:border-eksen focus:outline-none"
       />
-      <p className={`mt-2 text-[12px] leading-4 ${saklandi ? 'text-ikincil' : 'text-ates-acik'}`}>
-        {t(saklandi ? 'sagPanel.notlar.saklama' : 'sagPanel.notlar.saklanamiyor')}
-      </p>
+      {!saklandi && <p className="mt-2 text-[12px] leading-4 text-ates-acik">{t('sagPanel.notlar.saklanamiyor')}</p>}
     </Bolum>
   )
 }
