@@ -21,8 +21,12 @@ const SAG = 16
  * altta eşit 14 px boşluk. Böylece tüm şeritlerde etiketlerin üst/alt boşluğu aynıdır.
  */
 const seritYuksekligi = (seriSayisi: number) => seriSayisi * 15 + (seriSayisi - 1) * 4 + 28
+/** Seçili anın satırı (px); yalnızca etiket sütununda durur, yanındaki boşluğu yanan alan grafiği kullanır. */
+const AN_SATIRI = 44
+/** İlk şerit (yanan alan) seçili anın satırını da kaplar. */
+const satirYuksekligi = (seriSayisi: number, ilk: boolean) => seritYuksekligi(seriSayisi) + (ilk ? AN_SATIRI : 0)
 /** Grafik, satırın üstünden ve altından 5'er px içeride çizilir. */
-const grafikYuksekligi = (seriSayisi: number) => seritYuksekligi(seriSayisi) - 10
+const grafikYuksekligi = (seriSayisi: number, ilk = false) => satirYuksekligi(seriSayisi, ilk) - 10
 
 /** Yanan alan grafiğindeki olay noktalarının renkleri: uydu gözlemi FIRMS çizgisinde, model olayı model eğrisinde. */
 const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
@@ -225,7 +229,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   // Olay noktasının grafikteki yüksekliği (px, üstten); SeritGrafigi ile aynı ölçek.
   const olayY = (o: OnemliOlay) => {
     const v = o.tur === 'tutusma' ? 0 : o.tur === 'uyduGecisi' ? veri.firmsAlanHa(o.zaman) : veri.yananAlanHa(o.zaman)
-    const yuk = grafikYuksekligi(alan.seriler.length)
+    const yuk = grafikYuksekligi(alan.seriler.length, true)
     return yuk - 1 - (Math.min(Math.max(v, 0), alan.ust) / alan.ust) * (yuk - 3)
   }
 
@@ -240,23 +244,33 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           kapat={kapat}
         />
       )}
-      {/* Seçili an: oynat düğmesi, tarih-saat ve tutuşmadan bu yana geçen süre */}
-      <div className="flex h-[44px] items-center gap-2.5 border-b border-white/[0.12] px-2.5 whitespace-nowrap">
-        <OynatDugmesi />
-        <span className="text-[17px] leading-[20px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-        <span title={t('olayDuzeni.sureAciklama')} className="text-[12.5px] text-soluk tabular-nums">
-          {t('olayDuzeni.saatSayaci', { saat: saatSonra })}
-        </span>
-      </div>
-
-      {seritler.map((sr) => (
+      {seritler.map((sr, i) => (
         <div
           key={sr.kimlik}
           className="grid grid-cols-[236px_1fr] items-center border-b border-white/[0.12]"
-          style={{ height: seritYuksekligi(sr.seriler.length) }}
+          style={{ height: satirYuksekligi(sr.seriler.length, i === 0) }}
         >
-          <SeritAdi ad={sr.ad} seriler={sr.seriler} />
-          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(sr.seriler.length) }}>
+          {i === 0 ? (
+            <div className="flex h-full flex-col">
+              {/* Seçili an: oynat düğmesi, tarih-saat ve tutuşmadan bu yana geçen süre */}
+              <div
+                className="flex shrink-0 items-center gap-2.5 border-b border-white/[0.12] px-2.5 whitespace-nowrap"
+                style={{ height: AN_SATIRI }}
+              >
+                <OynatDugmesi />
+                <span className="text-[17px] leading-[20px] font-semibold tabular-nums">{gunAySaat(an)}</span>
+                <span title={t('olayDuzeni.sureAciklama')} className="text-[12.5px] text-soluk tabular-nums">
+                  {t('olayDuzeni.saatSayaci', { saat: saatSonra })}
+                </span>
+              </div>
+              <div className="flex flex-1 flex-col justify-center">
+                <SeritAdi ad={sr.ad} seriler={sr.seriler} />
+              </div>
+            </div>
+          ) : (
+            <SeritAdi ad={sr.ad} seriler={sr.seriler} />
+          )}
+          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(sr.seriler.length, i === 0) }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {
