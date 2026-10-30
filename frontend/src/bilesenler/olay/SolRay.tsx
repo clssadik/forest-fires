@@ -6,7 +6,6 @@ import { AnalizSekmesi } from '../sagPanel/AnalizSekmesi'
 import { KanitlarSekmesi } from '../sagPanel/KanitlarSekmesi'
 import { KatmanListesi } from '../sagPanel/KatmanListesi'
 import { NotlarSekmesi } from '../sagPanel/NotlarSekmesi'
-import { OlayOzeti } from '../sagPanel/OlayOzeti'
 import { IkonBelge, IkonGrafik, IkonKapat, IkonKatman, IkonNot } from '../ikonlar'
 
 const IKONLAR: Record<Cekmece, ReactNode> = {
@@ -49,9 +48,9 @@ export function SolCekmece({ veri }: { veri: OlayVerisi | null }) {
   const kapat = useOlayDuzeni((d) => d.cekmeceKapat)
   if (!cekmece) return null
   return (
-    <aside className="flex w-[300px] shrink-0 flex-col border-r border-cizgi bg-panel">
-      <header className="flex h-[44px] shrink-0 items-center px-4">
-        <h2 className="text-[14px] font-semibold">{t(`sagPanel.sekmeler.${cekmece}`)}</h2>
+    <aside className="flex w-[320px] shrink-0 flex-col border-r border-cizgi bg-panel">
+      <header className="flex h-[52px] shrink-0 items-center border-b border-cizgi pr-3 pl-5">
+        <h2 className="text-[15px] leading-5 font-semibold">{t(`sagPanel.sekmeler.${cekmece}`)}</h2>
         <button
           type="button"
           onClick={kapat}
@@ -65,12 +64,7 @@ export function SolCekmece({ veri }: { veri: OlayVerisi | null }) {
       <div className="min-h-0 flex-1 overflow-y-auto pb-2">
         {cekmece === 'katmanlar' && <KatmanListesi />}
         {veri && cekmece === 'analiz' && <AnalizSekmesi veri={veri} />}
-        {veri && cekmece === 'kanitlar' && (
-          <div className="space-y-2 px-2">
-            <OlayOzeti veri={veri} />
-            <KanitlarSekmesi veri={veri} />
-          </div>
-        )}
+        {veri && cekmece === 'kanitlar' && <KanitlarSekmesi veri={veri} />}
         {veri && cekmece === 'notlar' && <NotlarSekmesi ad={veri.bilgi.ad} />}
       </div>
     </aside>

@@ -7,7 +7,8 @@ import { rastgeleUreteci } from '../../model/gurultu'
  * taklit eden küçük bir prosedürel desen.
  */
 
-const BOYUT = 52 // piksel (2x yoğunluk için CSS boyutunun iki katı)
+const BOYUT = 52 // desenlerin çizim birimi
+const PIKSEL = 72 // tuval boyutu: 2x yoğunluk için CSS boyutunun (36 px) iki katı
 
 type Ciz = (c: CanvasRenderingContext2D, r: () => number) => void
 
@@ -92,14 +93,15 @@ export function KatmanOnizleme({ kimlik, soluk }: { kimlik: KatmanKimligi; soluk
   useEffect(() => {
     const c = ref.current?.getContext('2d')
     if (!c) return
+    c.setTransform(PIKSEL / BOYUT, 0, 0, PIKSEL / BOYUT, 0, 0)
     cizimler[kimlik](c, rastgeleUreteci(kimlik.length * 97 + 13))
   }, [kimlik])
   return (
     <canvas
       ref={ref}
-      width={BOYUT}
-      height={BOYUT}
-      className={`size-[26px] shrink-0 rounded-[3px] ${soluk ? 'opacity-50' : ''}`}
+      width={PIKSEL}
+      height={PIKSEL}
+      className={`size-9 shrink-0 rounded-[7px] shadow-[0_0_0_1px_rgba(255,255,255,0.06)] transition-opacity ${soluk ? 'opacity-45' : ''}`}
     />
   )
 }
