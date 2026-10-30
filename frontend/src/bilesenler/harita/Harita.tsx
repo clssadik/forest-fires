@@ -1,6 +1,5 @@
 import { useRef } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
-import { useHarita } from '../../durum/harita'
+import { useTranslation } from 'react-i18next'
 import { useOlay } from '../../durum/olay'
 import { Sahne } from '../../sahne/Sahne'
 import { HaritaKontrolleri } from './HaritaKontrolleri'
@@ -10,7 +9,6 @@ import { Pusula } from './Pusula'
 /** Harita alanı: 3B/2B sahne ve üstündeki kontroller (docs/02 §4). */
 export function Harita() {
   const { t } = useTranslation()
-  const kip = useHarita((d) => d.kip)
   const veri = useOlay((d) => d.veri)
   const yukleme = useOlay((d) => d.yukleme)
   const hata = useOlay((d) => d.hata)
@@ -41,24 +39,6 @@ export function Harita() {
           )}
         </div>
       )}
-      <p
-        className={`pointer-events-none absolute bottom-4 left-4 flex items-center whitespace-nowrap text-[12px] leading-none text-white/80 ${
-          kip === '3B' ? '' : 'rounded-md bg-black/70 px-2.5 py-1.5 ring-1 ring-white/10 backdrop-blur-sm'
-        }`}
-      >
-        {kip === '3B' ? (
-          <Trans
-            i18nKey="harita.ipucu3B"
-            components={{
-              tus: (
-                <kbd className="rounded-[4px] border border-white/25 border-b-white/40 bg-white/10 px-1.5 py-[3px] font-sans backdrop-blur-sm text-[11px] font-medium text-white" />
-              ),
-            }}
-          />
-        ) : (
-          t('harita.ipucu2B')
-        )}
-      </p>
     </div>
   )
 }
