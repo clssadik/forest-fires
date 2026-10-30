@@ -284,6 +284,15 @@ export function IkonKare(p: IkonOzellik) {
   )
 }
 
+export function IkonBilgi(p: IkonOzellik) {
+  return (
+    <Ikon {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h.01" />
+    </Ikon>
+  )
+}
+
 export function IkonDaire(p: IkonOzellik) {
   return (
     <Ikon {...p} dolgu>

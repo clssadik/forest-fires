@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { sayi } from '../../bicim'
 import { useHarita, type GorunumKipi } from '../../durum/harita'
 import type { OlayVerisi } from '../../olay/veri'
-import { IkonAsagi, IkonDik, IkonDonSag, IkonDonSol, IkonEg, IkonHedef, IkonTamEkran } from '../ikonlar'
+import { IkonAsagi, IkonBilgi, IkonDik, IkonDonSag, IkonDonSol, IkonEg, IkonHedef, IkonTamEkran } from '../ikonlar'
 import { OlcekCubugu } from './OlcekCubugu'
 
 const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10]
@@ -12,12 +12,12 @@ const EGIM_ADIMI = 12
 
 /**
  * Harita kontrolleri: alt ortada yüzen tek bir hap. 2B/3B, tutuşmaya git, yakınlaştırma,
- * 3B'de döndür / eğ ve tam ekran; gruplar ince ayraçlarla ayrılır. Ölçek sağ altta, kutusuz.
+ * 3B'de döndür / eğ, Detaylar kartını aç/kapat ve tam ekran; gruplar ince ayraçlarla ayrılır. Ölçek sağ altta, kutusuz.
  * Pusula bunun dışında, sol üstte kalır.
  */
 export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkran: () => void }) {
   const { t } = useTranslation()
-  const { kip, zoom, kipAyarla, zoomIste, odaklanIste, donmeIste } = useHarita()
+  const { kip, zoom, detaylar, kipAyarla, zoomIste, odaklanIste, donmeIste, detaylarAcKapat } = useHarita()
   const { tutusma } = veri.bilgi
 
   return (
@@ -89,6 +89,9 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
           </>
         )}
         <Ayrac />
+        <Dugme etiket={t('harita.detaylar')} onClick={detaylarAcKapat} basili={detaylar}>
+          <IkonBilgi boyut={15} />
+        </Dugme>
         <Dugme etiket={t('harita.tamEkran')} onClick={tamEkran}>
           <IkonTamEkran boyut={15} />
         </Dugme>
@@ -101,9 +104,27 @@ function Ayrac() {
   return <span aria-hidden className="mx-1 h-4 w-px bg-white/15" />
 }
 
-function Dugme({ etiket, onClick, children }: { etiket: string; onClick: () => void; children: ReactNode }) {
+function Dugme({
+  etiket,
+  onClick,
+  basili,
+  children,
+}: {
+  etiket: string
+  onClick: () => void
+  /** Aç/kapat düğmesiyse açık mı; verilmezse sıradan düğme. */
+  basili?: boolean
+  children: ReactNode
+}) {
   return (
-    <button type="button" title={etiket} aria-label={etiket} onClick={onClick} className="grid size-[28px] place-items-center rounded-full hover:bg-white/10">
+    <button
+      type="button"
+      title={etiket}
+      aria-label={etiket}
+      aria-pressed={basili}
+      onClick={onClick}
+      className={`grid size-[28px] place-items-center rounded-full ${basili ? 'bg-white/20 hover:bg-white/25' : 'hover:bg-white/10'}`}
+    >
       {children}
     </button>
   )

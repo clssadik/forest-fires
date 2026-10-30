@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
+import { useHarita } from '../../durum/harita'
 import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi } from '../../olay/veri'
@@ -8,19 +9,20 @@ import type { OlayVerisi } from '../../olay/veri'
 const SAAT = 3_600_000
 
 /** Durum noktalarının renkleri: yandı, yanacak, gerçek alanın içinde, yanmıyor / dışında. */
-const RENK = { yandi: '#ec5a3a', yanacak: '#f2b84a', gercek: '#e8e2d6', yok: 'rgba(255,255,255,0.28)' }
+const RENK = { yandi: '#ec5a3a', yanacak: '#f2b84a', gercek: '#e8e2d6', yok: 'rgba(255,255,255,0.45)' }
 
 /**
- * Fare altındaki hücrenin ayrıntıları (sağ üst; sahne etiketlerinin önünde). Başlığın altında
+ * Fare altındaki hücrenin ayrıntıları (sağ üst; sahne etiketlerinin önünde; alttaki haptan açılıp kapanır). Başlığın altında
  * koordinat; "Arazi" bölümünde yükseklik ve örtü, "Yangın" bölümünde modelin varışı (t anına göre),
  * yanma olasılığı, gerçek yanmış alanın içinde mi ve FIRMS ilk tespiti.
  */
 export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const imlec = useOlay((d) => d.imlec)
+  const acik = useHarita((d) => d.detaylar)
   // Varış metni saat değişince güncellenir (her karede değil).
   const saat = useZaman((d) => Math.floor((d.t - veri.tutusmaMs) / SAAT))
-  if (!imlec || !veri.icinde(imlec.x, imlec.z)) return null
+  if (!acik || !imlec || !veri.icinde(imlec.x, imlec.z)) return null
   const { x, z } = imlec
   const { enlem, boylam } = veri.konum(x, z)
   const toa = veri.toaSaat(x, z)
@@ -36,9 +38,9 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
       : [t('imlec.yanacak', { saat: sayi(fark) }), RENK.yanacak]
 
   return (
-    <div className="pointer-events-none absolute top-3 right-4 z-30 w-[256px] rounded-[8px] bg-black/80 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+    <div className="pointer-events-none absolute top-3 right-4 z-30 w-[256px] rounded-[8px] bg-black/90 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
       <div className="font-semibold">{t('imlec.baslik')}</div>
-      <div className="text-[11.5px] text-white/50 tabular-nums">
+      <div className="text-[11.5px] text-white/75 tabular-nums">
         {sayi(enlem, 2)}° K · {sayi(boylam, 2)}° D
       </div>
 
@@ -63,7 +65,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
           {icinde ? t('imlec.icinde') : t('imlec.disinda')}
         </Satir>
         <Satir etiket={t('imlec.firms')}>
-          {Number.isFinite(firms) ? gunAySaat(veri.tutusmaMs + firms * SAAT) : <span className="text-white/40">{t('imlec.yok')}</span>}
+          {Number.isFinite(firms) ? gunAySaat(veri.tutusmaMs + firms * SAAT) : <span className="text-white/70">{t('imlec.yok')}</span>}
         </Satir>
       </Bolum>
     </div>
@@ -73,7 +75,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
 function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
   return (
     <div className="mt-2.5 border-t border-white/10 pt-2">
-      <div className="mb-1 text-[10.5px] font-semibold tracking-[0.06em] text-white/40 uppercase">{baslik}</div>
+      <div className="mb-1 text-[10.5px] font-semibold tracking-[0.06em] text-white/70 uppercase">{baslik}</div>
       <dl className="flex flex-col gap-[3px]">{children}</dl>
     </div>
   )
@@ -82,7 +84,7 @@ function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
 function Satir({ etiket, children }: { etiket: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="shrink-0 text-white/60">{etiket}</dt>
+      <dt className="shrink-0 text-white/80">{etiket}</dt>
       <dd className="flex items-center gap-1.5 font-medium whitespace-nowrap tabular-nums">{children}</dd>
     </div>
   )
