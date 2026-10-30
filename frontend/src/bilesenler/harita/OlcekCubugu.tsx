@@ -3,7 +3,8 @@ import { sayi } from '../../bicim'
 import { useHarita } from '../../durum/harita'
 
 const ADIMLAR = [50, 100, 250, 500, 1000, 2500, 5000, 10000, 20000, 50000]
-const HEDEF_PX = 150
+/** Çubuğun en fazla genişliği; alt ortadaki kontrol hapıyla dar haritada çakışmasın. */
+const HEDEF_PX = 110
 
 /** Kameraya göre güncellenen ölçek çubuğu: 0 · orta · uç (docs/02 §4.1). */
 export function OlcekCubugu() {
