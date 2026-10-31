@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import * as api from '../olay/api'
 import { OlayVerisi, type OnemliOlay } from '../olay/veri'
+import { useHarita } from './harita'
 import { useZaman } from './zaman'
 
 const SAAT = 3_600_000
@@ -15,9 +16,11 @@ interface OlayDurumu {
   veri: OlayVerisi | null
   /** Fare altındaki sahne noktası (km); null = arazinin dışında. */
   imlec: { x: number; z: number } | null
-  /** Zaman panelinden seçilen olay; haritada konumu işaretlenir. */
+  /** Seçilen olay (zaman paneli ya da Özet listesi): haritada yeri işaretlenir, ayrıntı kartı açılır. */
   seciliOlay: OnemliOlay | null
   olaySec: (olay: OnemliOlay | null) => void
+  /** Olayı seçer, zamanı o ana alır ve kamerayı yerine uçurur; seçili olana basmak seçimi kaldırır. */
+  olayaGit: (olay: OnemliOlay) => void
   /** Yangını yükler; aynı yangın zaten yüklüyse yalnızca zaman aralığını kurar. */
   yukle: (ad: string) => Promise<void>
   zamaniKur: () => void
@@ -32,6 +35,12 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
   imlec: null,
   seciliOlay: null,
   olaySec: (seciliOlay) => set({ seciliOlay }),
+  olayaGit: (olay) => {
+    if (get().seciliOlay === olay) return set({ seciliOlay: null })
+    set({ seciliOlay: olay })
+    useZaman.getState().zamanaGit(olay.zaman)
+    if (olay.x !== undefined && olay.z !== undefined) useHarita.getState().odaklanIste(olay.x, olay.z)
+  },
 
   yukle: async (ad) => {
     if (get().ad === ad && get().yukleme !== 'hata') {

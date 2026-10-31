@@ -217,12 +217,24 @@
       "uyduGecisi": "Uydu tespiti",
       "hizliBuyume": "Hızlanma",
       "sirtaUlasma": "Sırta ulaştı"
-    },
-    "ozet": {
-      "uyduGecisi": "Uydu {{firms}} · model {{model}} ha",
-      "hizliBuyume": "{{deger}} ha/sa",
-      "sirtaUlasma": "{{deger}} m"
     }
+  },
+  "olayAyrintisi": {
+    "olay": "Olay",
+    "kaynak": "Kaynak",
+    "kaynaklar": {
+      "tutusma": "Model girdisi",
+      "uyduGecisi": "NASA FIRMS uydusu",
+      "hizliBuyume": "Model",
+      "sirtaUlasma": "Model"
+    },
+    "uyduAlani": "Uydu alanı",
+    "modelAlani": "Model alanı",
+    "yeniTespit": "Bu geçişte yeni",
+    "buyume": "Büyüme",
+    "sirt": "Sırt yüksekliği",
+    "egim": "Eğim",
+    "hava": "Hava"
   },
   "dogrulama": {
     "yukleniyor": "Bölge verisi yükleniyor…",
@@ -435,7 +447,6 @@
     "profil": "Arazi yüksekliği",
     "profilAciklama": "Tutuşmadan ana yayılım yönü boyunca arazi yüksekliği; imleç cephenin o andaki yeri",
     "olayKarti": {
-      "grup": "{{sayi}} olay · {{aralik}}",
       "kapat": "Kapat"
     },
     "seritler": {

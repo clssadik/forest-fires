@@ -29,6 +29,8 @@ export const yanginUniformlari = {
   uHata: { value: 0 },
   /** Model alanının gerçek alana eşitlendiği an (saat); hata katmanı bu anki modeli karşılaştırır. */
   uHataEsik: { value: 0 },
+  /** Seçili uydu geçişinin yeni tespit ettiği aralık (saat): x < FIRMS varışı ≤ y; z = vurgu 0–1. */
+  uGecis: { value: new Vector3(0, 0, 0) },
   /** Gerçek (duvar saati) zaman, saniye: dalgalar, alev titremesi, duman döngüsü. */
   uZaman: { value: 0 },
   /** Rüzgârın estiği yön (x, z) × hız / 40 km/sa. */
@@ -64,6 +66,7 @@ uniform float uFirms;
 uniform float uIzokron;
 uniform float uHata;
 uniform float uHataEsik;
+uniform vec3 uGecis;
 uniform float uZaman;
 uniform vec2 uRuzgar;
 uniform vec3 uGunesYonu;
@@ -183,6 +186,13 @@ vec3 firmsRengi = mix(vec3(1.0, 0.3, 0.1), vec3(0.75, 0.16, 0.1), firmsEski);
 renk = mix(renk, firmsRengi, firmsIc * (0.32 - 0.14 * firmsEski) * uFirms);
 renk = mix(renk, firmsRengi, firmsKenar * 0.85 * uFirms);
 
+// Seçili uydu geçişinin bu geçişte yeni gördüğü pikseller: mavi dolgu ve nabız gibi atan kenar
+float gecisIc = step(uGecis.x, vFirms) * step(vFirms, uGecis.y);
+float gecisKenar = min(fwidth(gecisIc), 1.0);
+vec3 gecisRengi = vec3(0.37, 0.66, 0.95);
+renk = mix(renk, gecisRengi, gecisIc * 0.7 * uGecis.z);
+renk = mix(renk, vec3(0.85, 0.94, 1.0), gecisKenar * (0.65 + 0.35 * sin(uZaman * 4.0)) * uGecis.z);
+
 // Gerçek alanın sınırı (beyaz kesikli); yumuşatılmış orandan, küçük lekelerin çevresine çizilmesin
 float gs = fwidth(vGercekYumusak);
 float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercekYumusak - 0.5));
@@ -230,7 +240,9 @@ totalEmissiveRadiance += mix(uUfuk, uGok, 0.35) * fres * suM * uArazi * 0.85;
 float parca = smoothstep(0.25, 0.65, yGurultu(yp * 2.2 + 3.7));
 float cephe = yandi * exp(-max(yas, 0.0) / 0.5) * (0.35 + 0.65 * parca);
 float kor = yandi * smoothstep(8.0, 0.0, yas) * smoothstep(0.7, 0.85, n3) * step(0.5, n2) * (0.4 + 0.6 * parca);
-totalEmissiveRadiance += vec3(1.0, 0.28, 0.05) * (cephe * (1.2 + 2.0 * n3) + kor * 0.45) * uYayilim;`,
+totalEmissiveRadiance += vec3(1.0, 0.28, 0.05) * (cephe * (1.2 + 2.0 * n3) + kor * 0.45) * uYayilim;
+// Seçili uydu geçişi kendi ışığıyla: gece de görünsün
+totalEmissiveRadiance += vec3(0.22, 0.48, 0.9) * (gecisIc * 0.45 + gecisKenar * (0.8 + 0.4 * sin(uZaman * 4.0))) * uGecis.z;`,
     )
 }
 

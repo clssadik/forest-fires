@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent, type RefObject } from 'react'
+import { useMemo, useRef, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAySaat, saat as saatBicim, sayi, yuzdeBicim } from '../../bicim'
-import { useHarita } from '../../durum/harita'
+import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
 import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { olayOzeti } from '../altSerit/OnemliOlaylar'
-import { OlayIkonu } from '../OlayIkonu'
 import { IkonDuraklat, IkonOynat } from '../ikonlar'
 
 const SAAT = 3_600_000
@@ -96,7 +93,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const zaman = useZaman((d) => d.t)
   const an = Math.floor(zaman / DAKIKA) * DAKIKA
   const zamanaGit = useZaman((d) => d.zamanaGit)
-  const odaklanIste = useHarita((d) => d.odaklanIste)
   const ref = useRef<HTMLDivElement>(null)
 
   const oran = (x: number) => Math.min(Math.max((x - baslangic) / Math.max(bitis - baslangic, 1), 0), 1)
@@ -193,39 +189,10 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     const o = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1)
     zamanaGit(baslangic + o * (bitis - baslangic))
   }
-  // Tıklanan olay noktasının kartı (anahtar: olayın zamanı). Dışarı tıklamak yalnızca
-  // kartı kapatır, haritadaki işaret kalır; Esc ve × ikisini birden kaldırır.
-  const [acik, setAcik] = useState<number | null>(null)
-  const olaySec = useOlay((d) => d.olaySec)
-  const kartRef = useRef<HTMLDivElement>(null)
-  const kapat = () => {
-    setAcik(null)
-    olaySec(null)
-  }
-  useEffect(() => {
-    if (acik === null) return
-    const dinle = (e: Event) => {
-      if (e instanceof KeyboardEvent) {
-        if (e.key === 'Escape') {
-          setAcik(null)
-          olaySec(null)
-        }
-      } else if (!kartRef.current?.contains(e.target as Node)) setAcik(null)
-    }
-    document.addEventListener('pointerdown', dinle)
-    document.addEventListener('keydown', dinle)
-    return () => {
-      document.removeEventListener('pointerdown', dinle)
-      document.removeEventListener('keydown', dinle)
-    }
-  }, [acik, olaySec])
-  const git = (o: OnemliOlay) => {
-    olaySec(o)
-    zamanaGit(o.zaman)
-    if (o.x !== undefined && o.z !== undefined) odaklanIste(o.x, o.z)
-  }
+  // Tıklanan olay seçilir: ayrıntı kartı haritanın üstünde açılır (OlayAyrintisi), yer işaretlenir.
+  const seciliOlay = useOlay((d) => d.seciliOlay)
+  const olayaGit = useOlay((d) => d.olayaGit)
   const imlec = oran(zaman)
-  const acikOlay = veri.olaylar.find((o) => o.zaman === acik)
   // Olay noktasının grafikteki yüksekliği (px, üstten); SeritGrafigi ile aynı ölçek.
   const olayY = (o: OnemliOlay) => {
     const v = o.tur === 'tutusma' ? 0 : o.tur === 'uyduGecisi' ? veri.firmsAlanHa(o.zaman) : veri.yananAlanHa(o.zaman)
@@ -235,15 +202,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
 
   return (
     <div className="relative select-none">
-      {acikOlay && (
-        <OlayKarti
-          kartRef={kartRef}
-          olaylar={[acikOlay]}
-          oran={oran(acikOlay.zaman)}
-          git={git}
-          kapat={kapat}
-        />
-      )}
       {seritler.map((sr, i) => (
         <div
           key={sr.kimlik}
@@ -275,21 +233,15 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {
                 const metin = `${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`
-                const secili = acik === o.zaman
+                const secili = seciliOlay === o
                 return (
                   <button
                     key={`${o.tur}-${o.zaman}`}
                     type="button"
-                    // Kartın dışına tıklama onu kapatır; noktanın kendisi kapatıp yeniden açmasın.
-                    onPointerDown={(e) => e.nativeEvent.stopImmediatePropagation()}
-                    onClick={() => {
-                      if (secili) return kapat()
-                      git(o)
-                      setAcik(o.zaman)
-                    }}
-                    title={secili ? undefined : metin}
+                    onClick={() => olayaGit(o)}
+                    title={metin}
                     aria-label={metin}
-                    aria-expanded={secili}
+                    aria-pressed={secili}
                     className="group absolute z-20 grid size-[14px] -translate-1/2 place-items-center"
                     style={{ left: `${oran(o.zaman) * 100}%`, top: olayY(o) }}
                   >
@@ -330,71 +282,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           className="pointer-events-none absolute top-0 bottom-0 w-[1.5px] -translate-x-1/2 bg-metin"
           style={{ left: `${imlec * 100}%` }}
         />
-      </div>
-    </div>
-  )
-}
-
-/** Olay işaretine tıklanınca üstünde açılan kart: gruptaki her olay için başlık, saat ve kısa özet. */
-function OlayKarti({
-  kartRef,
-  olaylar,
-  oran,
-  git,
-  kapat,
-}: {
-  kartRef: RefObject<HTMLDivElement | null>
-  olaylar: OnemliOlay[]
-  oran: number
-  git: (o: OnemliOlay) => void
-  kapat: () => void
-}) {
-  const { t } = useTranslation()
-  return (
-    <div className="pointer-events-none absolute bottom-full z-40 mb-2" style={{ left: ETIKET, right: SAG }}>
-      <div
-        ref={kartRef}
-        role="dialog"
-        aria-label={t('olayDuzeni.seritler.olaylar')}
-        className="pointer-events-auto absolute bottom-0 w-[260px] rounded-[10px] border border-cizgi bg-panel p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
-        style={{ left: `${oran * 100}%`, transform: `translateX(-${etiketKaymasi(oran)}%)` }}
-      >
-        <div className="flex items-center justify-between px-2 pt-1 pb-1.5 text-[11.5px] text-soluk">
-          <span>
-            {olaylar.length > 1
-              ? t('olayDuzeni.olayKarti.grup', {
-                  sayi: olaylar.length,
-                  aralik: `${gunAySaat(olaylar[0].zaman)} – ${saatBicim(olaylar.at(-1)!.zaman)}`,
-                })
-              : gunAySaat(olaylar[0].zaman)}
-          </span>
-          <button type="button" onClick={kapat} aria-label={t('olayDuzeni.olayKarti.kapat')} className="px-1 text-[14px] leading-none hover:text-metin">
-            ×
-          </button>
-        </div>
-        <ul className="max-h-[300px] overflow-y-auto">
-          {olaylar.map((o) => (
-            <li key={`${o.tur}-${o.zaman}`}>
-              <button
-                type="button"
-                onClick={() => git(o)}
-                title={t('olaylar.git')}
-                className="flex w-full items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-left text-[12.5px] leading-[16px] hover:bg-yuzey"
-              >
-                <span className="grid size-[22px] shrink-0 place-items-center rounded-[6px] bg-yuzey">
-                  <OlayIkonu tur={o.tur} boyut={13} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline gap-2">
-                    <span className="truncate font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
-                    <span className="ml-auto text-[11.5px] text-soluk tabular-nums">{saatBicim(o.zaman)}</span>
-                  </span>
-                  {olayOzeti(o, t) && <span className="block truncate text-[11.5px] text-soluk">{olayOzeti(o, t)}</span>}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   )
@@ -456,5 +343,3 @@ function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   )
 }
 
-/** İmleç etiketinin yatay kayması (%): ortada 50, uçlarda 0 / 100. */
-const etiketKaymasi = (o: number) => (o < 0.5 ? Math.min(o / 0.05, 1) * 50 : 100 - Math.min((1 - o) / 0.05, 1) * 50)

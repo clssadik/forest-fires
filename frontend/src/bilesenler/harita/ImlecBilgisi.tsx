@@ -72,7 +72,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
+export function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
   return (
     <div className="mt-2.5 border-t border-white/10 pt-2">
       <div className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.07em] text-ates-acik uppercase">
@@ -84,7 +84,7 @@ function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
   )
 }
 
-function Satir({ etiket, children }: { etiket: string; children: ReactNode }) {
+export function Satir({ etiket, children }: { etiket: string; children: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <dt className="shrink-0 text-white/80">{etiket}</dt>

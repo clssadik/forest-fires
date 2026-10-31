@@ -226,6 +226,19 @@ export class OlayVerisi {
     return k < 0 ? 0 : this.r.gercek[k] / 255
   }
 
+  /**
+   * Uydu geçişinin yeni tespit ettiği FIRMS varış aralığı (saat, alt açık, üst kapalı): önceki
+   * geçişten bu geçişe. Arka uç olay saatini 2 ondalığa yuvarladığı için uçlar biraz kaydırılır.
+   */
+  gecisAraligi(olay: OnemliOlay): [number, number] | null {
+    if (olay.tur !== 'uyduGecisi') return null
+    const gecisler = this.olaylar.filter((o) => o.tur === 'uyduGecisi')
+    const i = gecisler.indexOf(olay)
+    const saatOf = (o: OnemliOlay) => (o.zaman - this.tutusmaMs) / SAAT
+    const onceki = i > 0 ? saatOf(gecisler[i - 1]) + 0.01 : -Infinity
+    return [onceki, saatOf(olay) + 0.01]
+  }
+
   /** WGS84 konumu (köşelerden bilineer; 50 km'de hata < 10 m). */
   konum(x: number, z: number) {
     const u = (x + this.genislikKm / 2) / this.genislikKm
