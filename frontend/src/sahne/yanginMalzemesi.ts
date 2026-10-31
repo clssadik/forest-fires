@@ -15,7 +15,11 @@ import { DOKU_GURULTU_GLSL, gurultuDokusu } from './gurultuDokusu'
 /** Yanmayan hücrelerin varış zamanı yerine yazılan değer (saat); hiçbir `uT` ona ulaşmaz. */
 export const YANMADI_SAAT = 10_000
 
-/** Tüm malzemelerin paylaştığı uniform nesnesi; Sahne her karede günceller. */
+/**
+ * Tüm malzemelerin paylaştığı uniform nesnesi; Sahne her karede günceller. Geliştirmede bu dosya
+ * sıcak yenilenirse yeni bir nesne doğar, derlenmiş malzemeler eskisini tutar ve zaman ile katman
+ * anahtarları sahneye ulaşmaz: bu yüzden sayfa baştan yüklenir (dosyanın sonu).
+ */
 export const yanginUniformlari = {
   uT: { value: -1 },
   uYanikIzi: { value: 0.9 },
@@ -308,3 +312,5 @@ float kor = step(0.0, vYas) * smoothstep(4.0, 0.5, vYas) * uYayilim;
 totalEmissiveRadiance += vec3(0.9, 0.22, 0.03) * (alev * (0.25 + 0.55 * vTac) * titreme + kor * 0.12 * (1.0 - vTac));`,
     )
 }
+
+if (import.meta.hot) import.meta.hot.accept(() => location.reload())
