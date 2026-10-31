@@ -8,7 +8,8 @@ import { TEMALAR } from '../altSerit/grafikTemalari'
 import { OnemliOlaylar } from '../altSerit/OnemliOlaylar'
 
 /**
- * Sağ çekmecenin Özet sekmesi: bitişteki doğruluk, yükseklik profili ve önemli olaylar. Seçili an ve
+ * Sağ çekmecenin Özet sekmesi: bitişteki doğruluk, yükseklik profili ve önemli olaylar. Yalnızca
+ * sayılar ve kısa adlar; açıklamalar ipucunda. Seçili an ve
  * o ana kadarki alanlar alttaki zaman panelinde olduğu için burada tekrarlanmaz. Tek boşluk ölçeği:
  * bölümler 20 px yan, 16 px dikey boşlukla.
  */
@@ -28,23 +29,11 @@ function Dogruluk({ veri }: { veri: OlayVerisi }) {
   const m = veri.bilgi.model
   if (m.bitis_dice === null) return null
   const daire = m.daire_dice
-  const iyi = daire !== null && m.bitis_dice > daire
   return (
     <section className="shrink-0 border-t border-cizgi px-5 py-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 title={t('olayDuzeni.dogrulukAciklama')} className="cursor-help text-[13.5px] leading-[18px] font-semibold">
-          {t('olayDuzeni.dogruluk')}
-        </h2>
-        {daire !== null && (
-          <span
-            className={`rounded-full px-2.5 py-1 text-[11.5px] leading-4 font-semibold ${
-              'bg-white/10 text-metin'
-            }`}
-          >
-            {t(iyi ? 'olayDuzeni.dahaIyi' : 'olayDuzeni.dahaZayif')}
-          </span>
-        )}
-      </div>
+      <h2 title={t('olayDuzeni.dogrulukAciklama')} className="cursor-help text-[13.5px] leading-[18px] font-semibold">
+        {t('olayDuzeni.dogruluk')}
+      </h2>
       <div className="mt-3 space-y-2.5">
         <Cubuk etiket={t('olayDuzeni.buModel')} oran={m.bitis_dice} renk="bg-guclu" guclu />
         {daire !== null && <Cubuk etiket={t('olayDuzeni.daire')} oran={daire} renk="bg-ikincil/50" aciklama={t('olayDuzeni.daireAciklama')} />}
@@ -82,10 +71,9 @@ function Profil({ veri }: { veri: OlayVerisi }) {
   const tikSayisi = Math.floor(km / adim) + 1
   return (
     <section className="flex shrink-0 flex-col border-t border-cizgi px-5 pt-4 pb-3">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-[13.5px] leading-[18px] font-semibold">{t('olayDuzeni.profil')}</h2>
-        <span className="text-[12px] leading-4 text-ikincil">{t('olayDuzeni.profilAlt', { km: sayi(km, 1) })}</span>
-      </div>
+      <h2 title={t('olayDuzeni.profilAciklama')} className="cursor-help text-[13.5px] leading-[18px] font-semibold">
+        {t('olayDuzeni.profil')}
+      </h2>
       <div className="mt-2 flex h-[92px]">
         <CizgiGrafigi
           veri={noktalar}

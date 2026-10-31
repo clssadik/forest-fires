@@ -327,6 +327,12 @@ def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> Ola
     firms_ha = buyume_egrisi(referans.firms_toa, referans.kapsam, saatler, referans.hucre_ha)
     cephe = cephe_mesafesi(toa, ortam.tutusma, hucre_m, saatler)
 
+    def temsilci(hucreler: tuple[np.ndarray, np.ndarray]) -> tuple[int, int]:
+        """Ağırlık merkezine en yakın hücre: yangın birkaç parçaysa merkez yanmamış bir yere düşebilir."""
+        s, c = hucreler
+        en = int(np.argmin((s - s.mean()) ** 2 + (c - c.mean()) ** 2))
+        return int(s[en]), int(c[en])
+
     olaylar = [{"tur": "tutusma", "saat": 0.0, **sahne(*ortam.tutusma, 1)}]
     onceki = -np.inf
     for an in gecis_anlari(referans.firms_toa, referans.kapsam, en_az_oran=0.0):
@@ -341,7 +347,7 @@ def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> Ola
             {
                 "tur": "uyduGecisi",
                 "saat": round(saat, 2),
-                **sahne(hucreler[0].mean(), hucreler[1].mean(), 1),
+                **sahne(*temsilci(hucreler), 1),
                 "firms_ha": round(gorulen[0]),
                 "model_ha": round(modelde[0]),
             }
@@ -354,7 +360,7 @@ def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> Ola
             {
                 "tur": "hizliBuyume",
                 "saat": float(saat),
-                **sahne(hucreler[0].mean(), hucreler[1].mean(), 1),
+                **sahne(*temsilci(hucreler), 1),
                 "ha_sa": round(ha_sa),
             }
         )

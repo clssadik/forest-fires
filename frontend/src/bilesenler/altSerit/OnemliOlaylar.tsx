@@ -3,20 +3,24 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi } from '../../bicim'
 import { useHarita } from '../../durum/harita'
+import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
 import { OlayIkonu } from '../OlayIkonu'
 
 /**
  * Önemli olaylar çizelgesi (arka ucun otomatik bulduğu olaylar): dikey zaman çizgisi, her olayın
- * adı, tarihi ve kısa özeti. Tıklanınca zaman o ana atlar ve
- * kamera olayın yerine uçar. İmleçten önceki son olay vurgulanır, gelecektekiler soluk.
+ * adı, tarihi ve kısa özeti. Tıklanınca zaman o ana atlar, kamera olayın yerine uçar ve yer
+ * haritada işaretlenir (aynı olaya yeniden basmak işareti kaldırır). İmleçten önceki son olay
+ * vurgulanır, gelecektekiler soluk.
  */
 export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const zaman = useZaman((d) => d.t)
   const zamanaGit = useZaman((d) => d.zamanaGit)
   const odaklanIste = useHarita((d) => d.odaklanIste)
+  const isaretli = useOlay((d) => d.seciliOlay)
+  const olaySec = useOlay((d) => d.olaySec)
   const secili = veri.olaylar.findLast((o) => o.zaman <= zaman)
   const liste = useRef<HTMLUListElement>(null)
 
@@ -26,18 +30,18 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   }, [secili])
 
   const git = (o: OnemliOlay) => {
+    if (isaretli?.zaman === o.zaman && isaretli.tur === o.tur) {
+      olaySec(null)
+      return
+    }
+    olaySec(o)
     zamanaGit(o.zaman)
     if (o.x !== undefined && o.z !== undefined) odaklanIste(o.x, o.z)
   }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col border-t border-cizgi">
-      <header className="flex shrink-0 items-center gap-2 px-5 pt-4 pb-2">
-        <h2 className="text-[13.5px] leading-[18px] font-semibold">{t('olaylar.baslik')}</h2>
-        <span className="rounded-full bg-yuzey px-2 py-0.5 text-[11.5px] leading-4 font-medium text-ikincil tabular-nums">
-          {veri.olaylar.length}
-        </span>
-      </header>
+      <h2 className="shrink-0 px-5 pt-4 pb-2 text-[13.5px] leading-[18px] font-semibold">{t('olaylar.baslik')}</h2>
       <ul ref={liste} className="relative flex-1 overflow-y-auto px-3 pb-3">
         {/* Dikey zaman çizgisi: ikonların ortasından geçer (12 px liste + 8 px düğme + 12 px yarım ikon). */}
         <span className="pointer-events-none absolute top-3 bottom-3 left-[31px] w-px bg-cizgi" />

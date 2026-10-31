@@ -210,18 +210,18 @@
     "km": "{{deger}} km"
   },
   "olaylar": {
-    "baslik": "Önemli olaylar",
-    "git": "Bu ana ve yere git",
+    "baslik": "Olaylar",
+    "git": "Haritada göster",
     "turler": {
-      "tutusma": "Yangın başladı",
-      "uyduGecisi": "Uydu yangını gördü",
-      "hizliBuyume": "Yangın hızlandı",
-      "sirtaUlasma": "Yangın sırta ulaştı"
+      "tutusma": "Tutuşma",
+      "uyduGecisi": "Uydu tespiti",
+      "hizliBuyume": "Hızlanma",
+      "sirtaUlasma": "Sırta ulaştı"
     },
     "ozet": {
-      "uyduGecisi": "Uydu {{firms}} ha · model {{model}} ha",
-      "hizliBuyume": "Saatte {{deger}} ha büyüdü",
-      "sirtaUlasma": "{{deger}} m yükseklikte"
+      "uyduGecisi": "Uydu {{firms}} · model {{model}} ha",
+      "hizliBuyume": "{{deger}} ha/sa",
+      "sirtaUlasma": "{{deger}} m"
     }
   },
   "dogrulama": {
@@ -433,7 +433,7 @@
     "yakitNemi": "Yakıt nemi",
     "uyduAlani": "Uydu (FIRMS)",
     "profil": "Arazi yüksekliği",
-    "profilAlt": "{{km}} km yayılım hattı",
+    "profilAciklama": "Tutuşmadan ana yayılım yönü boyunca arazi yüksekliği; imleç cephenin o andaki yeri",
     "olayKarti": {
       "grup": "{{sayi}} olay · {{aralik}}",
       "kapat": "Kapat"
@@ -450,8 +450,6 @@
     "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
     "buModel": "Bu model",
     "daire": "Basit daire",
-    "daireAciklama": "Tutuşma noktasında, gerçek alanla aynı büyüklükte bir daire: modelin geçmesi beklenen en basit tahmin",
-    "dahaIyi": "Basit tahminden iyi",
-    "dahaZayif": "Basit tahminin gerisinde"
+    "daireAciklama": "Tutuşma noktasında, gerçek alanla aynı büyüklükte bir daire: modelin geçmesi beklenen en basit tahmin"
   }
 }
