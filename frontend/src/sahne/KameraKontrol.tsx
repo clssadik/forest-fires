@@ -87,8 +87,9 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
     // "Tutuşmaya git": bakış yönü korunur, bakılan nokta ve uzaklık yumuşakça değişir.
     if (d.odak && kontrol) {
       const hedef1 = new Vector3(d.odak.x, veri.araziY(d.odak.x, d.odak.z), d.odak.z)
+      const odakZoom = d.odak.zoom ?? ODAK_ZOOM
       const kamera1 = camera.position.clone().sub(hedef)
-      if (camera instanceof PerspektifKamera) kamera1.setLength(VARSAYILAN_UZAKLIK / ODAK_ZOOM)
+      if (camera instanceof PerspektifKamera) kamera1.setLength(VARSAYILAN_UZAKLIK / odakZoom)
       kamera1.add(hedef1)
       const zoom0 = camera instanceof OrtoKamera ? camera.zoom : 1
       ucus.current = {
@@ -98,7 +99,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
         kamera0: camera.position.clone(),
         kamera1,
         zoom0,
-        zoom1: camera instanceof OrtoKamera ? VARSAYILAN_ORTO_ZOOM * ODAK_ZOOM * 2 : 1,
+        zoom1: camera instanceof OrtoKamera ? VARSAYILAN_ORTO_ZOOM * odakZoom * 2 : 1,
       }
       d.odakTamamlandi()
     }

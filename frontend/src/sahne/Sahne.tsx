@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { MathUtils } from 'three'
 import { useHarita } from '../durum/harita'
 import { etkinOpaklik, useKatmanlar } from '../durum/katmanlar'
-import { useOlay } from '../durum/olay'
 import { useZaman } from '../durum/zaman'
 import type { OlayVerisi } from '../olay/veri'
 import { Agaclar } from './Agaclar'
@@ -12,6 +11,7 @@ import { Arazi } from './Arazi'
 import { Bulutlar } from './Bulutlar'
 import { Cevre } from './cevre'
 import { CevreArazisi } from './CevreArazisi'
+import { GecisNoktalari } from './GecisNoktalari'
 import { Gokyuzu } from './Gokyuzu'
 import { KameraKontrol } from './KameraKontrol'
 import { RuzgarCizgileri } from './RuzgarCizgileri'
@@ -45,11 +45,6 @@ function UniformGuncelleyici({ veri }: { veri: OlayVerisi }) {
     yumusat(U.uFirms, etkinOpaklik(k, 'firms'))
     yumusat(U.uIzokron, etkinOpaklik(k, 'izokron'))
     yumusat(U.uHata, etkinOpaklik(k, 'hata'))
-    // Seçili uydu geçişinin yeni pikselleri; seçim kalkınca son aralık korunur, vurgu söner.
-    const secili = useOlay.getState().seciliOlay
-    const aralik = secili ? veri.gecisAraligi(secili) : null
-    if (aralik) U.uGecis.value.set(Math.max(aralik[0], -1), aralik[1], U.uGecis.value.z)
-    U.uGecis.value.z = MathUtils.damp(U.uGecis.value.z, aralik ? 1 : 0, 10, dt)
     yumusat(U.uArazi, etkinOpaklik(k, 'arazi') > 0 ? 1 : 0)
     // Arazi (3B) kapalıyken kabartma düzleşir; kaydırıcı kabartma şiddetidir.
     yumusat(U.uKabartma, Math.max(etkinOpaklik(k, 'arazi'), 0.02))
@@ -87,6 +82,7 @@ export function Sahne({ veri }: { veri: OlayVerisi }) {
       {kip === '3B' && <Bulutlar />}
       <RuzgarCizgileri veri={veri} opaklik={ruzgar} />
       {yayilim && <YayilimIsaretleri veri={veri} kabartma={etiketKabartma} />}
+      <GecisNoktalari veri={veri} />
       <SeciliOlayIsareti veri={veri} kabartma={etiketKabartma} />
 
       <UniformGuncelleyici veri={veri} />

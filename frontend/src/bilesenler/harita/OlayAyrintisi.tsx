@@ -93,7 +93,7 @@ function OlayDegerleri({ olay, veri }: { olay: OnemliOlay; veri: OlayVerisi }) {
     return (
       <>
         <Satir etiket={t('olayAyrintisi.yeniTespit')}>
-          <span aria-hidden className="size-[7px] rounded-full bg-[#5fa8f2]" />
+          <span aria-hidden className="size-[7px] rounded-full bg-ates-acik shadow-[0_0_6px_rgba(242,138,94,0.9)]" />
           {sayi(Math.max(h.firms_ha - onceki, 0))} ha
         </Satir>
         <Satir etiket={t('olayAyrintisi.uyduAlani')}>{sayi(h.firms_ha)} ha</Satir>

@@ -35,9 +35,9 @@ interface HaritaDurumu {
   kipAyarla: (kip: GorunumKipi) => void
   zoomIste: (zoom: number) => void
   zoomTamamlandi: () => void
-  /** Kameranın yumuşak geçişle gideceği sahne noktası (km); null = istek yok. */
-  odak: { x: number; z: number } | null
-  odaklanIste: (x: number, z: number) => void
+  /** Kameranın yumuşak geçişle gideceği sahne noktası (km) ve varışta yakınlaştırması (yoksa varsayılan odak); null = istek yok. */
+  odak: { x: number; z: number; zoom?: number } | null
+  odaklanIste: (x: number, z: number, zoom?: number) => void
   odakTamamlandi: () => void
   /** 3B döndürme isteği (derece): yatay = pusula yönünde, dikey = eğim; kuzey = kuzeyi yukarı al. */
   donme: { yatay: number; dikey: number; kuzey: boolean } | null
@@ -60,7 +60,7 @@ export const useHarita = create<HaritaDurumu>((set) => ({
   zoomIste: (zoom) => set({ hedefZoom: zoom }),
   zoomTamamlandi: () => set({ hedefZoom: null }),
   odak: null,
-  odaklanIste: (x, z) => set({ odak: { x, z } }),
+  odaklanIste: (x, z, zoom) => set({ odak: { x, z, zoom } }),
   odakTamamlandi: () => set({ odak: null }),
   donme: null,
   donmeIste: (yatay, dikey) => set({ donme: { yatay, dikey, kuzey: false } }),

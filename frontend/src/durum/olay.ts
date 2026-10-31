@@ -7,6 +7,8 @@ import { useZaman } from './zaman'
 const SAAT = 3_600_000
 /** Ekran açılınca imlecin durduğu an (tutuşmadan sonra, saat). */
 const ACILIS_SAAT = 24
+/** Uydu geçişi seçilince kameranın yakınlaştırması (geçişin alanı ekrana sığsın). */
+const GECIS_ZOOM = 0.6
 
 interface OlayDurumu {
   /** Yüklenen ya da yüklenmekte olan yangın (doğrulama ekranındaki seçimle aynı). */
@@ -39,7 +41,9 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
     if (get().seciliOlay === olay) return set({ seciliOlay: null })
     set({ seciliOlay: olay })
     useZaman.getState().zamanaGit(olay.zaman)
-    if (olay.x !== undefined && olay.z !== undefined) useHarita.getState().odaklanIste(olay.x, olay.z)
+    // Uydu geçişi km'lerce alana yayılır: yakından bakınca ekranın tamamı vurgunun içinde kalır.
+    if (olay.x !== undefined && olay.z !== undefined)
+      useHarita.getState().odaklanIste(olay.x, olay.z, olay.tur === 'uyduGecisi' ? GECIS_ZOOM : undefined)
   },
 
   yukle: async (ad) => {
