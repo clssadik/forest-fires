@@ -8,17 +8,17 @@ import { TEMALAR } from '../altSerit/grafikTemalari'
 import { OnemliOlaylar } from '../altSerit/OnemliOlaylar'
 
 /**
- * Olay ekranının sağ sütunu: bitişteki doğruluk, yükseklik profili ve önemli olaylar. Seçili an ve
+ * Sağ çekmecenin Özet sekmesi: bitişteki doğruluk, yükseklik profili ve önemli olaylar. Seçili an ve
  * o ana kadarki alanlar alttaki zaman panelinde olduğu için burada tekrarlanmaz. Tek boşluk ölçeği:
  * bölümler 20 px yan, 16 px dikey boşlukla.
  */
-export function AnSutunu({ veri }: { veri: OlayVerisi }) {
+export function OzetSekmesi({ veri }: { veri: OlayVerisi }) {
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col border-l border-cizgi bg-panel [&>*:first-child]:border-t-0">
+    <div className="flex min-h-0 flex-1 flex-col [&>*:first-child]:border-t-0">
       <Dogruluk veri={veri} />
       <Profil veri={veri} />
       <OnemliOlaylar veri={veri} />
-    </aside>
+    </div>
   )
 }
 

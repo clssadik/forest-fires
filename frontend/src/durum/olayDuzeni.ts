@@ -1,15 +1,15 @@
 import { create } from 'zustand'
 
 /**
- * Olay ekranının yerleşimi: soldaki çekmecede hangi sekmenin açık olduğu (yoksa null). Bu
+ * Olay ekranının yerleşimi: sağdaki çekmecede hangi sekmenin açık olduğu (yoksa null). Bu
  * tarayıcıda (localStorage) hatırlanır; depolama kapalıysa varsayılanla açılır. Alttaki zaman
  * şeritleri her zaman açıktır, seçenek değildir.
  */
-export const CEKMECELER = ['katmanlar', 'analiz', 'kanitlar', 'notlar'] as const
+export const CEKMECELER = ['ozet', 'katmanlar', 'analiz', 'kanitlar', 'notlar'] as const
 export type Cekmece = (typeof CEKMECELER)[number]
 
 const ANAHTAR = 'orman.olayDuzeni'
-export const VARSAYILAN_CEKMECE: Cekmece | null = 'katmanlar'
+export const VARSAYILAN_CEKMECE: Cekmece | null = 'ozet'
 
 export function cekmeceOku(depo: Storage | undefined = globalThis.localStorage): Cekmece | null {
   try {

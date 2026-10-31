@@ -1,7 +1,7 @@
 {
   "uygulama": {
     "ad": "Orman Yangını Analizi",
-    "altBaslik": "Yayılım modelleme ve doğrulama"
+    "logo": "FIRE"
   },
   "sunucu": {
     "bagli": "Sunucu bağlı",
@@ -18,14 +18,14 @@
       "iha": "İHA'lar",
       "kaynaklar": "Kaynaklar"
     },
-    "kipYakinda": "Bu kip henüz hazır değil",
+    "kipYakinda": "yakında",
     "menuler": {
       "gorunum": "Görünüm",
       "analiz": "Analiz",
       "paylas": "Paylaş"
     },
     "ayarlar": "Ayarlar",
-    "kucult": "Küçült"
+    "menu": "Ana menü"
   },
   "harita": {
     "kuzey": "K",
@@ -51,6 +51,7 @@
   },
   "sagPanel": {
     "sekmeler": {
+      "ozet": "Özet",
       "katmanlar": "Katmanlar",
       "analiz": "Analiz",
       "kanitlar": "Kanıtlar",
