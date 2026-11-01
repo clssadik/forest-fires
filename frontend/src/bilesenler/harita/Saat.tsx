@@ -14,8 +14,8 @@ export function Saat({ veri }: { veri: OlayVerisi }) {
   const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
   return (
     <div className="pointer-events-none absolute top-3 right-5 z-30 text-right whitespace-nowrap text-white select-none [text-shadow:0_1px_4px_rgba(0,0,0,0.65)]">
-      <div className="text-[26px] leading-[30px] font-light tracking-[0.02em] tabular-nums">{saat(an)}</div>
-      <div className="text-[11.5px] leading-4 text-white/80 tabular-nums">
+      <div className="text-[56px] leading-[58px] font-extralight tracking-[0.01em] tabular-nums">{saat(an)}</div>
+      <div className="text-[14px] leading-5 text-white/80 tabular-nums">
         {gunAy(an)} · <span title={t('olayDuzeni.sureAciklama')}>{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
       </div>
     </div>

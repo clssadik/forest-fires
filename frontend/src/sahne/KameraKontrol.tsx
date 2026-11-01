@@ -148,19 +148,6 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
       }
     }
 
-    // Menüden istenen yakınlaştırmayı uygula
-    if (d.hedefZoom !== null) {
-      if (camera instanceof PerspektifKamera) {
-        yon.current.subVectors(camera.position, hedef).setLength(VARSAYILAN_UZAKLIK / d.hedefZoom)
-        camera.position.copy(hedef).add(yon.current)
-      } else if (camera instanceof OrtoKamera) {
-        camera.zoom = Math.max(VARSAYILAN_ORTO_ZOOM * d.hedefZoom, ortoEnAzZoom)
-        camera.updateProjectionMatrix()
-      }
-      kontrol?.update()
-      d.zoomTamamlandi()
-    }
-
     let zoom = 1
     let pikselBasinaM = 1
     if (camera instanceof PerspektifKamera) {

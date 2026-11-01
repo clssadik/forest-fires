@@ -192,15 +192,6 @@ export function IkonTamEkran(p: IkonOzellik) {
   )
 }
 
-export function IkonBuyutec(p: IkonOzellik) {
-  return (
-    <Ikon {...p}>
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="m20 20-4.4-4.4" />
-    </Ikon>
-  )
-}
-
 export function IkonArti(p: IkonOzellik) {
   return (
     <Ikon {...p}>

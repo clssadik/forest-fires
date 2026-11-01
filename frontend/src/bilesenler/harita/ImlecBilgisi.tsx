@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
-import { useHarita } from '../../durum/harita'
 import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi } from '../../olay/veri'
@@ -12,17 +11,16 @@ const SAAT = 3_600_000
 const RENK = { yandi: '#ec5a3a', yanacak: '#f2b84a', gercek: '#e8e2d6', yok: 'rgba(255,255,255,0.45)' }
 
 /**
- * Fare altındaki hücrenin ayrıntıları (sağ üst; sahne etiketlerinin önünde; alttaki haptan açılıp kapanır). Başlığın altında
+ * Fare altındaki hücrenin ayrıntıları (sağ üst, saatin altında; sahne etiketlerinin önünde). Başlığın altında
  * koordinat; "Arazi" bölümünde yükseklik ve örtü, "Yangın" bölümünde modelin varışı (t anına göre),
  * yanma olasılığı, gerçek yanmış alanın içinde mi ve FIRMS ilk tespiti.
  */
 export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const imlec = useOlay((d) => d.imlec)
-  const acik = useHarita((d) => d.detaylar)
   // Varış metni saat değişince güncellenir (her karede değil).
   const saat = useZaman((d) => Math.floor((d.t - veri.tutusmaMs) / SAAT))
-  if (!acik || !imlec || !veri.icinde(imlec.x, imlec.z)) return null
+  if (!imlec || !veri.icinde(imlec.x, imlec.z)) return null
   const { x, z } = imlec
   const { enlem, boylam } = veri.konum(x, z)
   const toa = veri.toaSaat(x, z)
@@ -38,7 +36,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
       : [t('imlec.yanacak', { saat: sayi(fark) }), RENK.yanacak]
 
   return (
-    <div className="pointer-events-none absolute top-[66px] right-4 z-30 w-[256px] rounded-[8px] bg-black/90 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+    <div className="pointer-events-none absolute top-[96px] right-4 z-30 w-[256px] rounded-[8px] bg-black/90 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
       <div className="text-[14px] leading-[20px] font-semibold">{t('imlec.baslik')}</div>
       <div className="text-[11.5px] text-white/75 tabular-nums">
         {sayi(enlem, 2)}° K · {sayi(boylam, 2)}° D

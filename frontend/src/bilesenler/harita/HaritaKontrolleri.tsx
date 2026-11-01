@@ -1,24 +1,21 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { sayi } from '../../bicim'
 import { useHarita, type GorunumKipi } from '../../durum/harita'
 import type { OlayVerisi } from '../../olay/veri'
-import { IkonBilgi, IkonBuyutec, IkonDik, IkonDonSag, IkonDonSol, IkonEg, IkonHedef, IkonTamEkran } from '../ikonlar'
+import { IkonDik, IkonDonSag, IkonDonSol, IkonEg, IkonHedef, IkonTamEkran } from '../ikonlar'
 import { OlcekCubugu } from './OlcekCubugu'
 
-const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10]
 const DONUS_ADIMI = 45
 const EGIM_ADIMI = 12
 
 /**
  * Harita kontrolleri: alt ortada yüzen tek bir hap. 2B/3B yazıyla, gerisi yalnızca simge (adı ipucunda):
- * tutuşmaya git, yakınlaştırma, 3B'de döndür / eğ, Detaylar kartını aç/kapat ve tam ekran; gruplar ince
- * ayraçlarla ayrılır. Ölçek sağ altta, kutusuz.
+ * tutuşmaya git, 3B'de döndür / eğ ve tam ekran; gruplar ince ayraçlarla ayrılır. Ölçek sağ altta, kutusuz.
  * Pusula bunun dışında, sol üstte kalır.
  */
 export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkran: () => void }) {
   const { t } = useTranslation()
-  const { kip, zoom, detaylar, kipAyarla, zoomIste, odaklanIste, donmeIste, detaylarAcKapat } = useHarita()
+  const { kip, kipAyarla, odaklanIste, donmeIste } = useHarita()
   const { tutusma } = veri.bilgi
 
   return (
@@ -44,25 +41,6 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
         <Dugme etiket={t('harita.tutusmayaGit')} onClick={() => odaklanIste(tutusma.x, tutusma.z)}>
           <IkonHedef boyut={15} />
         </Dugme>
-        {/* Yakınlaştırma: büyüteç simgesi; görünmez seçim kutusu üstünde, açılınca seviyeler listelenir */}
-        <label title={`${t('harita.zoom')} · ${sayi(zoom, 1)}×`} className="relative grid size-[28px] place-items-center rounded-full hover:bg-white/10">
-          <span className="sr-only">{t('harita.zoom')}</span>
-          <select
-            value=""
-            onChange={(e) => zoomIste(Number(e.target.value))}
-            className="absolute inset-0 cursor-pointer opacity-0"
-          >
-            <option value="" disabled>
-              {sayi(zoom, 1)}×
-            </option>
-            {ZOOMLAR.map((z) => (
-              <option key={z} value={z}>
-                {sayi(z, 1)}×
-              </option>
-            ))}
-          </select>
-          <IkonBuyutec boyut={15} className="pointer-events-none" />
-        </label>
         {kip === '3B' && (
           <>
             <Ayrac />
@@ -81,9 +59,6 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
           </>
         )}
         <Ayrac />
-        <Dugme etiket={t('harita.detaylar')} onClick={detaylarAcKapat} basili={detaylar}>
-          <IkonBilgi boyut={15} />
-        </Dugme>
         <Dugme etiket={t('harita.tamEkran')} onClick={tamEkran}>
           <IkonTamEkran boyut={15} />
         </Dugme>
@@ -99,13 +74,10 @@ function Ayrac() {
 function Dugme({
   etiket,
   onClick,
-  basili,
   children,
 }: {
   etiket: string
   onClick: () => void
-  /** Aç/kapat düğmesiyse açık mı; verilmezse sıradan düğme. */
-  basili?: boolean
   children: ReactNode
 }) {
   return (
@@ -113,9 +85,8 @@ function Dugme({
       type="button"
       title={etiket}
       aria-label={etiket}
-      aria-pressed={basili}
       onClick={onClick}
-      className={`grid size-[28px] place-items-center rounded-full ${basili ? 'bg-white/20 hover:bg-white/25' : 'hover:bg-white/10'}`}
+      className="grid size-[28px] place-items-center rounded-full hover:bg-white/10"
     >
       {children}
     </button>
