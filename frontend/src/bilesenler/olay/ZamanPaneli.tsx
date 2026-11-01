@@ -362,13 +362,14 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 /** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
 /**
  * Gösterge düzeni: seriler yan yana; her birinde aralıklı küçük büyük harfli ad, altında büyük ince
- * değer ve küçük birim (Türkçe büyütme için html lang="tr").
+ * değer ve küçük birim (Türkçe büyütme için html lang="tr"). İkinci seri sağa yaslanır: sol ve sağ
+ * kenar boşluğu eşit kalır.
  */
 function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   return (
     <div className="grid min-w-0 grid-flow-col auto-cols-fr gap-3 px-5 whitespace-nowrap">
-      {seriler.map((sr) => (
-        <div key={sr.renk} className="min-w-0">
+      {seriler.map((sr, i) => (
+        <div key={sr.renk} className={`min-w-0 ${i > 0 ? 'text-right' : ''}`}>
           <div className="truncate text-[10px] leading-3 tracking-[0.12em] text-[#8a8a8a] uppercase">{sr.etiket ?? ad}</div>
           <div className="mt-1 text-[20px] leading-6 font-light text-white tabular-nums">
             {sr.deger}
