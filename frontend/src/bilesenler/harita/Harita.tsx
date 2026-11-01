@@ -4,6 +4,7 @@ import { useOlay } from '../../durum/olay'
 import { Sahne } from '../../sahne/Sahne'
 import { HaritaKontrolleri } from './HaritaKontrolleri'
 import { Pusula } from './Pusula'
+import { RadarBilgisi } from './RadarBilgisi'
 import { Saat } from './Saat'
 
 /** Harita alanı: 3B/2B sahne ve üstündeki kontroller (docs/02 §4). */
@@ -25,6 +26,7 @@ export function Harita() {
           <Sahne key={veri.bilgi.ad} veri={veri} />
           <Pusula />
           <Saat veri={veri} />
+          <RadarBilgisi />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />
         </>
       ) : (

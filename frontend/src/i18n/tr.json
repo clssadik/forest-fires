@@ -425,17 +425,16 @@
     "dogruluk": "Tahmin doğruluğu",
     "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
     "radar": {
-      "sorensen": "Sørensen",
-      "sorensenAciklama": "Yakalama ile isabetin dengesi: ikisi birden yüksekse yüksek çıkar.",
-      "sorensenDaire": "Yakalama ile isabetin dengesi: ikisi birden yüksekse yüksek çıkar. Tutuşma noktasında aynı alanlı basit bir daire {{daire}} alıyor.",
+      "sorensen": "Genel",
+      "sorensenKisa": "Tahmin gerçekle ne kadar örtüşüyor",
       "yakalama": "Yakalama",
-      "yakalamaAciklama": "Gerçekte yanan {{ha}} ha'nın ne kadarını model de yaktı. Yüksekse model yangını kaçırmıyor.",
+      "yakalamaKisa": "Gerçekte yanan alanın ne kadarını bildik",
       "isabet": "İsabet",
-      "isabetAciklama": "Modelin yaktığı {{ha}} ha'nın ne kadarı gerçekten yandı. Düşükse model alanı abartıyor.",
-      "zaman": "Zaman",
-      "zamanAciklama": "Uydunun ateş gördüğü yerlerin ne kadarına model ±12 saat içinde vardı. Ortanca fark {{fark}} sa (artı: model geç).",
+      "isabetKisa": "Yanacak dediğimiz yerin ne kadarı yandı",
+      "zaman": "Zamanlama",
+      "zamanKisa": "Yangın tahmin edilen saatte mi geldi",
       "sekil": "Şekil",
-      "sekilAciklama": "Model alanı gerçek alana eşitlenince örtüşme (IoU). Boyuttan bağımsız, yalnızca yönü ve biçimi ölçer."
+      "sekilKisa": "Yangının biçimi ne kadar doğru"
     }
   }
 }

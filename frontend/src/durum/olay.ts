@@ -18,6 +18,9 @@ interface OlayDurumu {
   veri: OlayVerisi | null
   /** Fare altındaki sahne noktası (km); null = arazinin dışında. */
   imlec: { x: number; z: number } | null
+  /** Özet radarında farenin üstünde durduğu ölçüt; haritanın sağında, saatin altında açıklanır. */
+  radarEkseni: { ad: string; oran: number } | null
+  radarEkseniAyarla: (eksen: { ad: string; oran: number } | null) => void
   /** Seçilen olay (zaman paneli ya da Özet listesi): haritada yeri işaretlenir. */
   seciliOlay: OnemliOlay | null
   /** Olayı seçer, zamanı o ana alır ve kamerayı yerine uçurur; seçili olana basmak seçimi kaldırır. */
@@ -34,6 +37,8 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
   hata: null,
   veri: null,
   imlec: null,
+  radarEkseni: null,
+  radarEkseniAyarla: (radarEkseni) => set({ radarEkseni }),
   seciliOlay: null,
   olayaGit: (olay) => {
     if (get().seciliOlay === olay) return set({ seciliOlay: null })
