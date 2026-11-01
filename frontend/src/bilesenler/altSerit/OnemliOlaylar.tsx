@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ay, gun, gunAy, saat } from '../../bicim'
+import { gunAy, gunAyUzun, kisaSayi, sayi, saat } from '../../bicim'
 import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
 
 /**
- * Önemli olaylar ajandası (arka ucun otomatik bulduğu olaylar): solda büyük gün, yanında o günün
- * olayları ince çizgilerle ayrılmış düz satırlar olarak (ad ve saat); renk yok, yazılar beyaz.
- * Tıklanınca olay seçilir (zaman o ana atlar, kamera yerine uçar); seçili olana basmak seçimi
- * kaldırır. Seçili olayın, yoksa imleçten önceki son olayın adının harfleri soldan sağa turuncuya
- * boyanır (zemin yok).
+ * Önemli olaylar (arka ucun otomatik bulduğu olaylar), ince bir dikey ray üstünde: her gün büyük bir
+ * tarih başlığıyla açılır, her olay raya küçük bir çentikle bağlanır. Olay adı ne olduğunu kendi
+ * değeriyle anlatan kısa bir cümledir ("Ateş 1.097 m sırta ulaştı"). Tıklanınca olay seçilir (zaman o
+ * ana atlar, kamera yerine uçar); seçili olana basmak seçimi kaldırır. Seçili olayın, yoksa imleçten
+ * önceki son olayın yazısı soldan sağa turuncuya boyanır (zemin yok).
  */
 export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
@@ -36,43 +36,55 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
     liste.current?.querySelector('[data-secili="true"]')?.scrollIntoView({ block: 'nearest' })
   }, [secili])
 
+  /** Olayı değeriyle anlatan cümle; değer yoksa türün kısa adı. */
+  const cumle = (o: OnemliOlay) => {
+    const h = o.ham
+    if (o.tur === 'uyduGecisi' && h?.firms_ha !== undefined) return t('olaylar.cumleler.uyduGecisi', { ha: kisaSayi(h.firms_ha) })
+    if (o.tur === 'sirtaUlasma' && h?.yukseklik_m !== undefined) return t('olaylar.cumleler.sirtaUlasma', { m: sayi(h.yukseklik_m) })
+    if (o.tur === 'hizliBuyume' && h?.ha_sa !== undefined) return t('olaylar.cumleler.hizliBuyume', { ha: kisaSayi(h.ha_sa) })
+    if (o.tur === 'tutusma') return t('olaylar.cumleler.tutusma')
+    return t(`olaylar.turler.${o.tur}`)
+  }
+
   return (
     <section className="flex min-h-0 flex-1 flex-col border-t border-cizgi">
-      <h2 className="shrink-0 px-5 pt-4 pb-1 text-[13.5px] leading-[18px] font-semibold">{t('olaylar.baslik')}</h2>
-      <div ref={liste} className="flex-1 overflow-y-auto px-5 pb-3">
-        {gunler.map((g) => {
-          const ilk = g.olaylar[0].zaman
-          return (
-            <div key={g.anahtar} className="grid grid-cols-[40px_1fr] gap-3 border-t border-cizgi py-2.5 first:border-t-0">
-              <div className="pt-0.5 text-center">
-                <div className="text-[24px] leading-[26px] font-semibold tabular-nums">{gun(ilk)}</div>
-                <div className="text-[11px] leading-[14px] text-silik">{ay(ilk)}</div>
-              </div>
-              <ul className="flex flex-col">
+      <h2 className="shrink-0 px-5 pt-4 pb-2 text-[13.5px] leading-[18px] font-semibold">{t('olaylar.baslik')}</h2>
+      <div ref={liste} className="flex-1 overflow-y-auto px-5 pb-4">
+        {/* Ray: sol kenarda ince çizgi; gün ve olay çentikleri ona değer */}
+        <div className="ml-1 border-l border-white/20 pl-5">
+          {gunler.map((g, gi) => (
+            <div key={g.anahtar} className={gi ? 'mt-5' : ''}>
+              <h3 className="relative text-[19px] leading-6 font-semibold text-white">
+                <span aria-hidden className="absolute top-1/2 -left-5 h-px w-3 bg-white" />
+                {gunAyUzun(g.olaylar[0].zaman)}
+              </h3>
+              <ul className="mt-1.5 flex flex-col">
                 {g.olaylar.map((o) => {
                   const seciliMi = o === secili
                   return (
-                    <li key={`${o.tur}-${o.zaman}`} className="border-t border-white/[0.06] first:border-t-0">
+                    <li key={`${o.tur}-${o.zaman}`} className="relative">
+                      <span
+                        aria-hidden
+                        className={`absolute top-1/2 -left-5 h-px w-2 transition-colors ${seciliMi ? 'bg-ates-acik' : 'bg-white/35'}`}
+                      />
                       <button
                         type="button"
                         data-secili={seciliMi}
                         aria-pressed={o === seciliOlay}
                         onClick={() => olayaGit(o)}
                         title={t('olaylar.git')}
-                        className="flex w-full items-center gap-2 px-0.5 py-[7px] text-left"
+                        className="flex w-full items-baseline gap-3 py-[7px] text-left"
                       >
-                        <span className="min-w-0 flex-1 truncate text-[13px] leading-[18px] text-white">
-                          {/* Yazı rengi silmesi: yarısı turuncu yarısı beyaz, iki kat geniş zemin harflere kırpılır;
-                              seçilince zemin sağdan sola kayar, turuncu harflerin üstünden soldan sağa geçer */}
-                          <span
-                            className={`bg-[linear-gradient(to_right,var(--color-ates-acik)_50%,#fff_50%)] bg-[length:200%_100%] bg-clip-text text-transparent transition-[background-position] duration-500 ease-out ${
-                              seciliMi ? 'bg-left font-semibold' : 'bg-right'
-                            }`}
-                          >
-                            {t(`olaylar.turler.${o.tur}`)}
-                          </span>
+                        {/* Yazı rengi silmesi: yarısı turuncu yarısı beyaz, iki kat geniş zemin harflere kırpılır;
+                            seçilince zemin sağdan sola kayar, turuncu harflerin üstünden soldan sağa geçer */}
+                        <span
+                          className={`min-w-0 flex-1 truncate bg-[linear-gradient(to_right,var(--color-ates-acik)_50%,#fff_50%)] bg-[length:200%_100%] bg-clip-text text-[14px] leading-[18px] text-transparent transition-[background-position] duration-500 ease-out ${
+                            seciliMi ? 'bg-left font-semibold' : 'bg-right'
+                          }`}
+                        >
+                          {cumle(o)}
                         </span>
-                        <span className={`shrink-0 text-[11.5px] leading-4 tabular-nums ${seciliMi ? 'font-semibold text-white' : 'text-white/75'}`}>
+                        <span className={`shrink-0 text-[12.5px] leading-4 tabular-nums ${seciliMi ? 'font-semibold text-ates-acik' : 'text-white/80'}`}>
                           {saat(o.zaman)}
                         </span>
                       </button>
@@ -81,8 +93,8 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                 })}
               </ul>
             </div>
-          )
-        })}
+          ))}
+        </div>
       </div>
     </section>
   )

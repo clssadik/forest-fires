@@ -217,6 +217,12 @@
       "uyduGecisi": "Uydu tespiti",
       "hizliBuyume": "Hızlanma",
       "sirtaUlasma": "Sırta ulaştı"
+    },
+    "cumleler": {
+      "tutusma": "Yangın başladı",
+      "uyduGecisi": "Uydu {{ha}} ha yanık gördü",
+      "sirtaUlasma": "Ateş {{m}} m sırta ulaştı",
+      "hizliBuyume": "Yayılım hızlandı: {{ha}} ha/sa"
     }
   },
   "dogrulama": {
