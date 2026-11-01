@@ -6,7 +6,6 @@ import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { IkonDuraklat, IkonOynat } from '../ikonlar'
 
 const SAAT = 3_600_000
 const DAKIKA = 60_000
@@ -68,7 +67,7 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   )
 }
 
-/** Simülasyonu başlat/durdur: kutusuz; yazı solda, simge sağda (alttaki satırların ad/değer düzeni gibi sütunu boydan boya kaplar). */
+/** Simülasyonu başlat/durdur: simgesiz, büyük ve ince yazı; sütunu boydan boya kaplar. */
 function OynatDugmesi() {
   const { t } = useTranslation()
   const oynatiliyor = useZaman((d) => d.oynatiliyor)
@@ -77,10 +76,9 @@ function OynatDugmesi() {
     <button
       type="button"
       onClick={oynatDuraklat}
-      className="flex w-full items-center justify-between gap-3 whitespace-nowrap text-metin hover:text-white"
+      className="w-full text-left text-[18px] leading-6 font-light tracking-[0.01em] whitespace-nowrap text-metin hover:text-white"
     >
-      <span className="text-[16px] leading-5 font-semibold">{t(oynatiliyor ? 'zaman.simulasyonuDurdur' : 'zaman.simulasyonuBaslat')}</span>
-      {oynatiliyor ? <IkonDuraklat boyut={16} /> : <IkonOynat boyut={16} />}
+      {t(oynatiliyor ? 'zaman.simulasyonuDurdur' : 'zaman.simulasyonuBaslat')}
     </button>
   )
 }
