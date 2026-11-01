@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAy, gunAyUzun, kisaSayi, sayi, saat } from '../../bicim'
+import { gunAy, gunAyUzun, saat } from '../../bicim'
 import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
 
 /**
  * Önemli olaylar (arka ucun otomatik bulduğu olaylar), ince bir dikey ray üstünde: her gün büyük bir
- * tarih başlığıyla açılır, her olay raya küçük bir çentikle bağlanır. Olay adı ne olduğunu kendi
- * değeriyle anlatan kısa bir cümledir ("Ateş 1.097 m sırta ulaştı"). Tıklanınca olay seçilir (zaman o
+ * tarih başlığıyla açılır, her olay raya küçük bir çentikle bağlanır. Olay adı ne olduğunu sayısız,
+ * sade bir cümleyle anlatır ("Uydu yangını tespit etti"). Tıklanınca olay seçilir (zaman o
  * ana atlar, kamera yerine uçar); seçili olana basmak seçimi kaldırır. Seçili olayın, yoksa imleçten
  * önceki son olayın yazısı soldan sağa turuncuya boyanır (zemin yok).
  */
@@ -35,16 +35,6 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   useEffect(() => {
     liste.current?.querySelector('[data-secili="true"]')?.scrollIntoView({ block: 'nearest' })
   }, [secili])
-
-  /** Olayı değeriyle anlatan cümle; değer yoksa türün kısa adı. */
-  const cumle = (o: OnemliOlay) => {
-    const h = o.ham
-    if (o.tur === 'uyduGecisi' && h?.firms_ha !== undefined) return t('olaylar.cumleler.uyduGecisi', { ha: kisaSayi(h.firms_ha) })
-    if (o.tur === 'sirtaUlasma' && h?.yukseklik_m !== undefined) return t('olaylar.cumleler.sirtaUlasma', { m: sayi(h.yukseklik_m) })
-    if (o.tur === 'hizliBuyume' && h?.ha_sa !== undefined) return t('olaylar.cumleler.hizliBuyume', { ha: kisaSayi(h.ha_sa) })
-    if (o.tur === 'tutusma') return t('olaylar.cumleler.tutusma')
-    return t(`olaylar.turler.${o.tur}`)
-  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col border-t border-cizgi">
@@ -82,7 +72,7 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                             seciliMi ? 'bg-left font-semibold' : 'bg-right'
                           }`}
                         >
-                          {cumle(o)}
+                          {t(`olaylar.cumleler.${o.tur}`)}
                         </span>
                         <span className={`shrink-0 text-[12.5px] leading-4 tabular-nums ${seciliMi ? 'font-semibold text-ates-acik' : 'text-white/80'}`}>
                           {saat(o.zaman)}
