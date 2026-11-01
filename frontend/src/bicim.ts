@@ -7,6 +7,9 @@ const yuzde = new Intl.NumberFormat('tr-TR', { style: 'percent', maximumFraction
 
 export const sayi = (n: number, ondalik = 0) => sayiBicimleri[Math.min(Math.max(ondalik, 0), 2)].format(n)
 export const yuzdeBicim = (oran: number) => yuzde.format(oran)
+/** Kısaltılmış sayı: 950 → "950", 21.122 → "21,1k", 1.250.000 → "1,3M". */
+export const kisaSayi = (n: number) =>
+  Math.abs(n) >= 1e6 ? `${sayi(n / 1e6, 1)}M` : Math.abs(n) >= 1e3 ? `${sayi(n / 1e3, 1)}k` : sayi(n)
 
 const parca = (secenek: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat('tr-TR', { timeZone: SAAT_DILIMI, hourCycle: 'h23', ...secenek })

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
+import { gunAySaat, kisaSayi, sayi } from '../../bicim'
 import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
@@ -13,16 +13,16 @@ const DAKIKA = 60_000
 const ETIKET = 248
 const SAG = 20
 /**
- * Şerit satırının yüksekliği (px): her seri 15 px'lik bir etiket satırı, aralarında 4 px, üstte ve
- * altta eşit 14 px boşluk. Böylece tüm şeritlerde etiketlerin üst/alt boşluğu aynıdır.
+ * Şerit satırının yüksekliği (px): gösterge düzeninde seriler yan yana durduğu için her şerit tek satır
+ * (küçük ad + büyük değer, üstte ve altta eşit boşluk).
  */
-const seritYuksekligi = (seriSayisi: number) => seriSayisi * 15 + (seriSayisi - 1) * 4 + 28
+const SERIT_YUKSEKLIGI = 52
 /** Oynat düğmesinin satırı (px); yalnızca etiket sütununda durur, yanındaki boşluğu yanan alan grafiği kullanır. */
 const OYNAT_SATIRI = 44
 /** İlk şerit (yanan alan) oynat düğmesinin satırını da kaplar. */
-const satirYuksekligi = (seriSayisi: number, ilk: boolean) => seritYuksekligi(seriSayisi) + (ilk ? OYNAT_SATIRI : 0)
+const satirYuksekligi = (ilk: boolean) => SERIT_YUKSEKLIGI + (ilk ? OYNAT_SATIRI : 0)
 /** Grafik, satırın üstünden ve altından 5'er px içeride çizilir. */
-const grafikYuksekligi = (seriSayisi: number, ilk = false) => satirYuksekligi(seriSayisi, ilk) - 10
+const grafikYuksekligi = (ilk = false) => satirYuksekligi(ilk) - 10
 
 /** Yanan alan grafiğindeki olay noktalarının renkleri: uydu gözlemi FIRMS çizgisinde, model olayı model eğrisinde. */
 const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
@@ -37,8 +37,9 @@ interface Seri {
   renk: string
   dolgu?: string
   kesik?: boolean
-  /** Seçili andaki değer; etiket sütununda serinin çizgi örneğiyle yazılır. */
+  /** Seçili andaki değer (kısaltılmış sayı ya da tire) ve birimi; etiket sütununda büyük ince yazılır. */
   deger: string
+  birim?: string
   /** Etiket sütunundaki adı; yoksa şeridin adı. */
   etiket?: string
 }
@@ -165,13 +166,15 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         ys: s.model,
         renk: '#f06a45',
         dolgu: 'rgba(236,90,58,0.24)',
-        deger: basladi ? `${sayi(veri.yananAlanHa(an))} ha` : tire,
+        deger: basladi ? kisaSayi(veri.yananAlanHa(an)) : tire,
+        birim: basladi ? t('olayDuzeni.birim.ha') : undefined,
       },
       {
         ys: s.firms,
         renk: '#f2b84a',
         kesik: true,
-        deger: basladi ? `${sayi(veri.firmsAlanHa(an))} ha` : tire,
+        deger: basladi ? kisaSayi(veri.firmsAlanHa(an)) : tire,
+        birim: basladi ? t('olayDuzeni.birim.ha') : undefined,
         etiket: t('olayDuzeni.uyduAlani'),
       },
     ],
@@ -182,29 +185,41 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
       kimlik: 'hiz',
       ad: t('olayDuzeni.seritler.cepheHizi'),
       ust: s.hizUst,
-      seriler: [{ ys: s.hiz, renk: '#f06a45', deger: basladi ? t('hava.mDk', { deger: sayi(veri.hizMDk(an), 1) }) : tire }],
+      seriler: [
+        {
+          ys: s.hiz,
+          renk: '#f06a45',
+          deger: basladi ? sayi(veri.hizMDk(an), 1) : tire,
+          birim: basladi ? t('olayDuzeni.birim.mDk') : undefined,
+        },
+      ],
     },
     {
       kimlik: 'ruzgar',
       ad: t('olayDuzeni.seritler.ruzgar'),
       ust: s.ruzgarUst,
       seriler: [
-        { ys: s.ruzgar, renk: '#9fc7ef', deger: `${t('hava.kmSa', { deger: Math.round(h.ruzgarKmSa) })} ${pusulaYonu(h.ruzgarYonu)}` },
+        {
+          ys: s.ruzgar,
+          renk: '#9fc7ef',
+          deger: kisaSayi(Math.round(h.ruzgarKmSa)),
+          birim: `${t('olayDuzeni.birim.kmSa')} · ${pusulaYonu(h.ruzgarYonu)}`,
+        },
       ],
     },
     {
       kimlik: 'sicaklik',
       ad: t('olayDuzeni.seritler.sicaklik'),
       ust: s.sicaklikUst,
-      seriler: [{ ys: s.sicaklik, renk: '#e8a04a', deger: t('hava.derece', { deger: Math.round(h.sicaklik) }) }],
+      seriler: [{ ys: s.sicaklik, renk: '#e8a04a', deger: kisaSayi(Math.round(h.sicaklik)), birim: '°C' }],
     },
     {
       kimlik: 'nem',
       ad: t('olayDuzeni.seritler.nem'),
       ust: s.nemUst,
       seriler: [
-        { ys: s.nem, renk: '#5f9fdc', deger: yuzdeBicim(h.nem / 100) },
-        { ys: s.yakit, renk: '#7cc46e', deger: yuzdeBicim(h.yakitNemi / 100), etiket: t('olayDuzeni.yakitNemi') },
+        { ys: s.nem, renk: '#5f9fdc', deger: kisaSayi(Math.round(h.nem)), birim: '%' },
+        { ys: s.yakit, renk: '#7cc46e', deger: kisaSayi(Math.round(h.yakitNemi)), birim: '%', etiket: t('olayDuzeni.yakitNemi') },
       ],
     },
   ]
@@ -222,7 +237,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   // Olay noktasının grafikteki yüksekliği (px, üstten); SeritGrafigi ile aynı ölçek.
   const olayY = (o: OnemliOlay) => {
     const v = o.tur === 'tutusma' ? 0 : o.tur === 'uyduGecisi' ? veri.firmsAlanHa(o.zaman) : veri.yananAlanHa(o.zaman)
-    const yuk = grafikYuksekligi(alan.seriler.length, true)
+    const yuk = grafikYuksekligi(true)
     return yuk - 1 - (Math.min(Math.max(v, 0), alan.ust) / alan.ust) * (yuk - 3)
   }
 
@@ -232,7 +247,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
         <div
           key={sr.kimlik}
           className="grid items-center border-b border-white/[0.12]"
-          style={{ gridTemplateColumns: `${ETIKET}px 1fr`, height: satirYuksekligi(sr.seriler.length, i === 0) }}
+          style={{ gridTemplateColumns: `${ETIKET}px 1fr`, height: satirYuksekligi(i === 0) }}
         >
           {i === 0 ? (
             <div className="flex h-full flex-col">
@@ -246,7 +261,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           ) : (
             <SeritAdi ad={sr.ad} seriler={sr.seriler} />
           )}
-          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(sr.seriler.length, i === 0) }}>
+          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(i === 0) }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {
@@ -345,16 +360,20 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 }
 
 /** Şeridin etiket hücresi: her seri bir satır; çizgi örneği ve adı solda, seçili andaki değeri sağda. */
+/**
+ * Gösterge düzeni: seriler yan yana; her birinde aralıklı küçük büyük harfli ad, altında büyük ince
+ * değer ve küçük birim (Türkçe büyütme için html lang="tr").
+ */
 function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 px-5 text-[12px] leading-[15px] whitespace-nowrap">
+    <div className="grid min-w-0 grid-flow-col auto-cols-fr gap-3 px-5 whitespace-nowrap">
       {seriler.map((sr) => (
-        <div key={sr.renk} className="flex items-center gap-2">
-          <svg width="10" height="4" aria-hidden className="shrink-0">
-            <line x1="0" x2="10" y1="2" y2="2" stroke={sr.renk} strokeWidth="2" strokeDasharray={sr.kesik ? '3 2' : undefined} />
-          </svg>
-          <span className="truncate text-soluk">{sr.etiket ?? ad}</span>
-          <span className="ml-auto font-medium tabular-nums">{sr.deger}</span>
+        <div key={sr.renk} className="min-w-0">
+          <div className="truncate text-[10px] leading-3 tracking-[0.12em] text-[#8a8a8a] uppercase">{sr.etiket ?? ad}</div>
+          <div className="mt-1 text-[20px] leading-6 font-light text-white tabular-nums">
+            {sr.deger}
+            {sr.birim && <span className="ml-1 text-[10px] tracking-[0.08em] text-[#8a8a8a] uppercase">{sr.birim}</span>}
+          </div>
         </div>
       ))}
     </div>

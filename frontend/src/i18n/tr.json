@@ -182,14 +182,11 @@
     "sicaklik": "Sıcaklık",
     "nem": "Nem",
     "yakitNemi": "Yakıt Nemi",
-    "kmSa": "{{deger}} km/sa",
     "yon": "{{yon}} ({{derece}}°)",
-    "derece": "{{deger}} °C",
     "baslamadi": "—",
     "kaynakTutusma": "(tutuşmada)",
     "cepheHizi": "Cephe",
-    "modelAlan": "Model alan",
-    "mDk": "{{deger}} m/dk"
+    "modelAlan": "Model alan"
   },
   "zaman": {
     "baslik": "Zaman Çizelgesi",
@@ -402,6 +399,11 @@
     "saatSayaci": "+{{saat}} sa",
     "sureAciklama": "Tutuşmadan bu yana geçen süre",
     "yakitNemi": "Yakıt nemi",
+    "birim": {
+      "ha": "ha",
+      "mDk": "m/dk",
+      "kmSa": "km/sa"
+    },
     "uyduAlani": "Uydu (FIRMS)",
     "olayKarti": {
       "kapat": "Kapat"
