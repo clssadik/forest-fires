@@ -426,15 +426,21 @@
     "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
     "radar": {
       "sorensen": "Genel",
-      "sorensenKisa": "Tahmin gerçekle ne kadar örtüşüyor",
+      "sorensenKisa": "Tahmin edilen yanık alan ile gerçekte yanan alanın ne kadar örtüştüğü.",
       "yakalama": "Yakalama",
-      "yakalamaKisa": "Gerçekte yanan alanın ne kadarını bildik",
+      "yakalamaKisa": "Gerçekte yanan alanın ne kadarını tahmin ettiğimiz. Düşükse yangının bir kısmını kaçırdık.",
       "isabet": "İsabet",
-      "isabetKisa": "Yanacak dediğimiz yerin ne kadarı yandı",
+      "isabetKisa": "Yanacak dediğimiz alanın ne kadarının gerçekten yandığı. Düşükse yangını olduğundan büyük tahmin ettik.",
       "zaman": "Zamanlama",
-      "zamanKisa": "Yangın tahmin edilen saatte mi geldi",
+      "zamanKisa": "Uydunun ateş gördüğü yerlere yangının tahmin edilen saatte (12 saatten az farkla) ulaşma oranı.",
       "sekil": "Şekil",
-      "sekilKisa": "Yangının biçimi ne kadar doğru"
+      "sekilKisa": "Büyüklükten bağımsız olarak yangının yönünü ve biçimini ne kadar doğru çizdiğimiz.",
+      "yorum": {
+        "iyi": "İyi",
+        "orta": "Orta",
+        "zayif": "Zayıf"
+      },
+      "okuma": "Grafikte dış çizgi %100'dür. Turuncu alan dışa yaklaştıkça tahmin gerçeğe yaklaşır."
     }
   }
 }
