@@ -16,6 +16,8 @@ interface OlayDurumu {
   yukleme: 'bos' | 'yukleniyor' | 'hazir' | 'hata'
   hata: string | null
   veri: OlayVerisi | null
+  /** Fare altındaki sahne noktası (km); null = arazinin dışında. */
+  imlec: { x: number; z: number } | null
   /** Seçilen olay (zaman paneli ya da Özet listesi): haritada yeri işaretlenir. */
   seciliOlay: OnemliOlay | null
   /** Olayı seçer, zamanı o ana alır ve kamerayı yerine uçurur; seçili olana basmak seçimi kaldırır. */
@@ -23,6 +25,7 @@ interface OlayDurumu {
   /** Yangını yükler; aynı yangın zaten yüklüyse yalnızca zaman aralığını kurar. */
   yukle: (ad: string) => Promise<void>
   zamaniKur: () => void
+  imlecAyarla: (imlec: { x: number; z: number } | null) => void
 }
 
 export const useOlay = create<OlayDurumu>((set, get) => ({
@@ -30,6 +33,7 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
   yukleme: 'bos',
   hata: null,
   veri: null,
+  imlec: null,
   seciliOlay: null,
   olayaGit: (olay) => {
     if (get().seciliOlay === olay) return set({ seciliOlay: null })
@@ -47,7 +51,7 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
     }
     // Yükleme sürerken başka yangın seçilirse bu yüklemenin yanıtları atılır.
     const guncel = () => get().ad === ad
-    set({ ad, yukleme: 'yukleniyor', hata: null, veri: null, seciliOlay: null })
+    set({ ad, yukleme: 'yukleniyor', hata: null, veri: null, imlec: null, seciliOlay: null })
     try {
       // Bilgi uç noktası gerekirse simülasyonu çalıştırır; bantlar ondan sonra istenir.
       const bilgi = await api.olayBilgisi(ad)
@@ -66,4 +70,5 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
     useZaman.getState().aralikAyarla(v.tutusmaMs - 2 * SAAT, v.bitisMs, v.tutusmaMs + ACILIS_SAAT * SAAT)
   },
 
+  imlecAyarla: (imlec) => set({ imlec }),
 }))

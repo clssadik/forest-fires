@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useOlay } from '../../durum/olay'
 import { Sahne } from '../../sahne/Sahne'
 import { HaritaKontrolleri } from './HaritaKontrolleri'
+import { Koordinat } from './Koordinat'
 import { Pusula } from './Pusula'
 import { Saat } from './Saat'
 
@@ -25,6 +26,7 @@ export function Harita() {
           <Sahne key={veri.bilgi.ad} veri={veri} />
           <Pusula />
           <Saat veri={veri} />
+          <Koordinat veri={veri} />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />
         </>
       ) : (

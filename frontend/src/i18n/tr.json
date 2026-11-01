@@ -37,6 +37,7 @@
     "olcekKm": "{{deger}} km",
     "olcekM": "{{deger}} m",
     "tutusmayaGit": "Tutuşma noktasına git",
+    "koordinat": "{{enlem}}° K · {{boylam}}° D",
     "kuzeyeDon": "Kuzeyi yukarı al",
     "solaDon": "Sola döndür",
     "sagaDon": "Sağa döndür",
