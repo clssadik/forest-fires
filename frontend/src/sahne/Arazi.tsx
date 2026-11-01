@@ -1,7 +1,5 @@
-import type { ThreeEvent } from '@react-three/fiber'
 import { useMemo } from 'react'
 import { BufferAttribute, BufferGeometry, Color } from 'three'
-import { useOlay } from '../durum/olay'
 import { YOK } from '../olay/api'
 import { ORMAN_YOGUNLUGU, ORTU_SIRASI, sahneY, type OlayVerisi, type OrtuSinifi } from '../olay/veri'
 import { araziGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
@@ -88,7 +86,6 @@ function kutuBulanikligi(a: Float32Array, satir: number, sutun: number, gecis: n
 
 /** Gerçek DEM'den arazi örgüsü; köşe başına model varışı, gerçek yanık, olasılık, FIRMS taşır. */
 export function Arazi({ veri }: { veri: OlayVerisi }) {
-  const imlecAyarla = useOlay((d) => d.imlecAyarla)
   const geometri = useMemo(() => {
     const { satir, sutun, r } = veri
     const n = satir * sutun
@@ -151,10 +148,8 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     return g
   }, [veri])
 
-  const imlec = (e: ThreeEvent<PointerEvent>) => imlecAyarla({ x: e.point.x, z: e.point.z })
-
   return (
-    <mesh geometry={geometri} receiveShadow onPointerMove={imlec} onPointerOut={() => imlecAyarla(null)}>
+    <mesh geometry={geometri} receiveShadow>
       <AraziMalzemesi />
     </mesh>
   )

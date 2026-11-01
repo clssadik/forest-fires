@@ -34,7 +34,6 @@
     "kip2B": "2B",
     "kip3B": "3B",
     "tutusma": "Tutuşma",
-    "yukseklik": "{{deger}} m",
     "olcekKm": "{{deger}} km",
     "olcekM": "{{deger}} m",
     "tutusmayaGit": "Tutuşma noktasına git",
@@ -393,33 +392,6 @@
   "olay": {
     "yukleniyor": "Olay verisi yükleniyor… (ilk açılışta model çalıştırılır, ~10 sn)",
     "yuklenemedi": "Olay verisi yüklenemedi"
-  },
-  "imlec": {
-    "baslik": "Detaylar",
-    "arazi": "Arazi",
-    "yangin": "Yangın",
-    "koordinat": "Koordinat",
-    "yukseklik": "Yükseklik",
-    "ortu": "Örtü",
-    "model": "Model",
-    "yanmiyor": "Yanmıyor",
-    "yandi": "{{saat}} sa önce yandı",
-    "yanacak": "{{saat}} sa sonra yanacak",
-    "olasilik": "Olasılık",
-    "gercek": "Gerçek alan",
-    "icinde": "İçinde",
-    "disinda": "Dışında",
-    "firms": "FIRMS ilk tespit",
-    "yok": "—",
-    "ortuler": {
-      "diger": "Çıplak / diğer",
-      "orman": "Orman",
-      "maki": "Maki / çalı",
-      "ot": "Otlak",
-      "tarim": "Tarım",
-      "su": "Su",
-      "yerlesim": "Yerleşim"
-    }
   },
   "olayDuzeni": {
     "ray": "Olay ekranı panelleri",
