@@ -67,7 +67,7 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   )
 }
 
-/** Simülasyonu başlat/durdur: simgesiz, büyük ve ince yazı; sütunu boydan boya kaplar. */
+/** Simülasyonu başlat/durdur: simgesiz, ince ve tümü büyük harf yazı (Türkçe büyütme için html lang="tr"); sütunu boydan boya kaplar. */
 function OynatDugmesi() {
   const { t } = useTranslation()
   const oynatiliyor = useZaman((d) => d.oynatiliyor)
@@ -76,7 +76,7 @@ function OynatDugmesi() {
     <button
       type="button"
       onClick={oynatDuraklat}
-      className="w-full text-left text-[18px] leading-6 font-light tracking-[0.01em] whitespace-nowrap text-metin hover:text-white"
+      className="w-full text-left text-[18px] leading-6 font-light tracking-[0.06em] whitespace-nowrap text-metin uppercase hover:text-white"
     >
       {t(oynatiliyor ? 'zaman.simulasyonuDurdur' : 'zaman.simulasyonuBaslat')}
     </button>
