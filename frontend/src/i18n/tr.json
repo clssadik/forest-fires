@@ -425,7 +425,7 @@
     "dogruluk": "Tahmin doğruluğu",
     "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
     "radar": {
-      "sorensen": "Genel",
+      "sorensen": "Sørensen",
       "sorensenKisa": "Tahmin edilen yanık alan ile gerçekte yanan alanın ne kadar örtüştüğü.",
       "yakalama": "Yakalama",
       "yakalamaKisa": "Gerçekte yanan alanın ne kadarını tahmin ettiğimiz. Düşükse yangının bir kısmını kaçırdık.",

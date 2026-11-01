@@ -36,7 +36,7 @@ const cokgen = (oranlar: number[]) =>
   oranlar.map((o, i) => uc(i, oranlar.length, o)).map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
 
 /**
- * Bitişteki doğruluk: başlıkta genel başarı (Sørensen), altında beş ölçütün radarı (genel, yakalama,
+ * Bitişteki doğruluk: başlıkta Sørensen, altında beş ölçütün radarı (Sørensen, yakalama,
  * isabet, ±12 saat içinde varış, eşit alanda şekil). Fare bir eksenin diliminin üstüne gelince eksen
  * vurgulanır; ölçütün adı, değeri ve kısa açıklaması haritanın sağında, saatin altında görünür (açılır pencere yok).
  */
