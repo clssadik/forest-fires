@@ -1,10 +1,12 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import {
-  AdditiveBlending,
   Color,
+  CustomBlending,
   InstancedBufferAttribute,
   InstancedBufferGeometry,
+  OneFactor,
+  OneMinusSrcAlphaFactor,
   PlaneGeometry,
   PointLight,
   ShaderMaterial,
@@ -44,6 +46,7 @@ uniform vec2 uRuzgar;
 uniform vec3 uGunesYonu;
 uniform vec3 uIsikRengi;
 uniform vec3 uOrtamRengi;
+uniform float uGece;
 `
 
 const ALEV_VERTEX = /* glsl */ `
@@ -100,7 +103,10 @@ void main() {
   vec3 renk = mix(vec3(0.55, 0.05, 0.0), vec3(1.0, 0.33, 0.03), smoothstep(0.0, 0.4, sicaklik));
   renk = mix(renk, vec3(1.0, 0.72, 0.28), smoothstep(0.45, 0.85, sicaklik));
   float a = alev * vGuc * 0.9;
-  gl_FragColor = vec4(renk * (0.45 + 0.5 * sicaklik), a);
+  // Önceden çarpılmış renk: gece eklemeli (karanlıkta parlar), gündüz zemini örter; aydınlık
+  // zemine eklenen turuncu beyaza kaçıp kayboluyordu.
+  float ortu = (1.0 - uGece) * 0.85;
+  gl_FragColor = vec4(renk * (0.45 + 0.5 * sicaklik) * a * mix(1.3, 1.0, uGece), a * ortu);
 }
 `
 
@@ -174,10 +180,13 @@ void main() {
   vec3 N = normalize(vec3(q + (n - 0.5) * 0.6, 0.7));
   float isik = max(dot(N, vIsikGorus), 0.0);
   vec3 taban = mix(vec3(0.16, 0.15, 0.145), vec3(0.55, 0.53, 0.5), smoothstep(0.0, 0.75, vYas));
+  // Gündüz daha koyu, kahverengimsi gri: tam güneşte beyaza kaçıp yangını örtüyordu
+  taban *= mix(vec3(0.62, 0.58, 0.54), vec3(1.0), uGece);
   vec3 renk = taban * (uOrtamRengi * 0.5 + uIsikRengi * (0.2 + 0.9 * isik));
   // Alttan alev ışığı
   renk += vec3(1.0, 0.35, 0.06) * vKizil * smoothstep(0.6, -0.8, q.y) * 0.8;
-  gl_FragColor = vec4(renk, yogun * kenar);
+  // Gündüz daha ince: altındaki alevler ve tespitler görünsün
+  gl_FragColor = vec4(renk, yogun * kenar * mix(0.6, 1.0, uGece));
   #include <fog_fragment>
 }
 `
@@ -373,7 +382,9 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
         fragmentShader: ALEV_FRAGMENT,
         transparent: true,
         depthWrite: false,
-        blending: AdditiveBlending,
+        blending: CustomBlending,
+        blendSrc: OneFactor,
+        blendDst: OneMinusSrcAlphaFactor,
       }),
     [gorunurU],
   )

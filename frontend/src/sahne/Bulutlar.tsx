@@ -7,7 +7,8 @@ import { yanginUniformlari as U } from './yanginMalzemesi'
 /**
  * Seyrek yaz kümülüsleri (yalnızca görünüm). Her bulut birkaç yumuşak ilandan oluşur;
  * rüzgârla sürüklenir ve alan dışına çıkınca öbür kenardan girer. Güneş yönüyle
- * aydınlanır: gün batımında turuncu, gece koyu. Kameraya çok yaklaşan bulut solar.
+ * aydınlanır: gün batımında turuncu, gece koyu. Kameraya çok yaklaşan bulut solar; ekranın
+ * ortasına (bakılan yere) düşen bulut da solar, yoksa gündüz yangının üstünü beyaz örtüyordu.
  */
 
 const BULUT_SAYISI = 46
@@ -39,6 +40,10 @@ void main() {
   p.xz = mod(p.xz + ${ALAN_KM}.0, ${ALAN_KM * 2}.0) - ${ALAN_KM}.0;
   vec4 mvPosition = viewMatrix * vec4(p, 1.0);
   vYakinlik = smoothstep(aBoy * 0.8, aBoy * 4.0, -mvPosition.z);
+  // Parça merkezinin ekrandaki yeri: ortaya yakınsa bütün parça birlikte solar
+  vec4 merkezEkran = projectionMatrix * mvPosition;
+  vec2 ndc = merkezEkran.xy / max(merkezEkran.w, 1e-3);
+  vYakinlik *= smoothstep(0.7, 1.2, length(ndc * vec2(1.0, 1.2)));
   mvPosition.xy += position.xy * aBoy;
   vAlt = position.y;
   vIsikGorus = normalize((viewMatrix * vec4(uGunesYonu, 0.0)).xyz);
