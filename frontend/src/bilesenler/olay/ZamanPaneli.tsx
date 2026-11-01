@@ -1,4 +1,4 @@
-import { useMemo, useRef, type PointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAySaat, sayi, yuzdeBicim } from '../../bicim'
 import { useOlay } from '../../durum/olay'
@@ -67,23 +67,47 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   )
 }
 
+/** "Hazır" yazısının görünme süresi ve yazılar arası solma (ms). */
+const HAZIR_MS = 1000
+const SOLMA_MS = 200
+
 /**
- * Simülasyonu başlat/durdur: simgesiz, ince ve tümü büyük harf yazı (Türkçe büyütme için html lang="tr");
- * sütunu boydan boya kaplar. Basılınca yeşile döner ve "Hazır" der; yeniden basmak durdurur.
+ * Simülasyonu başlat/durdur: simgesiz, ince ve tümü büyük harf yazı (Türkçe büyütme için html lang="tr"),
+ * sütunun ortasında. Oynatma başlayınca 1 sn yeşil "Hazır" görünür, solar ve yerini "Simülasyonu
+ * durdur"a bırakır; durunca yeniden "Simülasyonu başlat".
  */
 function OynatDugmesi() {
   const { t } = useTranslation()
   const oynatiliyor = useZaman((d) => d.oynatiliyor)
   const oynatDuraklat = useZaman((d) => d.oynatDuraklat)
+  const [evre, setEvre] = useState<'hazir' | 'soluyor' | 'durdur'>('hazir')
+
+  useEffect(() => {
+    if (!oynatiliyor) return
+    const solma = window.setTimeout(() => setEvre('soluyor'), HAZIR_MS)
+    const bitis = window.setTimeout(() => setEvre('durdur'), HAZIR_MS + SOLMA_MS)
+    return () => {
+      window.clearTimeout(solma)
+      window.clearTimeout(bitis)
+      // Bir sonraki başlatma "Hazır"la açılsın (araya bir kare "Durdur" girmesin)
+      setEvre('hazir')
+    }
+  }, [oynatiliyor])
+
+  const [anahtar, renk] = !oynatiliyor
+    ? ['zaman.simulasyonuBaslat', 'text-metin hover:text-white']
+    : evre === 'durdur'
+      ? ['zaman.simulasyonuDurdur', 'text-metin hover:text-white']
+      : ['zaman.hazir', 'text-yesil']
   return (
     <button
       type="button"
       onClick={oynatDuraklat}
-      className={`w-full text-left text-[18px] leading-6 font-light tracking-[0.06em] whitespace-nowrap uppercase transition-colors duration-300 ${
-        oynatiliyor ? 'text-yesil' : 'text-metin hover:text-white'
+      className={`w-full text-center text-[18px] leading-6 font-light tracking-[0.06em] whitespace-nowrap uppercase transition-[color,opacity] duration-200 ${renk} ${
+        oynatiliyor && evre === 'soluyor' ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      {t(oynatiliyor ? 'zaman.hazir' : 'zaman.simulasyonuBaslat')}
+      {t(anahtar)}
     </button>
   )
 }
