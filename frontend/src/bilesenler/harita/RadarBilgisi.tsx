@@ -7,7 +7,7 @@ const yorum = (oran: number) => (oran >= 0.7 ? 'iyi' : oran >= 0.4 ? 'orta' : 'z
 
 /**
  * Özet radarında farenin üstünde durduğu ölçüt, haritanın sağında saatin altında bir kartta: ad, değer
- * ve kabaca yorumu (iyi / orta / zayıf), ölçütün ne anlattığı ve radarın nasıl okunacağı.
+ * ve kabaca yorumu (iyi / orta / zayıf) ve ölçütün ne anlattığı.
  */
 export function RadarBilgisi() {
   const { t } = useTranslation()
@@ -21,7 +21,6 @@ export function RadarBilgisi() {
         <span className="text-[11px] leading-none tracking-[0.14em] text-white uppercase">{t(`olayDuzeni.radar.yorum.${yorum(eksen.oran)}`)}</span>
       </div>
       <p className="mt-2.5 text-[13.5px] leading-[19px]">{t(`olayDuzeni.radar.${eksen.ad}Kisa`)}</p>
-      <p className="mt-2 border-t border-white/10 pt-2 text-[12.5px] leading-[18px] text-white/70">{t('olayDuzeni.radar.okuma')}</p>
     </div>
   )
 }

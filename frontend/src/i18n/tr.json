@@ -439,8 +439,7 @@
         "iyi": "İyi",
         "orta": "Orta",
         "zayif": "Zayıf"
-      },
-      "okuma": "Grafikte dış çizgi %100'dür. Turuncu alan dışa yaklaştıkça tahmin gerçeğe yaklaşır."
+      }
     }
   }
 }
