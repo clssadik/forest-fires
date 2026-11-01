@@ -99,12 +99,12 @@ function OynatDugmesi() {
       ? [oynatiliyor ? 'zaman.simulasyonuDurdur' : 'zaman.simulasyonuBaslat', 'text-metin hover:text-white']
       : oynatiliyor
         ? ['zaman.hazir', 'text-yesil']
-        : ['zaman.durduruldu', 'text-red-500']
+        : ['zaman.durduruldu', 'text-[#ff3b30]']
   return (
     <button
       type="button"
       onClick={oynatDuraklat}
-      className={`w-full text-center text-[18px] leading-6 font-light tracking-[0.06em] whitespace-nowrap uppercase transition-[color,opacity] duration-200 ${renk} ${
+      className={`w-full text-center text-[18px] leading-6 font-light tracking-[0.06em] whitespace-nowrap uppercase transition-opacity duration-200 ${renk} ${
         evre === 'soluyor' ? 'opacity-0' : 'opacity-100'
       }`}
     >
