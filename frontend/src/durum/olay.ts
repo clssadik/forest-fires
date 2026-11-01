@@ -18,9 +18,8 @@ interface OlayDurumu {
   veri: OlayVerisi | null
   /** Fare altındaki sahne noktası (km); null = arazinin dışında. */
   imlec: { x: number; z: number } | null
-  /** Seçilen olay (zaman paneli ya da Özet listesi): haritada yeri işaretlenir, ayrıntı kartı açılır. */
+  /** Seçilen olay (zaman paneli ya da Özet listesi): haritada yeri işaretlenir. */
   seciliOlay: OnemliOlay | null
-  olaySec: (olay: OnemliOlay | null) => void
   /** Olayı seçer, zamanı o ana alır ve kamerayı yerine uçurur; seçili olana basmak seçimi kaldırır. */
   olayaGit: (olay: OnemliOlay) => void
   /** Yangını yükler; aynı yangın zaten yüklüyse yalnızca zaman aralığını kurar. */
@@ -36,7 +35,6 @@ export const useOlay = create<OlayDurumu>((set, get) => ({
   veri: null,
   imlec: null,
   seciliOlay: null,
-  olaySec: (seciliOlay) => set({ seciliOlay }),
   olayaGit: (olay) => {
     if (get().seciliOlay === olay) return set({ seciliOlay: null })
     set({ seciliOlay: olay })

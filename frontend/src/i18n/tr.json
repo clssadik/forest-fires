@@ -219,21 +219,6 @@
       "sirtaUlasma": "Sırta ulaştı"
     }
   },
-  "olayAyrintisi": {
-    "olay": "Olay",
-    "kaynak": "Kaynak",
-    "kaynaklar": {
-      "tutusma": "Model girdisi",
-      "uyduGecisi": "NASA FIRMS uydusu",
-      "hizliBuyume": "Model",
-      "sirtaUlasma": "Model"
-    },
-    "modelAlani": "Model alanı",
-    "buyume": "Büyüme",
-    "sirt": "Sırt yüksekliği",
-    "egim": "Eğim",
-    "hava": "Hava"
-  },
   "dogrulama": {
     "yukleniyor": "Bölge verisi yükleniyor…",
     "yuklenemedi": "Veri yüklenemedi",

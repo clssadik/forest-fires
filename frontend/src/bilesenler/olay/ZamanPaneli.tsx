@@ -189,7 +189,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
     const o = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1)
     zamanaGit(baslangic + o * (bitis - baslangic))
   }
-  // Tıklanan olay seçilir: ayrıntı kartı haritanın üstünde açılır (OlayAyrintisi), yer işaretlenir.
+  // Tıklanan olay seçilir: haritada yeri işaretlenir.
   const seciliOlay = useOlay((d) => d.seciliOlay)
   const olayaGit = useOlay((d) => d.olayaGit)
   const imlec = oran(zaman)

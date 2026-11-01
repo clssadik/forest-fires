@@ -4,7 +4,6 @@ import { useOlay } from '../../durum/olay'
 import { Sahne } from '../../sahne/Sahne'
 import { HaritaKontrolleri } from './HaritaKontrolleri'
 import { ImlecBilgisi } from './ImlecBilgisi'
-import { OlayAyrintisi } from './OlayAyrintisi'
 import { Pusula } from './Pusula'
 
 /** Harita alanı: 3B/2B sahne ve üstündeki kontroller (docs/02 §4). */
@@ -25,7 +24,6 @@ export function Harita() {
           {/* Yangın değişince sahne (kamera dahil) yeni bölgeye göre baştan kurulur. */}
           <Sahne key={veri.bilgi.ad} veri={veri} />
           <ImlecBilgisi veri={veri} />
-          <OlayAyrintisi veri={veri} />
           <Pusula />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />
         </>
