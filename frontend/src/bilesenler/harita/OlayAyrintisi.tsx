@@ -13,7 +13,8 @@ const derece = (d: number) => d.toFixed(4).replace('.', ',')
 
 /**
  * Seçilen olayın ayrıntı kartı (haritanın sol üstü, pusulanın altı): olayın kaynağı (uydu, model ya
- * da girdi), olaya özgü değerler, yeri ve o andaki hava. × ya da Esc seçimi kaldırır.
+ * da girdi), olaya özgü değerler, yeri ve o andaki hava. × ya da Esc seçimi kaldırır. Uydu geçişinde
+ * kart açılmaz: haritadaki parlayan tespitler yeterli.
  */
 export function OlayAyrintisi({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
@@ -27,7 +28,7 @@ export function OlayAyrintisi({ veri }: { veri: OlayVerisi }) {
     return () => document.removeEventListener('keydown', kacis)
   }, [olay, olaySec])
 
-  if (!olay) return null
+  if (!olay || olay.tur === 'uyduGecisi') return null
   const yer = olay.x !== undefined && olay.z !== undefined ? { x: olay.x, z: olay.z } : null
   const hava = veri.hava(olay.zaman)
   const saatSonra = Math.round((olay.zaman - veri.tutusmaMs) / SAAT)
@@ -83,24 +84,10 @@ export function OlayAyrintisi({ veri }: { veri: OlayVerisi }) {
   )
 }
 
-/** Olay türüne özgü satırlar: uyduda gözlenen ve modelin alanı, büyüme hızı ya da sırt yüksekliği. */
+/** Olay türüne özgü satırlar: büyüme hızı ya da sırt yüksekliği. */
 function OlayDegerleri({ olay, veri }: { olay: OnemliOlay; veri: OlayVerisi }) {
   const { t } = useTranslation()
   const h = olay.ham
-  if (olay.tur === 'uyduGecisi' && h?.firms_ha !== undefined && h.model_ha !== undefined) {
-    // Haritada mavi gösterilen pikseller: önceki geçişten bu yana yeni görülen alan.
-    const onceki = veri.olaylar.findLast((o) => o.tur === 'uyduGecisi' && o.zaman < olay.zaman)?.ham?.firms_ha ?? 0
-    return (
-      <>
-        <Satir etiket={t('olayAyrintisi.yeniTespit')}>
-          <span aria-hidden className="size-[7px] rounded-full bg-ates-acik shadow-[0_0_6px_rgba(242,138,94,0.9)]" />
-          {sayi(Math.max(h.firms_ha - onceki, 0))} ha
-        </Satir>
-        <Satir etiket={t('olayAyrintisi.uyduAlani')}>{sayi(h.firms_ha)} ha</Satir>
-        <Satir etiket={t('olayAyrintisi.modelAlani')}>{sayi(h.model_ha)} ha</Satir>
-      </>
-    )
-  }
   if (olay.tur === 'hizliBuyume' && h?.ha_sa !== undefined)
     return (
       <>
