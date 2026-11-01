@@ -10,7 +10,7 @@ import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
 const SAAT = 3_600_000
 const DAKIKA = 60_000
 /** Şerit adlarının sütunu ve grafiklerin sağ boşluğu (px). */
-const ETIKET = 248
+const ETIKET = 300
 const SAG = 20
 /**
  * Şerit satırının yüksekliği (px): gösterge düzeninde seriler yan yana durduğu için her şerit tek satır
