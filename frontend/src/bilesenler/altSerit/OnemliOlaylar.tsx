@@ -9,7 +9,8 @@ import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
  * Önemli olaylar ajandası (arka ucun otomatik bulduğu olaylar): solda büyük gün, yanında o günün
  * olayları ince çizgilerle ayrılmış düz satırlar olarak (ad ve saat); renk yok, yazılar beyaz.
  * Tıklanınca olay seçilir (zaman o ana atlar, kamera yerine uçar); seçili olana basmak seçimi
- * kaldırır. Seçili olay, yoksa imleçten önceki son olay, açık zeminli bir satırla vurgulanır.
+ * kaldırır. Seçili olayın, yoksa imleçten önceki son olayın adı soldan sağa çizilen bir
+ * fosforlu kalem vurgusuyla işaretlenir.
  */
 export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
@@ -51,19 +52,24 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                 {g.olaylar.map((o) => {
                   const seciliMi = o === secili
                   return (
-                    <li key={`${o.tur}-${o.zaman}`} className="border-t border-white/[0.06] first:border-t-0 has-[[data-secili=true]]:border-transparent [&:has([data-secili=true])+li]:border-transparent">
+                    <li key={`${o.tur}-${o.zaman}`} className="border-t border-white/[0.06] first:border-t-0">
                       <button
                         type="button"
                         data-secili={seciliMi}
                         aria-pressed={o === seciliOlay}
                         onClick={() => olayaGit(o)}
                         title={t('olaylar.git')}
-                        className={`-mx-2 flex w-[calc(100%+16px)] items-center gap-2 rounded-[7px] px-2.5 py-[7px] text-left transition-colors ${
-                          seciliMi ? 'bg-white/[0.12] ring-1 ring-white/15' : 'hover:bg-white/[0.05]'
-                        }`}
+                        className="flex w-full items-center gap-2 px-0.5 py-[7px] text-left"
                       >
-                        <span className={`min-w-0 flex-1 truncate text-[13px] leading-[18px] text-white ${seciliMi ? 'font-semibold' : ''}`}>
-                          {t(`olaylar.turler.${o.tur}`)}
+                        <span className="min-w-0 flex-1 truncate text-[13px] leading-[18px] text-white">
+                          {/* Fosforlu kalem: zemin şeridinin genişliği 0'dan %100'e geçer (soldan sağa) */}
+                          <span
+                            className={`-mx-1 rounded-[3px] bg-[linear-gradient(rgba(255,255,255,0.24),rgba(255,255,255,0.24))] bg-left bg-no-repeat px-1 py-px transition-[background-size] duration-500 ease-out ${
+                              seciliMi ? 'bg-[length:100%_100%] font-semibold' : 'bg-[length:0%_100%]'
+                            }`}
+                          >
+                            {t(`olaylar.turler.${o.tur}`)}
+                          </span>
                         </span>
                         <span className={`shrink-0 text-[11.5px] leading-4 tabular-nums ${seciliMi ? 'font-semibold text-white' : 'text-white/75'}`}>
                           {saat(o.zaman)}
