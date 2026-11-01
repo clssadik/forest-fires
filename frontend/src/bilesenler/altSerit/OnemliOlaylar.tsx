@@ -31,9 +31,14 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
     return gruplar
   }, [veri])
 
-  // Oynatılırken vurgulanan olay görünür kalsın.
+  // Oynatılırken vurgulanan olay listenin ortasında kalsın (yalnızca liste kayar, sayfa değil).
   useEffect(() => {
-    liste.current?.querySelector('[data-secili="true"]')?.scrollIntoView({ block: 'nearest' })
+    const kutu = liste.current
+    const satir = kutu?.querySelector<HTMLElement>('[data-secili="true"]')
+    if (!kutu || !satir) return
+    const k = kutu.getBoundingClientRect()
+    const r = satir.getBoundingClientRect()
+    kutu.scrollTo({ top: kutu.scrollTop + r.top - k.top - (k.height - r.height) / 2, behavior: 'smooth' })
   }, [secili])
 
   return (
