@@ -16,7 +16,7 @@ const SAG = 20
  * Şerit satırının yüksekliği (px): gösterge düzeninde seriler yan yana durduğu için her şerit tek satır
  * (küçük ad + büyük değer, üstte ve altta eşit boşluk).
  */
-const SERIT_YUKSEKLIGI = 52
+const SERIT_YUKSEKLIGI = 56
 /** Oynat düğmesinin satırı (px); yalnızca etiket sütununda durur, yanındaki boşluğu yanan alan grafiği kullanır. */
 const OYNAT_SATIRI = 44
 /** İlk şerit (yanan alan) oynat düğmesinin satırını da kaplar. */
@@ -363,15 +363,16 @@ function SeritGrafigi({ seriler, ust }: { seriler: Seri[]; ust: number }) {
 /**
  * Gösterge düzeni: seriler yan yana; her birinde aralıklı küçük büyük harfli ad, altında büyük ince
  * değer ve küçük birim (Türkçe büyütme için html lang="tr"). İkinci seri sağa yaslanır: sol ve sağ
- * kenar boşluğu eşit kalır.
+ * kenar boşluğu eşit kalır. Yazı kutuları leading-none: harflerin üstündeki ve altındaki boşluk eşit
+ * olur (ölçüldü: ~11 / ~12 px).
  */
 function SeritAdi({ ad, seriler }: { ad: string; seriler: Seri[] }) {
   return (
     <div className="grid min-w-0 grid-flow-col auto-cols-fr gap-3 px-5 whitespace-nowrap">
       {seriler.map((sr, i) => (
         <div key={sr.renk} className={`min-w-0 ${i > 0 ? 'text-right' : ''}`}>
-          <div className="truncate text-[10px] leading-3 tracking-[0.12em] text-[#8a8a8a] uppercase">{sr.etiket ?? ad}</div>
-          <div className="mt-1 text-[20px] leading-6 font-light text-white tabular-nums">
+          <div className="truncate text-[10px] leading-none tracking-[0.12em] text-[#8a8a8a] uppercase">{sr.etiket ?? ad}</div>
+          <div className="mt-1.5 text-[20px] leading-none font-light text-white tabular-nums">
             {sr.deger}
             {sr.birim && <span className="ml-1 text-[10px] tracking-[0.08em] text-[#8a8a8a] uppercase">{sr.birim}</span>}
           </div>
