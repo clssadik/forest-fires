@@ -67,44 +67,45 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   )
 }
 
-/** "Hazır" yazısının görünme süresi ve yazılar arası solma (ms). */
-const HAZIR_MS = 1000
+/** Onay yazısının ("Hazır", "Durduruldu") görünme süresi ve yazılar arası solma (ms). */
+const ONAY_MS = 1000
 const SOLMA_MS = 200
 
 /**
  * Simülasyonu başlat/durdur: simgesiz, ince ve tümü büyük harf yazı (Türkçe büyütme için html lang="tr"),
- * sütunun ortasında. Oynatma başlayınca 1 sn yeşil "Hazır" görünür, solar ve yerini "Simülasyonu
- * durdur"a bırakır; durunca yeniden "Simülasyonu başlat".
+ * sütunun ortasında. Oynatma başlayınca 1 sn yeşil "Hazır", durunca 1 sn kırmızı "Durduruldu" görünür;
+ * onay solar ve yerini "Simülasyonu durdur" ya da "Simülasyonu başlat"a bırakır.
  */
 function OynatDugmesi() {
   const { t } = useTranslation()
   const oynatiliyor = useZaman((d) => d.oynatiliyor)
   const oynatDuraklat = useZaman((d) => d.oynatDuraklat)
-  const [evre, setEvre] = useState<'hazir' | 'soluyor' | 'durdur'>('hazir')
+  const [evre, setEvre] = useState<'onay' | 'soluyor' | 'bos'>('bos')
+  // Oynatma durumu değişince onay aynı çizimde başlar (araya eski yazı girmez); açılışta onay yok.
+  const [onceki, setOnceki] = useState(oynatiliyor)
+  if (onceki !== oynatiliyor) {
+    setOnceki(oynatiliyor)
+    setEvre('onay')
+  }
 
   useEffect(() => {
-    if (!oynatiliyor) return
-    const solma = window.setTimeout(() => setEvre('soluyor'), HAZIR_MS)
-    const bitis = window.setTimeout(() => setEvre('durdur'), HAZIR_MS + SOLMA_MS)
-    return () => {
-      window.clearTimeout(solma)
-      window.clearTimeout(bitis)
-      // Bir sonraki başlatma "Hazır"la açılsın (araya bir kare "Durdur" girmesin)
-      setEvre('hazir')
-    }
-  }, [oynatiliyor])
+    if (evre === 'bos') return
+    const zamanlayici = window.setTimeout(() => setEvre(evre === 'onay' ? 'soluyor' : 'bos'), evre === 'onay' ? ONAY_MS : SOLMA_MS)
+    return () => window.clearTimeout(zamanlayici)
+  }, [evre, oynatiliyor])
 
-  const [anahtar, renk] = !oynatiliyor
-    ? ['zaman.simulasyonuBaslat', 'text-metin hover:text-white']
-    : evre === 'durdur'
-      ? ['zaman.simulasyonuDurdur', 'text-metin hover:text-white']
-      : ['zaman.hazir', 'text-yesil']
+  const [anahtar, renk] =
+    evre === 'bos'
+      ? [oynatiliyor ? 'zaman.simulasyonuDurdur' : 'zaman.simulasyonuBaslat', 'text-metin hover:text-white']
+      : oynatiliyor
+        ? ['zaman.hazir', 'text-yesil']
+        : ['zaman.durduruldu', 'text-red-500']
   return (
     <button
       type="button"
       onClick={oynatDuraklat}
       className={`w-full text-center text-[18px] leading-6 font-light tracking-[0.06em] whitespace-nowrap uppercase transition-[color,opacity] duration-200 ${renk} ${
-        oynatiliyor && evre === 'soluyor' ? 'opacity-0' : 'opacity-100'
+        evre === 'soluyor' ? 'opacity-0' : 'opacity-100'
       }`}
     >
       {t(anahtar)}
