@@ -68,16 +68,14 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
   )
 }
 
-/** Simülasyonu başlat/durdur: oynat simgesi ve yazısı tek düğmede. */
+/** Simülasyonu başlat/durdur: kutusuz, yalnızca simge ve yazı. */
 function OynatDugmesi() {
   const { t } = useTranslation()
   const oynatiliyor = useZaman((d) => d.oynatiliyor)
   const oynatDuraklat = useZaman((d) => d.oynatDuraklat)
   return (
-    <button type="button" onClick={oynatDuraklat} className="group flex items-center gap-2.5 whitespace-nowrap">
-      <span className="grid size-[28px] shrink-0 place-items-center rounded-[7px] bg-guclu text-zemin group-hover:bg-white">
-        {oynatiliyor ? <IkonDuraklat boyut={13} /> : <IkonOynat boyut={13} />}
-      </span>
+    <button type="button" onClick={oynatDuraklat} className="flex items-center gap-2 whitespace-nowrap text-metin hover:text-white">
+      {oynatiliyor ? <IkonDuraklat boyut={14} /> : <IkonOynat boyut={14} />}
       <span className="text-[14px] leading-[18px] font-semibold">{t(oynatiliyor ? 'zaman.simulasyonuDurdur' : 'zaman.simulasyonuBaslat')}</span>
     </button>
   )
