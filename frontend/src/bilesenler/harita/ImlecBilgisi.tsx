@@ -38,7 +38,7 @@ export function ImlecBilgisi({ veri }: { veri: OlayVerisi }) {
       : [t('imlec.yanacak', { saat: sayi(fark) }), RENK.yanacak]
 
   return (
-    <div className="pointer-events-none absolute top-[62px] right-4 z-30 w-[256px] rounded-[8px] bg-black/90 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+    <div className="pointer-events-none absolute top-[66px] right-4 z-30 w-[256px] rounded-[8px] bg-black/90 px-3.5 pt-2.5 pb-3 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] backdrop-blur-sm">
       <div className="text-[14px] leading-[20px] font-semibold">{t('imlec.baslik')}</div>
       <div className="text-[11.5px] text-white/75 tabular-nums">
         {sayi(enlem, 2)}° K · {sayi(boylam, 2)}° D

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { sayi } from '../../bicim'
 import { useHarita, type GorunumKipi } from '../../durum/harita'
 import type { OlayVerisi } from '../../olay/veri'
-import { IkonAsagi, IkonBilgi, IkonDik, IkonDonSag, IkonDonSol, IkonEg, IkonHedef, IkonTamEkran } from '../ikonlar'
+import { IkonBilgi, IkonBuyutec, IkonDik, IkonDonSag, IkonDonSol, IkonEg, IkonHedef, IkonTamEkran } from '../ikonlar'
 import { OlcekCubugu } from './OlcekCubugu'
 
 const ZOOMLAR = [0.5, 1, 1.5, 2.5, 5, 10]
@@ -11,8 +11,9 @@ const DONUS_ADIMI = 45
 const EGIM_ADIMI = 12
 
 /**
- * Harita kontrolleri: alt ortada yüzen tek bir hap. 2B/3B, tutuşmaya git, yakınlaştırma,
- * 3B'de döndür / eğ, Detaylar kartını aç/kapat ve tam ekran; gruplar ince ayraçlarla ayrılır. Ölçek sağ altta, kutusuz.
+ * Harita kontrolleri: alt ortada yüzen tek bir hap. 2B/3B yazıyla, gerisi yalnızca simge (adı ipucunda):
+ * tutuşmaya git, yakınlaştırma, 3B'de döndür / eğ, Detaylar kartını aç/kapat ve tam ekran; gruplar ince
+ * ayraçlarla ayrılır. Ölçek sağ altta, kutusuz.
  * Pusula bunun dışında, sol üstte kalır.
  */
 export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkran: () => void }) {
@@ -40,17 +41,11 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
           ))}
         </div>
         <Ayrac />
-        <button
-          type="button"
-          onClick={() => odaklanIste(tutusma.x, tutusma.z)}
-          title={t('harita.tutusmayaGit')}
-          aria-label={t('harita.tutusmayaGit')}
-          className="flex h-[28px] items-center gap-1.5 rounded-full px-2.5 hover:bg-white/10"
-        >
+        <Dugme etiket={t('harita.tutusmayaGit')} onClick={() => odaklanIste(tutusma.x, tutusma.z)}>
           <IkonHedef boyut={15} />
-          {t('harita.tutusma')}
-        </button>
-        <label className="relative flex h-[28px] items-center rounded-full hover:bg-white/10">
+        </Dugme>
+        {/* Yakınlaştırma: büyüteç simgesi; görünmez seçim kutusu üstünde, açılınca seviyeler listelenir */}
+        <label title={`${t('harita.zoom')} · ${sayi(zoom, 1)}×`} className="relative grid size-[28px] place-items-center rounded-full hover:bg-white/10">
           <span className="sr-only">{t('harita.zoom')}</span>
           <select
             value=""
@@ -66,10 +61,7 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
               </option>
             ))}
           </select>
-          <span className="pointer-events-none flex items-center gap-1 px-2.5">
-            {sayi(zoom, 1)}×
-            <IkonAsagi boyut={11} />
-          </span>
+          <IkonBuyutec boyut={15} className="pointer-events-none" />
         </label>
         {kip === '3B' && (
           <>
