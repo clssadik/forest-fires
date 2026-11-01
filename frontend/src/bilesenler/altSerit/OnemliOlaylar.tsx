@@ -9,8 +9,8 @@ import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
  * Önemli olaylar ajandası (arka ucun otomatik bulduğu olaylar): solda büyük gün, yanında o günün
  * olayları ince çizgilerle ayrılmış düz satırlar olarak (ad ve saat); renk yok, yazılar beyaz.
  * Tıklanınca olay seçilir (zaman o ana atlar, kamera yerine uçar); seçili olana basmak seçimi
- * kaldırır. Seçili olayın, yoksa imleçten önceki son olayın adı soldan sağa çizilen bir
- * fosforlu kalem vurgusuyla işaretlenir.
+ * kaldırır. Seçili olayın, yoksa imleçten önceki son olayın adının harfleri soldan sağa turuncuya
+ * boyanır (zemin yok).
  */
 export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
@@ -62,10 +62,11 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                         className="flex w-full items-center gap-2 px-0.5 py-[7px] text-left"
                       >
                         <span className="min-w-0 flex-1 truncate text-[13px] leading-[18px] text-white">
-                          {/* Fosforlu kalem: zemin şeridinin genişliği 0'dan %100'e geçer (soldan sağa) */}
+                          {/* Yazı rengi silmesi: yarısı turuncu yarısı beyaz, iki kat geniş zemin harflere kırpılır;
+                              seçilince zemin sağdan sola kayar, turuncu harflerin üstünden soldan sağa geçer */}
                           <span
-                            className={`-mx-1 rounded-[3px] bg-[linear-gradient(rgba(255,255,255,0.24),rgba(255,255,255,0.24))] bg-left bg-no-repeat px-1 py-px transition-[background-size] duration-500 ease-out ${
-                              seciliMi ? 'bg-[length:100%_100%] font-semibold' : 'bg-[length:0%_100%]'
+                            className={`bg-[linear-gradient(to_right,var(--color-ates-acik)_50%,#fff_50%)] bg-[length:200%_100%] bg-clip-text text-transparent transition-[background-position] duration-500 ease-out ${
+                              seciliMi ? 'bg-left font-semibold' : 'bg-right'
                             }`}
                           >
                             {t(`olaylar.turler.${o.tur}`)}
