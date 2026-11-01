@@ -5,17 +5,9 @@ import { useOlay } from '../../durum/olay'
 import { useZaman } from '../../durum/zaman'
 import type { OlayVerisi, OnemliOlay } from '../../olay/veri'
 
-/** Olay türünün kenar rengi; OlayIkonu ile aynı. */
-const KENAR: Record<OnemliOlay['tur'], string> = {
-  tutusma: 'border-ates',
-  uyduGecisi: 'border-mavi',
-  hizliBuyume: 'border-[#e5532c]',
-  sirtaUlasma: 'border-soluk',
-}
-
 /**
  * Önemli olaylar ajandası (arka ucun otomatik bulduğu olaylar): solda büyük gün, yanında o günün
- * olayları türünün renginde kenarlı satırlar olarak (ad ve saat). Tıklanınca olay seçilir (zaman o
+ * olayları ince çizgilerle ayrılmış düz satırlar olarak (ad ve saat); renk yok. Tıklanınca olay seçilir (zaman o
  * ana atlar, kamera yerine uçar); seçili olana basmak seçimi kaldırır. Seçili olay, yoksa imleçten
  * önceki son olay vurgulanır; gelecektekiler soluk.
  */
@@ -56,23 +48,30 @@ export function OnemliOlaylar({ veri }: { veri: OlayVerisi }) {
                 <div className="text-[24px] leading-[26px] font-semibold tabular-nums">{gun(ilk)}</div>
                 <div className="text-[11px] leading-[14px] text-silik">{ay(ilk)}</div>
               </div>
-              <ul className="flex flex-col gap-1">
+              <ul className="flex flex-col">
                 {g.olaylar.map((o) => {
                   const seciliMi = o === secili
                   return (
-                    <li key={`${o.tur}-${o.zaman}`}>
+                    <li key={`${o.tur}-${o.zaman}`} className="border-t border-white/[0.06] first:border-t-0">
                       <button
                         type="button"
                         data-secili={seciliMi}
                         aria-pressed={o === seciliOlay}
                         onClick={() => olayaGit(o)}
                         title={t('olaylar.git')}
-                        className={`flex w-full items-center gap-2 rounded-[6px] border-l-2 px-2.5 py-[7px] text-left ${KENAR[o.tur]} ${
-                          seciliMi ? 'bg-yuzey-acik' : 'bg-yuzey hover:bg-white/[0.07]'
-                        } ${o.zaman > zaman ? 'opacity-55' : ''}`}
+                        className={`group flex w-full items-center gap-2 px-0.5 py-[7px] text-left ${o.zaman > zaman ? 'opacity-40' : ''}`}
                       >
-                        <span className="min-w-0 flex-1 truncate text-[13px] leading-[18px] font-semibold">{t(`olaylar.turler.${o.tur}`)}</span>
-                        <span className="shrink-0 text-[11.5px] leading-4 text-ikincil tabular-nums">{saat(o.zaman)}</span>
+                        {seciliMi && <span aria-hidden className="size-[5px] shrink-0 rounded-full bg-metin" />}
+                        <span
+                          className={`min-w-0 flex-1 truncate text-[13px] leading-[18px] ${
+                            seciliMi ? 'font-semibold text-white' : 'text-ikincil group-hover:text-metin'
+                          }`}
+                        >
+                          {t(`olaylar.turler.${o.tur}`)}
+                        </span>
+                        <span className={`shrink-0 text-[11.5px] leading-4 tabular-nums ${seciliMi ? 'text-metin' : 'text-silik'}`}>
+                          {saat(o.zaman)}
+                        </span>
                       </button>
                     </li>
                   )
