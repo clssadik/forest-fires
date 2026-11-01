@@ -12,11 +12,17 @@ const parca = (secenek: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat('tr-TR', { timeZone: SAAT_DILIMI, hourCycle: 'h23', ...secenek })
 
 const gunAyF = parca({ day: 'numeric', month: 'short' })
+const gunF = parca({ day: 'numeric' })
+const ayF = parca({ month: 'short' })
 const saatF = parca({ hour: '2-digit', minute: '2-digit' })
 const gunAyYilF = parca({ day: 'numeric', month: 'short', year: 'numeric' })
 
 /** "28 Tem" */
 export const gunAy = (t: number) => gunAyF.format(t)
+/** "28" */
+export const gun = (t: number) => gunF.format(t)
+/** "Tem" */
+export const ay = (t: number) => ayF.format(t)
 /** "12:00" */
 export const saat = (t: number) => saatF.format(t)
 /** "28 Tem 12:00" */
