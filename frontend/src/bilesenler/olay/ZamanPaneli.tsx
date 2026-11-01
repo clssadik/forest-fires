@@ -6,7 +6,6 @@ import { useZaman } from '../../durum/zaman'
 import { useBoyut } from '../../kancalar/useBoyut'
 import { guzelUst, kirpilmisUst } from '../../olay/olcek'
 import { pusulaYonu, type OlayVerisi, type OnemliOlay } from '../../olay/veri'
-import { IkonDuraklat, IkonOynat } from '../ikonlar'
 
 const SAAT = 3_600_000
 const DAKIKA = 60_000
@@ -18,12 +17,8 @@ const SAG = 20
  * altta eşit 14 px boşluk. Böylece tüm şeritlerde etiketlerin üst/alt boşluğu aynıdır.
  */
 const seritYuksekligi = (seriSayisi: number) => seriSayisi * 15 + (seriSayisi - 1) * 4 + 28
-/** Seçili anın satırı (px); yalnızca etiket sütununda durur, yanındaki boşluğu yanan alan grafiği kullanır. */
-const AN_SATIRI = 44
-/** İlk şerit (yanan alan) seçili anın satırını da kaplar. */
-const satirYuksekligi = (seriSayisi: number, ilk: boolean) => seritYuksekligi(seriSayisi) + (ilk ? AN_SATIRI : 0)
 /** Grafik, satırın üstünden ve altından 5'er px içeride çizilir. */
-const grafikYuksekligi = (seriSayisi: number, ilk = false) => satirYuksekligi(seriSayisi, ilk) - 10
+const grafikYuksekligi = (seriSayisi: number) => seritYuksekligi(seriSayisi) - 10
 
 /** Yanan alan grafiğindeki olay noktalarının renkleri: uydu gözlemi FIRMS çizgisinde, model olayı model eğrisinde. */
 const OLAY_RENGI: Record<OnemliOlay['tur'], string> = {
@@ -52,7 +47,7 @@ interface Serit {
 }
 
 /**
- * Olay ekranının alt paneli: en üstte oynat düğmesi ve seçili an, altında aynı zaman ekseninde şeritler.
+ * Olay ekranının alt paneli: aynı zaman ekseninde şeritler (oynat düğmesi ve seçili an haritanın sağ üstünde).
  * Şeritler her zaman açık: yanan alan, cephe hızı, rüzgâr, sıcaklık, nem ve yakıt nemi. Olaylar
  * yanan alan grafiğinin içinde noktalardır: uydu gözlemi FIRMS çizgisinde, model olayı model
  * eğrisinde, tutuşma tabanda. Şeritlerin üstüne tıklamak ya da sürüklemek zamanı o ana götürür;
@@ -64,25 +59,6 @@ export function ZamanPaneli({ veri }: { veri: OlayVerisi | null }) {
     <section className="shrink-0 border-t border-cizgi bg-olaylar">
       {veri && <Seritler veri={veri} />}
     </section>
-  )
-}
-
-/** Oynat/duraklat düğmesi (seçili anın satırında). */
-function OynatDugmesi() {
-  const { t } = useTranslation()
-  const oynatiliyor = useZaman((d) => d.oynatiliyor)
-  const oynatDuraklat = useZaman((d) => d.oynatDuraklat)
-  const etiket = t(oynatiliyor ? 'zaman.duraklat' : 'zaman.oynat')
-  return (
-    <button
-      type="button"
-      onClick={oynatDuraklat}
-      title={etiket}
-      aria-label={etiket}
-      className="grid size-[28px] shrink-0 place-items-center rounded-[7px] bg-guclu text-zemin hover:bg-white"
-    >
-      {oynatiliyor ? <IkonDuraklat boyut={13} /> : <IkonOynat boyut={13} />}
-    </button>
   )
 }
 
@@ -129,7 +105,6 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   const basladi = an >= veri.tutusmaMs
   const h = veri.hava(an)
   const tire = t('hava.baslamadi')
-  const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
   const alan: Serit = {
     kimlik: 'alan',
     ad: t('olayDuzeni.seritler.yananAlan'),
@@ -196,39 +171,20 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
   // Olay noktasının grafikteki yüksekliği (px, üstten); SeritGrafigi ile aynı ölçek.
   const olayY = (o: OnemliOlay) => {
     const v = o.tur === 'tutusma' ? 0 : o.tur === 'uyduGecisi' ? veri.firmsAlanHa(o.zaman) : veri.yananAlanHa(o.zaman)
-    const yuk = grafikYuksekligi(alan.seriler.length, true)
+    const yuk = grafikYuksekligi(alan.seriler.length)
     return yuk - 1 - (Math.min(Math.max(v, 0), alan.ust) / alan.ust) * (yuk - 3)
   }
 
   return (
     <div className="relative select-none">
-      {seritler.map((sr, i) => (
+      {seritler.map((sr) => (
         <div
           key={sr.kimlik}
           className="grid items-center border-b border-white/[0.12]"
-          style={{ gridTemplateColumns: `${ETIKET}px 1fr`, height: satirYuksekligi(sr.seriler.length, i === 0) }}
+          style={{ gridTemplateColumns: `${ETIKET}px 1fr`, height: seritYuksekligi(sr.seriler.length) }}
         >
-          {i === 0 ? (
-            <div className="flex h-full flex-col">
-              {/* Seçili an: oynat düğmesi, tarih-saat ve tutuşmadan bu yana geçen süre */}
-              <div
-                className="flex shrink-0 items-center gap-2.5 border-b border-white/[0.12] px-5 whitespace-nowrap"
-                style={{ height: AN_SATIRI }}
-              >
-                <OynatDugmesi />
-                <span className="text-[17px] leading-[20px] font-semibold tabular-nums">{gunAySaat(an)}</span>
-                <span title={t('olayDuzeni.sureAciklama')} className="text-[12.5px] text-soluk tabular-nums">
-                  {t('olayDuzeni.saatSayaci', { saat: saatSonra })}
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col justify-center">
-                <SeritAdi ad={sr.ad} seriler={sr.seriler} />
-              </div>
-            </div>
-          ) : (
-            <SeritAdi ad={sr.ad} seriler={sr.seriler} />
-          )}
-          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(sr.seriler.length, i === 0) }}>
+          <SeritAdi ad={sr.ad} seriler={sr.seriler} />
+          <div className="relative" style={{ marginRight: SAG, height: grafikYuksekligi(sr.seriler.length) }}>
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {

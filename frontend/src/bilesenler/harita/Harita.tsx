@@ -5,6 +5,7 @@ import { Sahne } from '../../sahne/Sahne'
 import { HaritaKontrolleri } from './HaritaKontrolleri'
 import { ImlecBilgisi } from './ImlecBilgisi'
 import { Pusula } from './Pusula'
+import { Saat } from './Saat'
 
 /** Harita alanı: 3B/2B sahne ve üstündeki kontroller (docs/02 §4). */
 export function Harita() {
@@ -25,6 +26,7 @@ export function Harita() {
           <Sahne key={veri.bilgi.ad} veri={veri} />
           <ImlecBilgisi veri={veri} />
           <Pusula />
+          <Saat veri={veri} />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />
         </>
       ) : (
