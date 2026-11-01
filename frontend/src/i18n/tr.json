@@ -442,8 +442,6 @@
     "sureAciklama": "Tutuşmadan bu yana geçen süre",
     "yakitNemi": "Yakıt nemi",
     "uyduAlani": "Uydu (FIRMS)",
-    "profil": "Arazi yüksekliği",
-    "profilAciklama": "Tutuşmadan ana yayılım yönü boyunca arazi yüksekliği; imleç cephenin o andaki yeri",
     "olayKarti": {
       "kapat": "Kapat"
     },
@@ -457,8 +455,17 @@
     },
     "dogruluk": "Tahmin doğruluğu",
     "dogrulukAciklama": "Yangın bittiğinde modelin yaktığı alanla Sentinel-2 görüntüsündeki gerçek yanmış alanın örtüşmesi (Sørensen ölçüsü)",
-    "buModel": "Bu model",
-    "daire": "Basit daire",
-    "daireAciklama": "Tutuşma noktasında, gerçek alanla aynı büyüklükte bir daire: modelin geçmesi beklenen en basit tahmin"
+    "radar": {
+      "sorensen": "Sørensen",
+      "sorensenAciklama": "yakalama ile isabetin dengesi",
+      "yakalama": "Yakalama",
+      "yakalamaAciklama": "gerçek yanmış alanın modelce yakılan kısmı",
+      "isabet": "İsabet",
+      "isabetAciklama": "modelin yaktığı alanın gerçekten yanan kısmı",
+      "zaman": "Zaman",
+      "zamanAciklama": "uydunun gördüğü hücrelerden modelin ±12 saat içinde vardığı kısım",
+      "sekil": "Şekil",
+      "sekilAciklama": "model alanı gerçek alana eşitlenince örtüşme (IoU)"
+    }
   }
 }

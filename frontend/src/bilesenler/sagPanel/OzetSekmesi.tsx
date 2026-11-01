@@ -1,94 +1,95 @@
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { sayi, yuzdeBicim } from '../../bicim'
-import { useZaman } from '../../durum/zaman'
+import { yuzdeBicim } from '../../bicim'
 import type { OlayVerisi } from '../../olay/veri'
-import { CizgiGrafigi } from '../altSerit/CizgiGrafigi'
-import { TEMALAR } from '../altSerit/grafikTemalari'
 import { OnemliOlaylar } from '../altSerit/OnemliOlaylar'
 
 /**
- * Sağ çekmecenin Özet sekmesi: bitişteki doğruluk, yükseklik profili ve önemli olaylar. Yalnızca
- * sayılar ve kısa adlar; açıklamalar ipucunda. Seçili an ve
- * o ana kadarki alanlar alttaki zaman panelinde olduğu için burada tekrarlanmaz. Tek boşluk ölçeği:
- * bölümler 20 px yan, 16 px dikey boşlukla.
+ * Sağ çekmecenin Özet sekmesi: bitişteki doğruluk ve önemli olaylar. Yalnızca sayılar ve kısa adlar;
+ * açıklamalar ipucunda. Seçili an ve o ana kadarki alanlar alttaki zaman panelinde olduğu için burada
+ * tekrarlanmaz. Tek boşluk ölçeği: bölümler 20 px yan, 16 px dikey boşlukla.
  */
 export function OzetSekmesi({ veri }: { veri: OlayVerisi }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col [&>*:first-child]:border-t-0">
       <Dogruluk veri={veri} />
-      <Profil veri={veri} />
       <OnemliOlaylar veri={veri} />
     </div>
   )
 }
 
-/** Bitişteki doğruluk: model ve aynı alanlı daire yan yana çubuklarla; geçip geçmediği rozette. */
+/** Radar çiziminin ölçüleri (viewBox birimi). */
+const GEN = 304
+const YUK = 212
+const MERKEZ = { x: GEN / 2, y: 112 }
+const YARICAP = 76
+const HALKALAR = [1 / 3, 2 / 3, 1]
+
+/** Eksenin ucundaki nokta: 0. eksen tepede, saat yönünde eşit aralıklı. */
+function uc(i: number, n: number, oran: number) {
+  const a = -Math.PI / 2 + (i * 2 * Math.PI) / n
+  return { x: MERKEZ.x + Math.cos(a) * YARICAP * oran, y: MERKEZ.y + Math.sin(a) * YARICAP * oran }
+}
+
+const cokgen = (oranlar: number[]) =>
+  oranlar.map((o, i) => uc(i, oranlar.length, o)).map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+
+/**
+ * Bitişteki doğruluk: başlıkta Sørensen, altında beş ölçütün radarı (Sørensen, yakalama, isabet,
+ * ±12 saat içinde varış, eşit alanda şekil). Değer ve açıklama eksen adının ipucunda.
+ */
 function Dogruluk({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const m = veri.bilgi.model
-  if (m.bitis_dice === null) return null
-  const daire = m.daire_dice
+  if (m.bitis_dice === null || !m.bitis) return null
+  const eksenler = [
+    { ad: 'sorensen', oran: m.bitis_dice },
+    { ad: 'yakalama', oran: m.bitis.duyarlilik },
+    { ad: 'isabet', oran: m.bitis.isabet },
+    ...(m.zaman ? [{ ad: 'zaman', oran: m.zaman.oran_12_saat_icinde }] : []),
+    { ad: 'sekil', oran: m.esit_alan_iou },
+  ]
+  const n = eksenler.length
   return (
     <section className="shrink-0 border-t border-cizgi px-5 py-4">
-      <h2 title={t('olayDuzeni.dogrulukAciklama')} className="cursor-help text-[13.5px] leading-[18px] font-semibold">
-        {t('olayDuzeni.dogruluk')}
-      </h2>
-      <div className="mt-3 space-y-2.5">
-        <Cubuk etiket={t('olayDuzeni.buModel')} oran={m.bitis_dice} renk="bg-guclu" guclu />
-        {daire !== null && <Cubuk etiket={t('olayDuzeni.daire')} oran={daire} renk="bg-ikincil/50" aciklama={t('olayDuzeni.daireAciklama')} />}
+      <div className="flex items-baseline justify-between">
+        <h2 title={t('olayDuzeni.dogrulukAciklama')} className="cursor-help text-[13.5px] leading-[18px] font-semibold">
+          {t('olayDuzeni.dogruluk')}
+        </h2>
+        <span className="text-[18px] leading-6 font-semibold tabular-nums">{yuzdeBicim(m.bitis_dice)}</span>
       </div>
-    </section>
-  )
-}
-
-function Cubuk({ etiket, oran, renk, guclu, aciklama }: { etiket: string; oran: number; renk: string; guclu?: boolean; aciklama?: string }) {
-  return (
-    <div title={aciklama} className="grid grid-cols-[84px_1fr_40px] items-center gap-3">
-      <span className={`text-[12.5px] leading-4 ${guclu ? 'font-medium' : 'text-ikincil'}`}>{etiket}</span>
-      <span className="h-1.5 overflow-hidden rounded-full bg-yuzey-acik">
-        <span className={`block h-full rounded-full ${renk}`} style={{ width: `${Math.min(Math.max(oran, 0), 1) * 100}%` }} />
-      </span>
-      <span className={`text-right text-[13.5px] leading-4 tabular-nums ${guclu ? 'font-semibold' : 'text-ikincil'}`}>{yuzdeBicim(oran)}</span>
-    </div>
-  )
-}
-
-/** Ana yayılım ekseni boyunca yükseklik; imleç cephenin eksende vardığı yer. */
-function Profil({ veri }: { veri: OlayVerisi }) {
-  const { t } = useTranslation()
-  const zaman = useZaman((d) => d.t)
-  const km = Math.max(veri.bilgi.eksen?.uzunluk_km ?? 1, 1)
-  const noktalar = useMemo(() => veri.profil.map((p) => ({ x: p.km, y: p.hM })), [veri])
-  const [alt, ust] = useMemo<[number, number]>(() => {
-    const ys = noktalar.map((p) => p.y)
-    if (!ys.length) return [0, 100]
-    const a = Math.floor(Math.min(...ys) / 100) * 100
-    return [a, Math.max(Math.ceil(Math.max(...ys) / 100) * 100, a + 100)]
-  }, [noktalar])
-  if (!noktalar.length) return null
-  const adim = km > 30 ? 10 : 5
-  const tikSayisi = Math.floor(km / adim) + 1
-  return (
-    <section className="flex shrink-0 flex-col border-t border-cizgi px-5 pt-4 pb-3">
-      <h2 title={t('olayDuzeni.profilAciklama')} className="cursor-help text-[13.5px] leading-[18px] font-semibold">
-        {t('olayDuzeni.profil')}
-      </h2>
-      <div className="mt-2 flex h-[92px]">
-        <CizgiGrafigi
-          veri={noktalar}
-          xAlan={[0, km]}
-          yAlan={[alt, ust]}
-          xTikler={Array.from({ length: tikSayisi }, (_, i) => ({
-            x: i * adim,
-            etiket: i === tikSayisi - 1 ? `${i * adim} km` : String(i * adim),
-          }))}
-          yTikler={[alt, ust].map((y) => ({ y, etiket: `${sayi(y)} m` }))}
-          imlec={veri.eksendeCepheKm(zaman)}
-          tema={TEMALAR.profil}
-          kirmiziNokta
+      <svg viewBox={`0 0 ${GEN} ${YUK}`} className="mt-1 w-full" role="img" aria-label={t('olayDuzeni.dogruluk')}>
+        <g className="fill-none stroke-yuzey-acik">
+          {HALKALAR.map((h) => (
+            <polygon key={h} points={cokgen(eksenler.map(() => h))} />
+          ))}
+          {eksenler.map((_, i) => {
+            const p = uc(i, n, 1)
+            return <line key={i} x1={MERKEZ.x} y1={MERKEZ.y} x2={p.x} y2={p.y} />
+          })}
+        </g>
+        <polygon
+          points={cokgen(eksenler.map((e) => Math.min(Math.max(e.oran, 0), 1)))}
+          className="fill-ates/25 stroke-ates"
+          strokeWidth={2}
+          strokeLinejoin="round"
         />
-      </div>
+        {eksenler.map((e, i) => {
+          const p = uc(i, n, 1.24)
+          const yatay = Math.abs(p.x - MERKEZ.x) < 1 ? 'middle' : p.x > MERKEZ.x ? 'start' : 'end'
+          return (
+            <text
+              key={e.ad}
+              x={p.x}
+              y={p.y + 4}
+              textAnchor={yatay}
+              className="cursor-help fill-soluk text-[11px]"
+            >
+              <title>{`${yuzdeBicim(e.oran)} · ${t(`olayDuzeni.radar.${e.ad}Aciklama`)}`}</title>
+              {t(`olayDuzeni.radar.${e.ad}`)}
+            </text>
+          )
+        })}
+      </svg>
     </section>
   )
 }
