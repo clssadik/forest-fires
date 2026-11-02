@@ -4,11 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { CEKMECELER, useOlayDuzeni, type Cekmece } from '../../durum/olayDuzeni'
 import type { OlayVerisi } from '../../olay/veri'
 import { AnalizSekmesi } from '../sagPanel/AnalizSekmesi'
-import { KanitlarSekmesi } from '../sagPanel/KanitlarSekmesi'
 import { KatmanListesi } from '../sagPanel/KatmanListesi'
-import { NotlarSekmesi } from '../sagPanel/NotlarSekmesi'
 import { OzetSekmesi } from '../sagPanel/OzetSekmesi'
-import { IkonBelge, IkonBilgi, IkonGrafik, IkonKapat, IkonKatman, IkonNot } from '../ikonlar'
+import { IkonBilgi, IkonGrafik, IkonKapat, IkonKatman } from '../ikonlar'
 import { RayDugmesi } from '../RayDugmesi'
 
 /** Çekmecenin genişliği (px); haritanın sağdaki öğeleri açıkken bu kadar sola kayar (`--sag-ortu`). */
@@ -22,8 +20,6 @@ const IKONLAR: Record<Cekmece, ReactNode> = {
   ozet: <IkonBilgi boyut={19} />,
   katmanlar: <IkonKatman boyut={19} />,
   analiz: <IkonGrafik boyut={19} />,
-  kanitlar: <IkonBelge boyut={19} />,
-  notlar: <IkonNot boyut={18} />,
 }
 
 /** Olay ekranının sağındaki dar şerit: her düğme kendi çekmecesini açar, açık olana basmak kapatır. */
@@ -106,8 +102,6 @@ function CekmeceIcerigi({ cekmece, veri }: { cekmece: Cekmece; veri: OlayVerisi 
         <div className="min-h-0 flex-1 overflow-y-auto pb-2">
           {cekmece === 'katmanlar' && <KatmanListesi />}
           {veri && cekmece === 'analiz' && <AnalizSekmesi veri={veri} />}
-          {veri && cekmece === 'kanitlar' && <KanitlarSekmesi veri={veri} />}
-          {veri && cekmece === 'notlar' && <NotlarSekmesi ad={veri.bilgi.ad} />}
         </div>
       )}
     </motion.div>

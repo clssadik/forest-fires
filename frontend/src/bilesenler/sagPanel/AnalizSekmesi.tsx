@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { sayi, yuzdeBicim } from '../../bicim'
 import { gercekAlanaUlasti } from '../../dogrulama/api'
 import type { OlayVerisi } from '../../olay/veri'
+import { Kaynaklar } from './KanitlarSekmesi'
+import { NotAlani, Sinirlar } from './NotlarSekmesi'
 import { Bolum, SayiKarti } from './ortak'
 
 /** Hata katmanının renkleri (sahne/yanginMalzemesi.ts ile aynı). */
@@ -10,37 +12,35 @@ const HATA_RENKLERI = { dogru: '#d4472a', yanlisAlarm: '#f0b43c', kacirilan: '#4
 type Model = OlayVerisi['bilgi']['model']
 
 /**
- * Analiz sekmesi: yangının tamamı için doğrulama ayrıntısı. Bitişteki doğruluk ve basit daire sağ
- * sütunda olduğu için burada tekrarlanmaz; burada bitişteki alanlar, öteki sürümler, modelin
- * hatasının dağılımı ve varış zamanı farkı var.
+ * Analiz sekmesi, tek sayfa: bitişteki alanlar, modelin hatasının dağılımı, varış zamanı farkı,
+ * öteki sürümler, verilerin künyesi, modelin sınırları ve kullanıcının notu. Doğruluk ölçütleri
+ * (Sørensen, yakalama, isabet) Özet radarında olduğu için burada tekrarlanmaz.
  */
 export function AnalizSekmesi({ veri }: { veri: OlayVerisi }) {
   const m = veri.bilgi.model
   return (
     <>
       <Bitis veri={veri} />
-      <Surumler m={m} />
       <HataDagilimi m={m} />
       {m.zaman && <ZamanFarki zaman={m.zaman} />}
+      <Surumler m={m} />
+      <Kaynaklar veri={veri} />
+      <Sinirlar />
+      {/* Yangın değişince not alanı baştan kurulsun (key). */}
+      <NotAlani key={veri.bilgi.ad} ad={veri.bilgi.ad} />
     </>
   )
 }
 
-/** Yangın sonunda model ve gerçek alan, yakalama ve isabet. */
+/** Yangın sonunda model ve gerçek alan. */
 function Bitis({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const b = veri.bilgi.model.bitis
   return (
     <Bolum baslik={t('sagPanel.analiz.bitisBaslik')}>
       <div className="grid grid-cols-2 gap-2">
-        {b && <SayiKarti etiket={t('sagPanel.analiz.modelAlani')} deger={t('sagPanel.analiz.hektar', { deger: sayi(b.model_ha) })} />}
-        <SayiKarti etiket={t('sagPanel.analiz.gercekAlan')} deger={t('sagPanel.analiz.hektar', { deger: sayi(veri.bilgi.gercek_ha) })} />
-        {b && (
-          <>
-            <SayiKarti etiket={t('sagPanel.analiz.yakalama')} deger={yuzdeBicim(b.duyarlilik)} alt={t('sagPanel.analiz.yakalamaAlt')} />
-            <SayiKarti etiket={t('sagPanel.analiz.isabet')} deger={yuzdeBicim(b.isabet)} alt={t('sagPanel.analiz.isabetAlt')} />
-          </>
-        )}
+        {b && <SayiKarti etiket={t('sagPanel.analiz.model')} deger={t('sagPanel.analiz.hektar', { deger: sayi(b.model_ha) })} />}
+        <SayiKarti etiket={t('sagPanel.analiz.gercek')} deger={t('sagPanel.analiz.hektar', { deger: sayi(veri.bilgi.gercek_ha) })} />
       </div>
     </Bolum>
   )
@@ -69,7 +69,7 @@ function Surumler({ m }: { m: Model }) {
   )
 }
 
-/** Doğru / fazla / kaçırılan: yığılmış çubuk ve açıklamalı lejant (hektarlar ipucunda). */
+/** Doğru / fazla / eksik: yığılmış çubuk ve lejant (hektarlar ipucunda); hangi anda ölçüldüğü başlığın sağında. */
 function HataDagilimi({ m }: { m: Model }) {
   const { t } = useTranslation()
   const parcalar = [
@@ -82,10 +82,12 @@ function HataDagilimi({ m }: { m: Model }) {
   return (
     <Bolum
       baslik={t('sagPanel.analiz.hataBaslik')}
-      alt={
-        gercekAlanaUlasti(m.esit_alan)
-          ? t('sagPanel.analiz.hataAlt', { saat: sayi(m.esit_alan_esik_dk / 60) })
-          : t('sagPanel.analiz.hataAltDurdu')
+      sag={
+        <span className="text-[12px] leading-[18px] text-ikincil tabular-nums">
+          {gercekAlanaUlasti(m.esit_alan)
+            ? t('sagPanel.analiz.hataAlt', { saat: sayi(m.esit_alan_esik_dk / 60) })
+            : t('sagPanel.analiz.hataAltDurdu')}
+        </span>
       }
     >
       <div className="flex h-2.5 gap-[2px] overflow-hidden rounded-full">
@@ -93,14 +95,11 @@ function HataDagilimi({ m }: { m: Model }) {
           <span key={p.anahtar} style={{ flexGrow: p.ha, background: HATA_RENKLERI[p.anahtar] }} />
         ))}
       </div>
-      <ul className="mt-3 space-y-2.5">
+      <ul className="mt-3 space-y-2">
         {parcalar.map((p) => (
-          <li key={p.anahtar} title={t('sagPanel.analiz.hektar', { deger: sayi(p.ha) })} className="flex items-start gap-2.5">
-            <span className="mt-[3px] size-2.5 shrink-0 rounded-[3px]" style={{ background: HATA_RENKLERI[p.anahtar] }} />
-            <span className="min-w-0 flex-1">
-              <span className="block text-[12.5px] leading-4 font-medium">{t(`sagPanel.analiz.${p.anahtar}`)}</span>
-              <span className="block text-[12px] leading-4 text-ikincil">{t(`sagPanel.analiz.${p.anahtar}Alt`)}</span>
-            </span>
+          <li key={p.anahtar} title={t('sagPanel.analiz.hektar', { deger: sayi(p.ha) })} className="flex items-center gap-2.5">
+            <span className="size-2.5 shrink-0 rounded-[3px]" style={{ background: HATA_RENKLERI[p.anahtar] }} />
+            <span className="min-w-0 flex-1 text-[12.5px] leading-4 font-medium">{t(`sagPanel.analiz.${p.anahtar}`)}</span>
             <span className="text-[12.5px] leading-4 font-semibold tabular-nums">{yuzdeBicim(p.ha / toplam)}</span>
           </li>
         ))}
@@ -118,7 +117,10 @@ function ZamanFarki({ zaman }: { zaman: NonNullable<Model['zaman']> }) {
   const ortanca = sayi(Math.abs(zaman.ortanca_saat), 1)
 
   return (
-    <Bolum baslik={t('sagPanel.analiz.zamanBaslik')} alt={t('sagPanel.analiz.zamanAlt')}>
+    <Bolum
+      baslik={t('sagPanel.analiz.zamanBaslik')}
+      sag={<span className="text-[12px] leading-[18px] text-ikincil">{t('sagPanel.analiz.zamanSag')}</span>}
+    >
       <div className="relative h-6">
         <span className="absolute inset-x-0 top-1/2 border-t border-cizgi" />
         <span className="absolute inset-y-0 left-1/2 border-l border-dashed border-eksen" />

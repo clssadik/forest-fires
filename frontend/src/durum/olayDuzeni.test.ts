@@ -14,6 +14,10 @@ describe('cekmeceOku', () => {
     expect(cekmeceOku(depo('{"cekmece":null}'))).toBeNull()
     expect(cekmeceOku(depo('{"cekmece":"analiz","seritlerAcik":false}'))).toBe('analiz')
   })
+  it("Analiz'e katılan eski sekmeleri Analiz'e çevirir", () => {
+    expect(cekmeceOku(depo('{"cekmece":"kanitlar"}'))).toBe('analiz')
+    expect(cekmeceOku(depo('{"cekmece":"notlar"}'))).toBe('analiz')
+  })
   it('bozuk ya da bilinmeyen değerde varsayılana düşer', () => {
     expect(cekmeceOku(depo('{bozuk'))).toBe(VARSAYILAN_CEKMECE)
     expect(cekmeceOku(depo('{"cekmece":"iha"}'))).toBe(VARSAYILAN_CEKMECE)

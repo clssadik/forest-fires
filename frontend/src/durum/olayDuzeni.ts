@@ -5,7 +5,7 @@ import { create } from 'zustand'
  * tarayıcıda (localStorage) hatırlanır; depolama kapalıysa varsayılanla açılır. Alttaki zaman
  * şeritleri her zaman açıktır, seçenek değildir.
  */
-export const CEKMECELER = ['ozet', 'katmanlar', 'analiz', 'kanitlar', 'notlar'] as const
+export const CEKMECELER = ['ozet', 'katmanlar', 'analiz'] as const
 export type Cekmece = (typeof CEKMECELER)[number]
 
 const ANAHTAR = 'orman.olayDuzeni'
@@ -15,6 +15,8 @@ export function cekmeceOku(depo: Storage | undefined = globalThis.localStorage):
   try {
     const ham = JSON.parse(depo?.getItem(ANAHTAR) ?? 'null') as { cekmece?: unknown } | null
     if (!ham || typeof ham !== 'object' || !('cekmece' in ham)) return VARSAYILAN_CEKMECE
+    // Kanıtlar ve Notlar sekmeleri Analiz'e katıldı; eski kayıt Analiz'i açar.
+    if (ham.cekmece === 'kanitlar' || ham.cekmece === 'notlar') return 'analiz'
     if (ham.cekmece === null || CEKMECELER.includes(ham.cekmece as Cekmece)) return ham.cekmece as Cekmece | null
     return VARSAYILAN_CEKMECE
   } catch {

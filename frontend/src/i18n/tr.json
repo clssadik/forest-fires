@@ -52,97 +52,86 @@
     "sekmeler": {
       "ozet": "Özet",
       "katmanlar": "Katmanlar",
-      "analiz": "Analiz",
-      "kanitlar": "Kanıtlar",
-      "notlar": "Notlar"
+      "analiz": "Analiz"
     },
     "analiz": {
-      "modelAlani": "Model alanı",
-      "gercekAlan": "Gerçek alan",
-      "yakalama": "Yakalama",
-      "yakalamaAlt": "Gerçek alanın bulunan kısmı",
-      "isabet": "İsabet",
-      "isabetAlt": "Tahminin doğru çıkan kısmı",
-      "deneyler": "Diğer sürümlerin doğruluğu",
+      "deneyler": "Sürümler",
       "deneyAdlari": {
-        "model_v1": "Model v1",
-        "model_v2": "Model v2",
-        "model_v3": "Model v3",
-        "model_v4": "Model v4",
-        "model_v5": "Model v5",
-        "model_v6": "Model v6",
-        "ruzgarsiz": "Rüzgâr kapalı",
-        "egimsiz": "Eğim kapalı",
-        "ruzgarsiz_egimsiz": "Rüzgâr ve eğim kapalı",
-        "daire": "Basit daire"
+        "model_v1": "v1",
+        "model_v2": "v2",
+        "model_v3": "v3",
+        "model_v4": "v4",
+        "model_v5": "v5",
+        "model_v6": "v6",
+        "ruzgarsiz": "Rüzgârsız",
+        "egimsiz": "Eğimsiz",
+        "ruzgarsiz_egimsiz": "Rüzgârsız, eğimsiz",
+        "daire": "Daire"
       },
-      "hataBaslik": "Model nerede yanıldı?",
-      "hataAlt": "{{saat}}. saatte, alanlar eşit büyüklükteyken",
-      "hataAltDurdu": "Model durduğunda",
-      "dogru": "Doğru tahmin",
-      "dogruAlt": "İkisinde de yandı",
-      "yanlisAlarm": "Fazla tahmin",
-      "yanlisAlarmAlt": "Model yaktı, gerçekte yanmadı",
-      "kacirilan": "Kaçırılan",
-      "kacirilanAlt": "Gerçekte yandı, model görmedi",
+      "hataBaslik": "Nerede yanıldı?",
+      "hataAlt": "{{saat}}. sa",
+      "dogru": "Doğru",
+      "yanlisAlarm": "Fazla",
+      "kacirilan": "Eksik",
       "hektar": "{{deger}} ha",
       "zamanBaslik": "Varış zamanı",
-      "zamanAlt": "Ateşin her noktaya varışı, uydu tespitine göre",
       "erken": "Erken",
       "gec": "Geç",
       "saatEtiket": "{{deger}} sa",
-      "ortanca": "Ortanca fark",
+      "ortanca": "Ortanca",
       "ortancaGec": "{{deger}} sa geç",
       "ortancaErken": "{{deger}} sa erken",
-      "onIkiSaat": "12 saatten az sapan",
-      "bitisBaslik": "Yangın sonunda"
+      "onIkiSaat": "±12 sa içinde",
+      "bitisBaslik": "Bitişte yanan alan",
+      "model": "Model",
+      "gercek": "Gerçek",
+      "hataAltDurdu": "Bitiş",
+      "zamanSag": "FIRMS'e göre"
     },
     "kanitlar": {
-      "sentinel": "Gerçek yanık alan",
-      "sentinelKaynak": "Sentinel-2 uydusu",
       "yuksek": "Yüksek",
       "orta": "Orta",
       "dusuk": "Düşük",
-      "siddet": "Yanma şiddeti",
-      "sentinelTarih": "{{once}} ve {{sonra}} görüntüleri karşılaştırıldı",
-      "firms": "Uydu yangın tespitleri",
-      "firmsKaynak": "NASA FIRMS",
-      "firmsGordu": "Gerçek alanın {{oran}} kadarını gördü",
       "hava": "Hava",
       "havaKaynak": "ERA5 · saatlik · {{nokta}} nokta",
       "dem": "Yükseklik",
       "demKaynak": "Copernicus DEM",
       "worldcover": "Bitki örtüsü",
       "worldcoverKaynak": "ESA WorldCover {{yil}}",
-      "izgara": "Model ızgarası",
       "izgaraKaynak": "{{satir}} × {{sutun}} hücre",
       "km": "~{{deger}} km",
       "m": "{{deger}} m",
       "ha": "{{deger}} ha",
-      "yok": "Bu yangın için yok"
+      "yok": "Bu yangın için yok",
+      "baslik": "Veri",
+      "siddet": "Yanma şiddeti",
+      "siddetKaynak": "Sentinel-2 · {{once}} → {{sonra}}",
+      "firms": "Yangın tespitleri",
+      "firmsKaynak": "NASA FIRMS · kapsama {{oran}}",
+      "izgara": "Izgara"
     },
     "notlar": {
-      "sinirlar": "Modelin sınırları",
+      "sinirlar": "Sınırlar",
       "sinirListesi": [
         {
-          "baslik": "Söndürme basitleştirildi",
-          "metin": "Ekiplerin sayısı ve yeri bilinmiyor; model yavaşlayan yangını durdurulmuş sayar."
+          "baslik": "Söndürme",
+          "metin": "Ekip sayısı ve yeri bilinmiyor; yavaşlayan yangın durmuş sayılır."
         },
         {
-          "baslik": "Uçuşan kor yok",
-          "metin": "Rüzgârın taşıdığı kıvılcımlarla açılan yeni odaklar hesaba katılmıyor."
+          "baslik": "Uçuşan kor",
+          "metin": "Kıvılcımla açılan yeni odaklar hesapta yok."
         },
         {
-          "baslik": "Rüzgâr kaba ölçekte",
-          "metin": "Vadilerdeki yerel rüzgâr dönüşlerini görmüyor."
+          "baslik": "Yerel rüzgâr",
+          "metin": "Vadilerdeki dönüşler görünmüyor."
         },
         {
-          "baslik": "Yakıt sınıfları sınırlı",
-          "metin": "Bitki örtüsü 5 sınıfa indirildi; yakıt yükü ve nemi tablodan alınır."
+          "baslik": "Yakıt",
+          "metin": "Örtü 5 sınıfa indirildi; yük ve nem tablodan gelir."
         }
       ],
       "notlarim": "Notlarım",
-      "yerTutucu": "Not yaz",
+      "yerTutucu": "",
       "saklama": "Yalnızca bu tarayıcıda saklanır.",
       "saklanamiyor": "Tarayıcı depolaması kapalı; not sayfa kapanınca kaybolur."
     }

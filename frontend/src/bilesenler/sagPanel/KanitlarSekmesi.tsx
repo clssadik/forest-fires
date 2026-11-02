@@ -11,12 +11,13 @@ const tarih = (iso: string | null) => (iso ? gunAy(Date.parse(`${iso}T12:00:00Z`
 const SIDDET_RENKLERI = { yuksek: '#d4472a', orta: '#f08c2a', dusuk: '#f2c56a' } as const
 
 /**
- * Kanıtlar sekmesi: doğrulamanın ve modelin dayandığı verilerin künyesi. Gerçek alan Analiz'de,
- * tarihler üst barda ve zaman panelinde olduğu için burada tekrarlanmaz.
+ * Analiz sayfasının "Veri" bölümü: doğrulamanın ve modelin dayandığı verilerin künyesi. Gerçek
+ * alan bölümün üstünde, tarihler zaman panelinde olduğu için burada tekrarlanmaz.
  */
-export function KanitlarSekmesi({ veri }: { veri: OlayVerisi }) {
+export function Kaynaklar({ veri }: { veri: OlayVerisi }) {
+  const { t } = useTranslation()
   return (
-    <Bolum>
+    <Bolum baslik={t('sagPanel.kanitlar.baslik')}>
       <div className="space-y-2">
         <Sentinel veri={veri} />
         <Firms veri={veri} />
@@ -59,15 +60,15 @@ const Ikon = ({ children }: { children: ReactNode }) => (
   <span className="grid size-8 shrink-0 place-items-center rounded-[8px] bg-zemin/60 text-ikincil">{children}</span>
 )
 
-const Dipnot = ({ children }: { children: ReactNode }) => (
-  <p className="mt-2.5 text-[12px] leading-4 text-ikincil tabular-nums">{children}</p>
-)
-
 function Sentinel({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const s2 = veri.bilgi.kanitlar.sentinel2
-  const ortak = { ikon: <IkonUcgen boyut={15} />, baslik: t('sagPanel.kanitlar.sentinel'), kaynak: t('sagPanel.kanitlar.sentinelKaynak') }
-  if (!s2) return <KaynakKarti {...ortak} deger={t('sagPanel.kanitlar.yok')} />
+  const ortak = {
+    ikon: <IkonUcgen boyut={15} />,
+    baslik: t('sagPanel.kanitlar.siddet'),
+    kaynak: t('sagPanel.kanitlar.siddetKaynak', { once: tarih(s2?.once.ana_tarih ?? null), sonra: tarih(s2?.sonra.ana_tarih ?? null) }),
+  }
+  if (!s2) return <KaynakKarti {...ortak} kaynak="Sentinel-2" deger={t('sagPanel.kanitlar.yok')} />
   const sid = s2.siddet_ha ?? {}
   const parcalar = [
     { anahtar: 'yuksek', ha: sid.yuksek ?? 0 },
@@ -77,7 +78,6 @@ function Sentinel({ veri }: { veri: OlayVerisi }) {
 
   return (
     <KaynakKarti {...ortak}>
-      <div className="mb-2 text-[12px] leading-4 text-ikincil">{t('sagPanel.kanitlar.siddet')}</div>
       <div className="flex h-2 gap-[2px] overflow-hidden rounded-full">
         {parcalar.map((p) => (
           <span key={p.anahtar} style={{ flexGrow: p.ha, background: SIDDET_RENKLERI[p.anahtar] }} />
@@ -94,12 +94,6 @@ function Sentinel({ veri }: { veri: OlayVerisi }) {
           </div>
         ))}
       </div>
-      <Dipnot>
-        {t('sagPanel.kanitlar.sentinelTarih', {
-          once: tarih(s2.once.ana_tarih),
-          sonra: tarih(s2.sonra.ana_tarih),
-        })}
-      </Dipnot>
     </KaynakKarti>
   )
 }
@@ -107,11 +101,15 @@ function Sentinel({ veri }: { veri: OlayVerisi }) {
 function Firms({ veri }: { veri: OlayVerisi }) {
   const { t } = useTranslation()
   const firms = veri.bilgi.kanitlar.firms
-  const ortak = { ikon: <IkonAlev boyut={15} />, baslik: t('sagPanel.kanitlar.firms'), kaynak: t('sagPanel.kanitlar.firmsKaynak') }
-  if (!firms) return <KaynakKarti {...ortak} deger={t('sagPanel.kanitlar.yok')} />
+  const ortak = { ikon: <IkonAlev boyut={15} />, baslik: t('sagPanel.kanitlar.firms') }
+  if (!firms) return <KaynakKarti {...ortak} kaynak="NASA FIRMS" deger={t('sagPanel.kanitlar.yok')} />
 
   return (
-    <KaynakKarti {...ortak} deger={sayi(firms.toplam)}>
+    <KaynakKarti
+      {...ortak}
+      kaynak={t('sagPanel.kanitlar.firmsKaynak', { oran: yuzdeBicim(firms.gordugu_ha / veri.bilgi.gercek_ha) })}
+      deger={sayi(firms.toplam)}
+    >
       <div className="flex flex-wrap gap-1.5">
         {Object.entries(firms.kaynaklar).map(([kod, n]) => (
           <span key={kod} className="rounded-[6px] bg-zemin/60 px-2 py-1 text-[12px] leading-4 tabular-nums">
@@ -119,9 +117,6 @@ function Firms({ veri }: { veri: OlayVerisi }) {
           </span>
         ))}
       </div>
-      <Dipnot>
-        {t('sagPanel.kanitlar.firmsGordu', { oran: yuzdeBicim(firms.gordugu_ha / veri.bilgi.gercek_ha) })}
-      </Dipnot>
     </KaynakKarti>
   )
 }
