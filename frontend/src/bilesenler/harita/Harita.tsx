@@ -19,7 +19,7 @@ export function Harita() {
     else void ref.current?.requestFullscreen()
   }
   return (
-    <div ref={ref} className="relative min-h-0 flex-1 overflow-hidden bg-zemin [&_canvas]:cursor-grab [&_canvas:active]:cursor-grabbing">
+    <div ref={ref} className="relative min-h-0 flex-1 overflow-hidden bg-zemin [&:fullscreen]:[--sag-ortu:0px] [&_canvas]:cursor-grab [&_canvas:active]:cursor-grabbing">
       {veri ? (
         <>
           {/* Yangın değişince sahne (kamera dahil) yeni bölgeye göre baştan kurulur. */}

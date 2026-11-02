@@ -14,7 +14,7 @@ export function RadarBilgisi() {
   const eksen = useOlay((d) => d.radarEkseni)
   if (!eksen) return null
   return (
-    <div className="pointer-events-none absolute top-[104px] right-4 z-30 w-[260px] rounded-[10px] bg-black px-4 py-3.5 text-white ring-1 ring-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.4)] select-none">
+    <div className="pointer-events-none absolute top-[104px] right-[calc(var(--sag-ortu,0px)+1rem)] z-30 transition-[right] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] w-[260px] rounded-[10px] bg-black px-4 py-3.5 text-white ring-1 ring-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.4)] select-none">
       <div className="text-[11px] leading-none tracking-[0.14em] text-white/70 uppercase">{t(`olayDuzeni.radar.${eksen.ad}`)}</div>
       <div className="mt-2 flex items-baseline gap-2.5">
         <span className="text-[34px] leading-none font-extralight text-ates-acik tabular-nums">{yuzdeBicim(eksen.oran)}</span>

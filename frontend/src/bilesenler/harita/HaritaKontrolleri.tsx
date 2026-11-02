@@ -20,10 +20,10 @@ export function HaritaKontrolleri({ veri, tamEkran }: { veri: OlayVerisi; tamEkr
 
   return (
     <>
-      <div className="absolute right-4 bottom-4 z-30">
+      <div className="absolute right-[calc(var(--sag-ortu,0px)+1rem)] bottom-4 z-30 transition-[right] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)]">
         <OlcekCubugu />
       </div>
-      <div className="absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 items-center gap-0.5 rounded-full bg-black/85 p-1 text-[13px] whitespace-nowrap text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] select-none">
+      <div className="absolute bottom-4 left-[calc((100%-var(--sag-ortu,0px))/2)] z-30 flex -translate-x-1/2 transition-[left] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] items-center gap-0.5 rounded-full bg-black/85 p-1 text-[13px] whitespace-nowrap text-white ring-1 ring-white/10 shadow-[0_2px_10px_rgba(0,0,0,0.35)] select-none">
         <div className="flex rounded-full bg-white/[0.08] p-0.5 font-semibold">
           {(['2B', '3B'] as GorunumKipi[]).map((k) => (
             <button

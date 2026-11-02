@@ -22,7 +22,7 @@ export function Saat({ veri }: { veri: OlayVerisi }) {
   const saatSonra = Math.max(Math.round((an - veri.tutusmaMs) / SAAT), 0)
   const konum = imlec && veri.icinde(imlec.x, imlec.z) ? veri.konum(imlec.x, imlec.z) : null
   return (
-    <div className="pointer-events-none absolute top-3 right-5 z-30 w-fit text-right whitespace-nowrap text-white select-none [text-shadow:0_1px_4px_rgba(0,0,0,0.65)]">
+    <div className="pointer-events-none absolute top-3 right-[calc(var(--sag-ortu,0px)+1.25rem)] z-30 transition-[right] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] w-fit text-right whitespace-nowrap text-white select-none [text-shadow:0_1px_4px_rgba(0,0,0,0.65)]">
       <div className="text-[14px] leading-5 text-white/80 tabular-nums">
         {gunAy(an)} · <span title={t('olayDuzeni.sureAciklama')}>{t('olayDuzeni.saatSayaci', { saat: saatSonra })}</span>
       </div>

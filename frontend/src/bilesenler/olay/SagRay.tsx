@@ -1,5 +1,5 @@
-import { AnimatePresence, motion, MotionConfig, useIsPresent } from 'motion/react'
-import { useState, type ReactNode } from 'react'
+import { AnimatePresence, motion, MotionConfig } from 'motion/react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CEKMECELER, useOlayDuzeni, type Cekmece } from '../../durum/olayDuzeni'
 import type { OlayVerisi } from '../../olay/veri'
@@ -11,8 +11,10 @@ import { OzetSekmesi } from '../sagPanel/OzetSekmesi'
 import { IkonBelge, IkonBilgi, IkonGrafik, IkonKapat, IkonKatman, IkonNot } from '../ikonlar'
 import { RayDugmesi } from '../RayDugmesi'
 
-const GENISLIK = 340
-/** Çekmecenin kayarak açılıp kapanması ve sekme değişiminde içeriğin belirmesi. */
+/** Çekmecenin genişliği (px); haritanın sağdaki öğeleri açıkken bu kadar sola kayar (`--sag-ortu`). */
+export const CEKMECE_GENISLIGI = 340
+const GENISLIK = CEKMECE_GENISLIGI
+/** Çekmecenin kayarak açılıp kapanması (App'teki `--sag-ortu` geçişiyle aynı) ve sekme değişiminde içeriğin belirmesi. */
 const ACILIS = { duration: 0.28, ease: [0.22, 1, 0.36, 1] } as const
 const SEKME = { duration: 0.2, ease: [0.22, 1, 0.36, 1] } as const
 
@@ -30,7 +32,7 @@ export function SagRay() {
   const cekmece = useOlayDuzeni((d) => d.cekmece)
   const cekmeceDegistir = useOlayDuzeni((d) => d.cekmeceDegistir)
   return (
-    <nav aria-label={t('olayDuzeni.ray')} className="relative z-30 flex w-[56px] shrink-0 flex-col items-center gap-1.5 border-l border-cizgi bg-panel pt-3">
+    <nav aria-label={t('olayDuzeni.ray')} className="flex w-[56px] shrink-0 flex-col items-center gap-1.5 border-l border-cizgi bg-panel pt-3">
       {CEKMECELER.map((c) => (
         <RayDugmesi
           key={c}
@@ -46,45 +48,30 @@ export function SagRay() {
 }
 
 /**
- * Raydaki düğmeyle açılan sabit çekmece; açıkken sahneyi daraltır, üstüne binmez. Açılırken
- * sahnenin üstünden kayarak gelir, bitince yerine oturur; kapanırken önce yerini bırakır, sonra
- * kayarak çıkar. Böylece sahne tuvali kayma boyunca her karede değil, bir kez boyutlanır (her
- * karede boyutlanınca birkaç kare siyah kalıyordu). Sekme değişince içerik yandan belirir.
+ * Raydaki düğmeyle açılan çekmece: haritanın üstüne kayarak gelir, haritayı daraltmaz (3B
+ * tuval hiç yeniden boyutlanmaz). Konum için üst öğe `relative overflow-hidden` olmalı.
+ * Kapanırken son sekme görünür kalır; sekme değişince içerik yandan belirir.
  */
 export function SagCekmece({ veri }: { veri: OlayVerisi | null }) {
   const cekmece = useOlayDuzeni((d) => d.cekmece)
-  // Sayfa çekmece açıkken yüklenirse kayma olmaz; çekmece doğrudan yerinde başlar. İlk
-  // kapanıştan sonraki her açılış kayar.
-  const [yerindeBasla, setYerindeBasla] = useState(cekmece !== null)
-  if (!cekmece && yerindeBasla) setYerindeBasla(false)
   return (
     <MotionConfig reducedMotion="user">
       <AnimatePresence initial={false}>
-        {cekmece && <CekmeceKabugu key="cekmece" cekmece={cekmece} veri={veri} yerinde={yerindeBasla} />}
+        {cekmece && (
+          <motion.aside
+            key="cekmece"
+            initial={{ x: GENISLIK }}
+            animate={{ x: 0 }}
+            exit={{ x: GENISLIK }}
+            transition={ACILIS}
+            className="absolute inset-y-0 right-0 z-40 overflow-hidden border-l border-cizgi bg-panel"
+            style={{ width: GENISLIK }}
+          >
+            <CekmeceIcerigi cekmece={cekmece} veri={veri} />
+          </motion.aside>
+        )}
       </AnimatePresence>
     </MotionConfig>
-  )
-}
-
-function CekmeceKabugu({ cekmece, veri, yerinde }: { cekmece: Cekmece; veri: OlayVerisi | null; yerinde: boolean }) {
-  const mevcut = useIsPresent()
-  const [oturdu, setOturdu] = useState(yerinde)
-  return (
-    <div className="relative shrink-0" style={{ width: oturdu && mevcut ? GENISLIK : 0 }}>
-      <motion.aside
-        initial={{ x: GENISLIK }}
-        animate={{ x: 0 }}
-        exit={{ x: GENISLIK }}
-        transition={ACILIS}
-        onAnimationComplete={() => {
-          if (mevcut) setOturdu(true)
-        }}
-        className="absolute inset-y-0 right-0 z-20 overflow-hidden border-l border-cizgi bg-panel"
-        style={{ width: GENISLIK }}
-      >
-        <CekmeceIcerigi cekmece={cekmece} veri={veri} />
-      </motion.aside>
-    </div>
   )
 }
 
