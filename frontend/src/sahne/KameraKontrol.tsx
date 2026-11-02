@@ -67,6 +67,9 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
     const z = t.z + (e.z - t.z) * 0.35
     return new Vector3(x, veri.araziY(x, z), z)
   }, [veri])
+  // Genel bakış küçük yangında yaklaşır (bkz. OlayVerisi.yanginOlcegi)
+  const acilisKaymasi = useMemo(() => BASLANGIC_KAYMA.clone().multiplyScalar(veri.yanginOlcegi), [veri])
+  const acilisOrtoZoom = VARSAYILAN_ORTO_ZOOM / veri.yanginOlcegi
   const sinirX = veri.genislikKm / 2 + DISARI_KM
   const sinirZ = veri.yukseklikKm / 2 + DISARI_KM
   const ekran = useThree((d) => d.size)
@@ -179,7 +182,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
         <OrthographicCamera
           makeDefault
           position={[acilisHedefi.x, 200, acilisHedefi.z + 0.001]}
-          zoom={VARSAYILAN_ORTO_ZOOM}
+          zoom={acilisOrtoZoom}
           near={1}
           far={600}
         />
@@ -197,7 +200,7 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
   }
   return (
     <>
-      <PerspectiveCamera makeDefault position={acilisHedefi.clone().add(BASLANGIC_KAYMA).toArray()} fov={FOV} near={0.1} far={1200} />
+      <PerspectiveCamera makeDefault position={acilisHedefi.clone().add(acilisKaymasi).toArray()} fov={FOV} near={0.1} far={1200} />
       {/* MapControls: sol tuş kaydırır, sağ tuş döndürür; kaydırma zemin düzleminde. */}
       <MapControls
         makeDefault

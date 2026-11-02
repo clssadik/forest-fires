@@ -12,7 +12,8 @@ import { yanginUniformlari } from './yanginMalzemesi'
  * (hava verisi ~25 km çözünürlüklü; bölge içinde değişim küçük).
  */
 
-const ADET = 900
+/** km² başına çizgi (Manavgat karesinde ~900); sabit sayı küçük karede çizgileri sıklaştırıyordu. */
+const KM2_BASINA = 0.35
 
 interface Cizgi {
   x: number
@@ -26,6 +27,7 @@ export function RuzgarCizgileri({ veri, opaklik }: { veri: OlayVerisi; opaklik: 
     () => ({ x0: -veri.genislikKm / 2, x1: veri.genislikKm / 2, z0: -veri.yukseklikKm / 2, z1: veri.yukseklikKm / 2 }),
     [veri],
   )
+  const ADET = Math.max(Math.round(KM2_BASINA * veri.genislikKm * veri.yukseklikKm), 1)
   const ref = useRef<InstancedMesh>(null)
   const r = useMemo(() => rastgeleUreteci(5), [])
   const geometri = useMemo(() => {
@@ -54,7 +56,7 @@ export function RuzgarCizgileri({ veri, opaklik }: { veri: OlayVerisi; opaklik: 
     const mesh = ref.current
     if (!mesh) return
     for (let i = 0; i < ADET; i++) mesh.setColorAt(i, yardimci.c.setRGB(0, 0, 0))
-  }, [yardimci])
+  }, [ADET, yardimci])
 
   useFrame((_, dt) => {
     const mesh = ref.current

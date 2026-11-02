@@ -11,7 +11,7 @@ import {
 } from 'three'
 import { useOlay } from '../durum/olay'
 import { rastgeleUreteci } from '../model/gurultu'
-import type { OlayVerisi } from '../olay/veri'
+import { REFERANS_HUCRE_KM, type OlayVerisi } from '../olay/veri'
 import { yanginUniformlari as U } from './yanginMalzemesi'
 
 /** Noktanın araziden yüksekliği (km); eğik bakışta yamaca gömülmesin. */
@@ -84,11 +84,13 @@ export function GecisNoktalari({ veri }: { veri: OlayVerisi }) {
     if (alt === undefined || ust === undefined) return null
     const xs: number[] = []
     const zs: number[] = []
+    // İnce ızgarada hücrelerin bir kısmı: km² başına nokta sayısı 150 m ızgaradakiyle aynı kalsın
+    const seyrek = rastgeleUreteci(Math.round(ust * 100) + 1)
     for (let i = 0; i < veri.satir; i++)
       for (let j = 0; j < veri.sutun; j++) {
         const { x, z } = veri.hucreKonumu(i, j)
         const f = veri.firmsSaat(x, z)
-        if (f > alt && f <= ust) {
+        if (f > alt && f <= ust && seyrek() < veri.hucreAgirligi) {
           xs.push(x)
           zs.push(z)
         }
@@ -149,13 +151,13 @@ export function GecisNoktalari({ veri }: { veri: OlayVerisi }) {
       malzeme.uniforms.uBaslangic.value = U.uZaman.value
       malzeme.uniforms.uGorunur.value = 0
     }
-    // Nokta (hale dahil) hücre boyunun ~1,3 katı: perspektifte uzaklıkla küçülür, 2B'de km başına piksel = zoom.
+    // Nokta (hale dahil) 150 m hücrenin ~1,3 katı: perspektifte uzaklıkla küçülür, 2B'de km başına piksel = zoom.
     const oran = gl.getPixelRatio()
     const persp = camera instanceof PerspectiveCamera
     malzeme.uniforms.uOrto.value = persp ? 0 : 1
     malzeme.uniforms.uOlcek.value = persp
-      ? (veri.hucreKm * 1.3 * size.height * oran) / (2 * Math.tan((camera.fov * Math.PI) / 360))
-      : veri.hucreKm * 1.3 * camera.zoom * oran
+      ? (REFERANS_HUCRE_KM * 1.3 * size.height * oran) / (2 * Math.tan((camera.fov * Math.PI) / 360))
+      : REFERANS_HUCRE_KM * 1.3 * camera.zoom * oran
     const g = malzeme.uniforms.uGorunur
     g.value += ((geometri ? 1 : 0) - g.value) * Math.min(dt * 8, 1)
   })

@@ -17,8 +17,13 @@ import { agacGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
  * uzak karolar basit modelle çizilir (ayrıntı düzeyi).
  */
 
-const ICERI_ADET = 42_000
-const DISARI_ADET = 26_000
+/**
+ * Karede km² başına ağaç yeri denemesi (örtü yoğunluğuyla elenir) ve çevre şeridinde km² başına
+ * ağaç. Sabit toplam değil: küçük bir karede ağaçlar sıklaşıp halı gibi görünüyordu. Manavgat'ta
+ * eski sabitlerle (42 bin + 26 bin) aynı sayıyı verir.
+ */
+const ICERI_DENEME_KM2 = 26.6
+const DISARI_AGAC_KM2 = 7.17
 /** Çevrede ağaç dikilen şeridin genişliği (km); ötesini sis ve zemin benekleri taşır. */
 const DISARI_SERIT_KM = 14
 /** Karo kenarı (km). */
@@ -67,22 +72,22 @@ export function Agaclar({ veri, cevre, gorunur }: { veri: OlayVerisi; cevre: Cev
 
     // Kare: gerçek örtü ve model varışı
     const { genislikKm: G, yukseklikKm: Y } = veri
-    let adet = 0
-    for (let deneme = 0; adet < ICERI_ADET && deneme < ICERI_ADET * 12; deneme++) {
+    const iceriDeneme = Math.round(ICERI_DENEME_KM2 * G * Y)
+    for (let deneme = 0; deneme < iceriDeneme; deneme++) {
       const x = (r() - 0.5) * G
       const z = (r() - 0.5) * Y
       const yogunluk = ORMAN_YOGUNLUGU[veri.ortu(x, z)]
       if (r() > yogunluk * yogunluk) continue
       const v = veri.toaSaat(x, z)
       ekle(x, veri.araziY(x, z), z, yogunluk, veri.yukseklikM(x, z), Number.isFinite(v) ? v : YANMADI_SAAT)
-      adet++
     }
 
     // Çevre şeridi: sahte örtü yoğunluğu
     const Gd = G + 2 * DISARI_SERIT_KM
     const Yd = Y + 2 * DISARI_SERIT_KM
-    adet = 0
-    for (let deneme = 0; adet < DISARI_ADET && deneme < DISARI_ADET * 30; deneme++) {
+    const disariAdet = Math.round(DISARI_AGAC_KM2 * (Gd * Yd - G * Y))
+    let adet = 0
+    for (let deneme = 0; adet < disariAdet && deneme < disariAdet * 30; deneme++) {
       const x = (r() - 0.5) * Gd
       const z = (r() - 0.5) * Yd
       const d = cevre.uzaklik(x, z)

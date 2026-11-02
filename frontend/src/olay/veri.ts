@@ -11,6 +11,10 @@ import { YOK } from './api'
  */
 
 const SAAT = 3_600_000
+/** Sahne efektlerinin ayarlandığı hücre kenarı (km; Manavgat ızgarası). */
+export const REFERANS_HUCRE_KM = 0.15
+/** Genel bakış kamerasının ayarlandığı ana yayılım ekseni uzunluğu (km; Manavgat). */
+const REFERANS_EKSEN_KM = 37.9
 /** Sahnede yüksekliği okunur kılmak için düşey abartı. */
 export const DIKEY_ABARTI = 2
 /** Metreden sahne birimine (km × abartı). */
@@ -92,6 +96,16 @@ export class OlayVerisi {
   readonly sutun: number
   /** Hücre kenarı (km). */
   readonly hucreKm: number
+  /**
+   * Hücre alanının efektlerin ayarlandığı 150 m hücreye oranı. Hücre başına üretilen alev,
+   * duman ve sıcak nokta sayısı bununla çarpılır; böylece km² başına yoğunluk ızgaradan bağımsız.
+   */
+  readonly hucreAgirligi: number
+  /**
+   * Yangının Manavgat'a göre boyu (ana eksen oranı, 0,4–1). Genel bakış kamerası (açılış, uydu
+   * geçişi) bununla yaklaşır; küçük bir yangın ekranda Manavgat kadar yer kaplasın.
+   */
+  readonly yanginOlcegi: number
   readonly genislikKm: number
   readonly yukseklikKm: number
   readonly tutusmaMs: number
@@ -110,6 +124,8 @@ export class OlayVerisi {
     this.satir = g.satir
     this.sutun = g.sutun
     this.hucreKm = g.hucre_m / 1000
+    this.hucreAgirligi = (this.hucreKm / REFERANS_HUCRE_KM) ** 2
+    this.yanginOlcegi = Math.min(Math.max((bilgi.eksen?.uzunluk_km ?? REFERANS_EKSEN_KM) / REFERANS_EKSEN_KM, 0.4), 1)
     this.genislikKm = g.genislik_km
     this.yukseklikKm = g.yukseklik_km
     this.tutusmaMs = Date.parse(bilgi.tutusma_utc)

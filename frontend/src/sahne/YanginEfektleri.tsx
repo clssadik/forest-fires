@@ -290,8 +290,11 @@ class ZamanPenceresi {
   }
 }
 
-/** Her saat için o saatte alevli yanan hücrelerin ağırlık merkezi ve sayısı (yangın ışığı için). */
-function saatlikCephe(hucreler: Hucre[]) {
+/**
+ * Her saat için o saatte alevli yanan hücrelerin ağırlık merkezi ve 150 m hücre cinsinden
+ * sayısı (yangın ışığı için).
+ */
+function saatlikCephe(hucreler: Hucre[], agirlik: number) {
   const saatler = new Map<number, { x: number; y: number; z: number; n: number }>()
   for (const h of hucreler) {
     const s = Math.floor(h.toa)
@@ -306,6 +309,7 @@ function saatlikCephe(hucreler: Hucre[]) {
     e.x /= e.n
     e.y /= e.n
     e.z /= e.n
+    e.n *= agirlik
   }
   return saatler
 }
@@ -318,14 +322,18 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
     const yari = veri.hucreKm / 2
 
     // Alevler
-    const n = hucreler.length * HUCRE_BASINA_ALEV
+    // Hücre başına alev sayısı hücre alanıyla ölçeklenir; kesirli kısım olasılıkla
+    const beklenen = HUCRE_BASINA_ALEV * veri.hucreAgirligi
+    const kesir = beklenen % 1
+    const alevSayilari = hucreler.map(() => Math.floor(beklenen) + (kesir > 0 && r() < kesir ? 1 : 0))
+    const n = alevSayilari.reduce((a, b) => a + b, 0)
     const merkez = new Float32Array(n * 3)
     const toa = new Float32Array(n)
     const sure = new Float32Array(n)
     const rast = new Float32Array(n)
     let k = 0
-    for (const h of hucreler) {
-      for (let a = 0; a < HUCRE_BASINA_ALEV; a++, k++) {
+    hucreler.forEach((h, hi) => {
+      for (let a = 0; a < alevSayilari[hi]; a++, k++) {
         const x = h.x + (r() * 2 - 1) * yari
         const z = h.z + (r() * 2 - 1) * yari
         merkez.set([x, veri.araziY(x, z) - 0.004, z], k * 3)
@@ -333,7 +341,7 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
         sure[k] = h.sure * (0.6 + r() * 0.8)
         rast[k] = r()
       }
-    }
+    })
     const alevTaban = new PlaneGeometry(1, 1)
     alevTaban.translate(0, 0.5, 0)
     const enUzunYanma = Math.max(...Object.values(YANMA_SURESI)) * 1.4
@@ -346,7 +354,7 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
     )
 
     // Duman: hücrelerin bir kısmı kaynak, her kaynaktan döngüde birkaç bulut
-    const kaynaklar = hucreler.filter(() => r() < DUMAN_ORANI)
+    const kaynaklar = hucreler.filter(() => r() < DUMAN_ORANI * veri.hucreAgirligi)
     const m = kaynaklar.length * KUME_BASINA_DUMAN
     const dMerkez = new Float32Array(m * 3)
     const dToa = new Float32Array(m)
@@ -370,7 +378,7 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
       enUzunYanma + TUTME_SAAT,
       0.05,
     )
-    return { alevler, dumanlar, cephe: saatlikCephe(hucreler) }
+    return { alevler, dumanlar, cephe: saatlikCephe(hucreler, veri.hucreAgirligi) }
   }, [veri])
 
   const gorunurU = useMemo(() => ({ value: 1 }), [])
