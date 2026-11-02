@@ -1,4 +1,4 @@
-"""Modeli bir senaryoda çalıştırır ve sonucu `data/islenmis/<ad>/model_v1/` altına yazar.
+"""Model v1'i bir senaryoda çalıştırır ve sonucu `data/islenmis/<ad>/model_v1/` altına yazar.
 
     uv run orman-model manavgat_2021              # tek çalıştırma (tohum 0)
     uv run orman-model manavgat_2021 --calisma 20 # 20 tohum: olasılık haritası + TOA ortancası
@@ -22,7 +22,7 @@ from pyproj import Transformer
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.olcutler import mekansal_olcutler
 from orman.model.onizleme import onizleme_yaz
-from orman.model.yayilim import Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
+from orman.model.yayilim import V1, Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR, BolgePaketi, yukle
 
@@ -130,5 +130,5 @@ def main() -> None:
     ayristirici.add_argument("--calisma", type=int, default=1, help="tohum sayısı (varsayılan 1)")
     ayristirici.add_argument("--tohum", type=int, default=0, help="ilk tohum (varsayılan 0)")
     secim = ayristirici.parse_args()
-    yollar = calistir(SENARYOLAR[secim.senaryo], Parametreler(), secim.calisma, secim.tohum)
+    yollar = calistir(SENARYOLAR[secim.senaryo], V1, secim.calisma, secim.tohum)
     print(yollar["ozet"].read_text())

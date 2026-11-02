@@ -1,11 +1,10 @@
-"""Model sürümlerini ve baseline'ları gerçek yangınla karşılaştırır; sonucu `dogrulama/` altına yazar.
+"""Modeli, ablasyonlarını ve baseline'ı gerçek yangınla karşılaştırır; sonucu `dogrulama/` altına yazar.
 
     uv run orman-dogrula manavgat_2021              # 20 tohum
     uv run orman-dogrula manavgat_2021 --calisma 5
 
-Deneyler: model v1, v2 (+ yakıt türü), v3 (+ nem, kalibre), v4 (+ söndürme), v5 (+ söndürmeden
-kaçak), v6 (+ büyüme hızına bağlı söndürme) ve basit baseline'lar (rüzgârsız, eğimsiz, ikisi de yok, tutuşma merkezli
-daire). Her deney için topluluk (çalıştırmaların en az yarısında yanan alan) ölçütleri ve
+Deneyler: model v1 (`model/yayilim.py` → `V1`), rüzgârı kapatılmış v1 ve tutuşma merkezli daire
+baseline'ı. Her deney için topluluk (çalıştırmaların en az yarısında yanan alan) ölçütleri ve
 tohumlar arası ortalama ± sapma. Çıktılar `data/islenmis/<ad>/dogrulama/`: rapor.json,
 firms_varis.tif ve görseller (rapor.py).
 """
@@ -20,48 +19,16 @@ import numpy as np
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
 from orman.dogrulama.olcutler import Olcutler, Referans, buyume_egrisi, daire_toa, dogrula
 from orman.model.calistir import tutusma_hucreleri, tutusma_hucresi, yaz_raster
-from orman.model.yayilim import V2_YAKIT, Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
+from orman.model.yayilim import V1, Arazi, Parametreler, Ruzgar, coklu_yayilim, yayilim
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR, BolgePaketi, yukle
 
-V1 = Parametreler()
-V2 = V2_YAKIT  # v1 + yakıt türü (Alexandridis tablosu)
-# v3: v2 + yakıt nemi, `orman-kalibre` ile Manavgat 2021'e ayarlı (2026-10-26, 200 deneme, en iyi
-# aday 20 yeni tohumla seçildi). Eğim etkisi ~0'a, rüzgâr yönü etkisi düştü; bkz. docs/05 Adım 6.
-V3 = replace(V2, hiz_olcegi=0.087, c1=0.126, c2=0.081, a=0.0, sonme_nemi=0.19)
-# v4: v3 + söndürme vekili (2026-10-29): 6. saatten sonra p < 0,52 olan geçişler olmaz. Eşik
-# Manavgat'ta elle tarandı (0,50–0,53 arası keskin geçiş; 0,525 biraz daha iyiydi, yuvarlak değer
-# seçildi), Marmaris ayarsız. Bkz. docs/05, "durma ve kare şekli".
-V4 = replace(V3, sondurme_esigi=0.52, sondurme_baslangic_dk=360.0)
-# v5: eşik altı geçişlerin %20'si kaçar; v4 nemli gecede yangını kalıcı söndürüyordu (Marmaris
-# 2.000 ha'da kaldı). Eşik 0,60 ve tutma 0,80 Manavgat'ta elle tarandı (0,58–0,65 × 0,75–0,85 bir
-# sırt; yuvarlak değer), Marmaris ayarsız. Bkz. docs/05, "durma ve kare şekli".
-V5 = replace(V4, sondurme_esigi=0.60, sondurme_olasiligi=0.80)
-# v6: itfaiyenin gücü yangının büyüme hızına bağlı (2026-10-29). Son 60 dk'daki büyüme
-# `sondurme_doygunluk_ha_sa`'ya yaklaşınca etkin tutma düşer; yavaş büyüyen yangında ekipler
-# kenarları tutar. Eşik 0,58, tutma 0,85 ve doygunluk 26.500 ha/sa Manavgat 2021'de tarandı
-# (6000–80800 × 0,55–0,70 × 0,80–0,95; en iyi aday 20 yeni tohumla doğrulandı),
-# Marmaris ayarsız. Büyüme ~500–1000 ha/sa olduğundan etkin tutma ~0,82–0,85 arasında oynar;
-# kazancın çoğu tutmanın 0,80'den yükselmesinden gelir (kuralsız sabit 0,84: Marmaris 8.584 ha,
-# v6 6.016 ha). Model tutmaya çok duyarlı: sabit 0,82 → Manavgat 74 bin ha, 0,85 → 40 bin ha.
-V6 = replace(
-    V5,
-    sondurme_esigi=0.58,
-    sondurme_olasiligi=0.85,
-    sondurme_doygunluk_ha_sa=26500.0,
-)
-GUNCEL_MODEL = "model_v6"  # web simülasyonu ve senaryo modunun kullandığı model
-# Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz).
+GUNCEL_MODEL = "model_v1"  # web simülasyonu ve senaryo modunun kullandığı model
+# Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz). Ablasyon rüzgârı kapatır:
+# rüzgâr olmadan ne kadar kötüleştiğini gösterir. Eğim ablasyonu yok: v1'de eğim etkisi zaten 0.
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
-    "model_v1": ("Model v1 (rüzgâr + eğim)", V1),
-    "model_v2": ("Model v2 (+ yakıt türü)", V2),
-    "model_v3": ("Model v3 (+ nem, kalibre)", V3),
-    "model_v4": ("Model v4 (+ söndürme)", V4),
-    "model_v5": ("Model v5 (+ söndürmeden kaçak)", V5),
-    "model_v6": ("Model v6 (+ büyümeye bağlı söndürme)", V6),
+    "model_v1": ("Model v1", V1),
     "ruzgarsiz": ("Rüzgârsız model", replace(V1, c1=0.0, c2=0.0)),
-    "egimsiz": ("Eğimsiz model", replace(V1, a=0.0)),
-    "ruzgarsiz_egimsiz": ("Rüzgârsız ve eğimsiz model", replace(V1, c1=0.0, c2=0.0, a=0.0)),
     "daire": ("Daire (tutuşma merkezli, eşit alan)", None),
 }
 BUYUME_SAATLERI = list(range(0, 160, 2))

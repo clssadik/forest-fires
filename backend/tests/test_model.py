@@ -1,4 +1,4 @@
-"""Yayılım modeli v1: yapay senaryolarla fiziksel davranış testleri (bkz. docs/model.md)."""
+"""Yayılım modeli: yapay senaryolarla fiziksel davranış testleri (bkz. docs/model.md)."""
 
 import math
 from dataclasses import replace
@@ -10,7 +10,7 @@ from affine import Affine
 
 from orman.izgara import Izgara
 from orman.model.yayilim import (
-    V2_YAKIT,
+    YAKIT_TABLOSU,
     Arazi,
     Parametreler,
     Ruzgar,
@@ -132,30 +132,30 @@ def test_yanmaz_bariyeri_gecmez():
     assert np.isnan(toa[:, 130:]).all()
 
 
-def test_v2_yakit_carpani_alexandridis_tablosu():
+def test_yakit_carpani_alexandridis_tablosu():
     # (1 + p_veg) · (1 + p_den): orman = kızılçam, normal yoğunluk; maki = çalılık;
     # ot ve tarım = tarım, seyrek (Alexandridis vd. 2008, Tablo 1).
-    carpan = yakit_carpani(V2_YAKIT)
+    carpan = yakit_carpani(YAKIT_TABLOSU)
     assert carpan[1] == pytest.approx(1.4)
     assert carpan[2] == pytest.approx(1.0)
     assert carpan[3] == pytest.approx(0.7 * 0.6)
     assert carpan[4] == pytest.approx(0.7 * 0.6)
-    assert yakit_carpani(Parametreler()) == pytest.approx([1.0] * 5)  # v1: yakıt farkı yok
+    assert yakit_carpani(Parametreler()) == pytest.approx([1.0] * 5)  # varsayılan: yakıt farkı yok
 
 
 def test_tarim_ormandan_yavas_yanar():
     # Batı yarısı tarım, doğu yarısı orman; rüzgârsız düz arazi.
     arazi = _duz_arazi()
     arazi.yakit[:, : MERKEZ[1]] = 4
-    v2 = Parametreler(
+    yakitli = Parametreler(
         hiz_olcegi=HIZLI.hiz_olcegi, yanma_suresi_dk=HIZLI.yanma_suresi_dk,
-        p_veg=V2_YAKIT.p_veg, p_den=V2_YAKIT.p_den,
+        p_veg=YAKIT_TABLOSU.p_veg, p_den=YAKIT_TABLOSU.p_den,
     )  # fmt: skip
-    menzil = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30, parametreler=v2)
+    menzil = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30, parametreler=yakitli)
     assert menzil["D"] < 2900  # ızgara kenarına ulaşmadı
     assert menzil["D"] > 2.0 * menzil["B"]  # beklenen hız oranı 1,4 / 0,42 ≈ 3,3
-    v1 = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30)
-    assert v1["D"] == pytest.approx(v1["B"], rel=0.2)
+    yakitsiz = _ortalama_menzil(arazi, Ruzgar.sabit(0.0, 0.0), bitis_dk=30)
+    assert yakitsiz["D"] == pytest.approx(yakitsiz["B"], rel=0.2)
 
 
 def test_yanmaz_hucreler_hic_yanmaz():
@@ -290,8 +290,8 @@ def test_engel_gecisi_yavaslatir_ve_tam_guc_durdurur():
     engel[:, 25] = 1.0
     arazi.engel = engel
     ruzgar = Ruzgar.sabit(0.0, 0.0)
-    acik = yayilim(arazi, ruzgar, [(20, 20)], replace(V2_YAKIT, engel_etkisi=0.0), 0, 2000.0)
-    kapali = yayilim(arazi, ruzgar, [(20, 20)], replace(V2_YAKIT, engel_etkisi=1.0), 0, 2000.0)
+    acik = yayilim(arazi, ruzgar, [(20, 20)], replace(YAKIT_TABLOSU, engel_etkisi=0.0), 0, 2000.0)
+    kapali = yayilim(arazi, ruzgar, [(20, 20)], replace(YAKIT_TABLOSU, engel_etkisi=1.0), 0, 2000.0)
     assert np.isfinite(acik[:, 30]).any()
     assert np.isnan(kapali[:, 25:]).all()
 
@@ -300,7 +300,7 @@ def test_sondurme_esigi_ve_kacak():
     """Eşik her geçişin üstündeyse ateş tutuşma hücresinde kalır; kaçak payı varsa yayılır."""
     arazi = _duz_arazi(41)
     ruzgar = Ruzgar.sabit(0.0, 0.0)
-    tam = replace(V2_YAKIT, sondurme_esigi=10.0)
+    tam = replace(YAKIT_TABLOSU, sondurme_esigi=10.0)
     kacak = replace(tam, sondurme_olasiligi=0.5)
     tutulan = yayilim(arazi, ruzgar, [(20, 20)], tam, 0, 2000.0)
     kacan = yayilim(arazi, ruzgar, [(20, 20)], kacak, 0, 2000.0)
@@ -309,7 +309,7 @@ def test_sondurme_esigi_ve_kacak():
 
 
 def test_sondurme_doygunlugu_sifirken_rasgele_dizisi_degismez():
-    """Doygunluk 0 (v1–v5): söndürme eski sırayla aynı sayıları tüketir, sonuç tohum tohum aynı."""
+    """Doygunluk 0: söndürme sabit tutmayla aynı sayıları tüketir, sonuç tohum tohum aynı."""
     assert Parametreler().sondurme_doygunluk_ha_sa == 0.0
     arazi = _duz_arazi(3)
     arazi.yanabilir[:] = False
@@ -328,12 +328,14 @@ def test_sondurme_doygunlugu_sifirken_rasgele_dizisi_degismez():
     arazi = _duz_arazi(41)
     arazi.yanabilir[5:20, 7:30] = False
     ruzgar = Ruzgar.sabit(4.0, 60.0)
-    v5 = replace(V2_YAKIT, sondurme_esigi=0.6, sondurme_baslangic_dk=120.0,
-                 sondurme_olasiligi=0.8)  # fmt: skip
+    sabit_tutma = replace(YAKIT_TABLOSU, sondurme_esigi=0.6, sondurme_baslangic_dk=120.0,
+                          sondurme_olasiligi=0.8)  # fmt: skip
     for tohum in range(3):
-        a = yayilim(arazi, ruzgar, [(20, 20)], v5, tohum, 240.0)
+        a = yayilim(arazi, ruzgar, [(20, 20)], sabit_tutma, tohum, 240.0)
         # Pencere değeri doygunluk kapalıyken etkisiz olmalı.
-        b = yayilim(arazi, ruzgar, [(20, 20)], replace(v5, sondurme_pencere_dk=15.0), tohum, 240.0)
+        b = yayilim(
+            arazi, ruzgar, [(20, 20)], replace(sabit_tutma, sondurme_pencere_dk=15.0), tohum, 240.0
+        )
         np.testing.assert_array_equal(a, b)
 
 

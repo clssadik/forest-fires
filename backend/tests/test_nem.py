@@ -41,7 +41,7 @@ def test_nem_sonumu_rothermel():
     assert nem_sonumu(0.1, 0.25) == pytest.approx(1 - 2.59 * r + 5.11 * r**2 - 3.52 * r**3)
     m = np.linspace(0.0, 0.25, 26)
     assert np.all(np.diff([nem_sonumu(x, 0.25) for x in m]) < 0)
-    assert nem_sonumu(0.2, 0.0) == 1.0  # sönme nemi 0: nem etkisi kapalı (v1, v2)
+    assert nem_sonumu(0.2, 0.0) == 1.0  # sönme nemi 0: nem etkisi kapalı
 
 
 def _duz_arazi() -> Arazi:

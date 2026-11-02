@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 
 KAYNAK_URL = "https://copernicus-dem-30m.s3.amazonaws.com"
 # GLO-90: uzaktan okumada (senaryo modu) kullanılır. 30 m karodan bir senaryo penceresi ~20 MB
-# ve bu kaynaktan dakikalar sürüyor; 90 m'de ~3 sn. Kalibre model (v3) eğimi kullanmadığı için
+# ve bu kaynaktan dakikalar sürüyor; 90 m'de ~3 sn. Model (v1) eğimi kullanmadığı için
 # (a = 0) kayıp küçük: yükseklik yalnızca hava alanının sıcaklık düzeltmesine girer.
 KAYNAK_URL_90 = "https://copernicus-dem-90m.s3.amazonaws.com"
 NODATA = -9999.0

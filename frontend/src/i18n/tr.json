@@ -55,17 +55,10 @@
       "analiz": "Analiz"
     },
     "analiz": {
-      "deneyler": "Sürümler",
+      "deneyler": "Kıyas",
       "deneyAdlari": {
         "model_v1": "v1",
-        "model_v2": "v2",
-        "model_v3": "v3",
-        "model_v4": "v4",
-        "model_v5": "v5",
-        "model_v6": "v6",
         "ruzgarsiz": "Rüzgârsız",
-        "egimsiz": "Eğimsiz",
-        "ruzgarsiz_egimsiz": "Rüzgârsız, eğimsiz",
         "daire": "Daire"
       },
       "hataBaslik": "Nerede yanıldı?",
@@ -157,7 +150,7 @@
       "arazi": "Yükseklik ve eğim",
       "goruntu": "ESA WorldCover",
       "yanikIzi": "Sentinel-2",
-      "yayilim": "Model v6",
+      "yayilim": "Model v1",
       "olasilik": "20 çalıştırmada yanma sıklığı",
       "ruzgar": "Yön ve hız",
       "izokron": "Cephenin saat saat konumu",
@@ -294,16 +287,9 @@
       "baslik": "Basit yöntemlerle kıyas",
       "olcut": "bitişte Sørensen",
       "adlar": {
-        "model_v1": "Model v1 (rüzgâr + eğim)",
-        "model_v2": "Model v2 (+ yakıt türü)",
-        "model_v3": "Model v3 (+ nem, kalibre)",
-        "model_v4": "Model v4 (+ söndürme)",
-        "model_v5": "Model v5 (+ söndürmeden kaçak)",
+        "model_v1": "Model v1",
         "ruzgarsiz": "Rüzgârsız model",
-        "egimsiz": "Eğimsiz model",
-        "ruzgarsiz_egimsiz": "Rüzgârsız ve eğimsiz",
-        "daire": "Aynı alanlı daire",
-        "model_v6": "Model v6 (+ büyümeye bağlı söndürme)"
+        "daire": "Aynı alanlı daire"
       },
       "gecemiyor": "En iyi model, {{modelAd}}, {{model}} ile bu yangında {{ad}} yönteminin ({{en}}) gerisinde.",
       "kaynak": "Kaynak: orman-dogrula raporu ({{calisma}} çalıştırma)."

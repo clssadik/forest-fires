@@ -14,8 +14,8 @@ function ornekVeri() {
     bitis_utc: '2021-07-28T13:00:00Z',
     gercek_ha: 100,
     model: {
-      ad: 'model_v3',
-      aciklama: 'v3',
+      ad: 'model_v1',
+      aciklama: 'v1',
       calisma_sayisi: 20,
       esit_alan_iou: 0.5,
       esit_alan_iou_sapma: 0.01,

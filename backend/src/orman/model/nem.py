@@ -1,4 +1,4 @@
-"""Ölü ince yakıt nemi ve yayılmaya etkisi (model v3).
+"""Ölü ince yakıt nemi ve yayılmaya etkisi.
 
 Denge nemi (EMC): Simard (1968) bağıntısı, sıcaklık ve bağıl nemden (Fosberg yangın hava indeksi
 de bunu kullanır). İnce yakıt (1 saatlik) havayla bir saat içinde dengeye geldiği için yakıt nemi

@@ -4,7 +4,7 @@
     uv run orman-duyarlilik --calisma 5 --oran 0.1
 
 Kalibrasyonda aranan parametreler (`kalibrasyon.ARALIKLAR`) tek tek oynatılır, diğerleri sabit.
-Değeri 0 olan parametre (ör. v3'te eğim `a`) oranla oynatılamaz; onun yerine arama aralığının
+Değeri 0 olan parametre (ör. v1'de eğim `a`) oranla oynatılamaz; onun yerine arama aralığının
 `oran` katı kadar artırılır (yalnız yukarı, çünkü aralık 0'dan başlıyor). Ölçütler kalibrasyonla
 aynı: alan eşitlenmiş IoU (şekil) ve uydu geçişlerinde zamanlı IoU (zamanlama). Tohumlar
 kalibrasyonun arama ve doğrulama tohumlarından ayrı (2000…).

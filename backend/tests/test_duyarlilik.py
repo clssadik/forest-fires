@@ -6,11 +6,11 @@ import pytest
 
 from orman.dogrulama.duyarlilik import oynatmalar
 from orman.dogrulama.kalibrasyon import ARALIKLAR
-from orman.model.yayilim import V2_YAKIT
+from orman.model.yayilim import YAKIT_TABLOSU
 
 
 def test_oynatmalar_her_parametreyi_tek_tek_oynatir():
-    taban = replace(V2_YAKIT, a=0.0, c1=0.1, sonme_nemi=0.2)
+    taban = replace(YAKIT_TABLOSU, a=0.0, c1=0.1, sonme_nemi=0.2)
     liste = oynatmalar(taban, 0.2)
     # Sıfır olmayan her parametre iki kez (−, +), sıfır olan (a) bir kez (+).
     assert [(p, y) for p, y, _ in liste if p == "c1"] == [("c1", "-"), ("c1", "+")]

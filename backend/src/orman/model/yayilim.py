@@ -1,4 +1,5 @@
-"""Hücresel otomat yayılım modeli v1 (rüzgar + eğim), Alexandridis vd. (2008) biçiminde.
+"""Hücresel otomat yayılım modeli (rüzgâr, eğim, yakıt, nem, söndürme), Alexandridis vd. (2008)
+biçiminde. Modelin kullandığı parametreler `V1`.
 
 Yanan hücre `i`, komşusu `j` için Alexandridis çarpanını hesaplar:
 
@@ -16,13 +17,13 @@ Söndürme (kaba vekil): `sondurme_baslangic_dk` sonrasında `p < sondurme_esigi
 `sondurme_olasiligi` olasılıkla olmaz. Ekipler yavaş ilerleyen kenarları (yanlar, rüzgâr tersi, nemli gece) tutar; hızlı baş
 cephe durdurulamaz. Ekip konumu veya sayısı bilinmediği için yerden bağımsızdır.
 
-v6: söndürme gücü yangının kendi büyüme hızına bağlanır (`sondurme_doygunluk_ha_sa` > 0). Son
+Söndürme gücü yangının kendi büyüme hızına bağlıdır (`sondurme_doygunluk_ha_sa` > 0). Son
 `sondurme_pencere_dk` içinde kesinleşen hücrelerin alanı büyüme hızını (ha/sa) verir; etkin tutma
 olasılığı `sondurme_olasiligi · max(0, 1 − büyüme / doygunluk)`. Doğrusal biçim seçildi: ekiplerin
 saatte tutabildiği kenar uzunluğu yaklaşık sabittir, büyüme hızı da kenar uzunluğuyla orantılı
 artar; tek parametre yeter ve iki uç (0 → tam tutma, doygunluk → hiç tutma) doğal çıkar.
 Doygunluk hızına ulaşan yangında ekipler yetişemez, yavaş büyüyende kenarları tutar. Doygunluk
-0 iken eski davranış (v1–v5) birebir korunur: ek çekiliş yapılmaz, aynı rastgele sayı dizisi.
+0 iken tutma sabittir: ek çekiliş yapılmaz, aynı rastgele sayı dizisi.
 
 Çıktı her hücrenin varış zamanıdır (TOA, tutuşmadan bu yana dakika; yanmadıysa NaN).
 Hesap olay kuyruğuyla yapılır (en erken aday zaman önce); `i`'nin hızları tutuştuğu andaki
@@ -31,7 +32,7 @@ havayla hesaplanır.
 
 import math
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 
 import numpy as np
@@ -50,27 +51,30 @@ _KOMSU_SUTUN = np.array([0, 1, 1, 1, 0, -1, -1, -1], dtype=np.int64)
 
 @dataclass(frozen=True)
 class Parametreler:
+    """Varsayılanlar ek mekanizmaları (yakıt farkı, nem, engel, söndürme) kapalı tutar; testler ve
+    ablasyonlar bunlardan kurulur. Modelin kullandığı değerler `V1`."""
+
     p_h: float = 0.58  # temel tutuşma olasılığı
     c1: float = 0.045  # rüzgar hızının genel etkisi (1/(m/s))
     c2: float = 0.131  # rüzgar yönünün etkisi (1/(m/s))
     a: float = 0.078  # eğim etkisi (1/derece)
     hiz_olcegi: float = 0.06  # p = 1 iken tutuşturma hızı (1/dk); zaman ölçeği, kalibre edilecek
     yanma_suresi_dk: float = 120.0  # hücrenin komşularını tutuşturabildiği süre (dk)
-    # Yakıt sınıfı kodu -> p_veg / p_den. v1'de hepsi 0: yalnızca yanar / yanmaz ayrımı.
+    # Yakıt sınıfı kodu -> p_veg / p_den. Hepsi 0: yalnızca yanar / yanmaz ayrımı.
     p_veg: tuple[float, ...] = (0.0,) * YAKIT_SINIF_SAYISI
     p_den: tuple[float, ...] = (0.0,) * YAKIT_SINIF_SAYISI
-    # Ölü ince yakıtın sönme nemi (oran); 0 = nem etkisi kapalı (v1, v2). Bkz. model/nem.py
+    # Ölü ince yakıtın sönme nemi (oran); 0 = nem etkisi kapalı. Bkz. model/nem.py
     sonme_nemi: float = 0.0
-    # OSM engel gücünün çarpanı (0 = engeller kapalı; v1–v3). Etkin güç min(etki · güç, 1).
+    # OSM engel gücünün çarpanı (0 = engeller kapalı). Etkin güç min(etki · güç, 1).
     engel_etkisi: float = 0.0
     # Söndürme vekili: bu andan (dk) sonra p'si eşiğin altındaki geçişler olmaz; 0 = kapalı.
     sondurme_esigi: float = 0.0
     sondurme_baslangic_dk: float = 0.0
-    # Eşik altı geçişin tutulma olasılığı; 1 = hepsi tutulur (v4). Kaçan geçişler yangını gece
+    # Eşik altı geçişin tutulma olasılığı; 1 = hepsi tutulur. Kaçan geçişler yangını gece
     # canlı tutar, gündüz yeniden koşabilir.
     sondurme_olasiligi: float = 1.0
-    # v6: son `sondurme_pencere_dk` içindeki büyüme hızı (ha/sa) bu değere ulaşınca ekipler
-    # etkisizleşir (etkin tutma 0). 0 = kapalı, eski davranış.
+    # Son `sondurme_pencere_dk` içindeki büyüme hızı (ha/sa) bu değere ulaşınca ekipler
+    # etkisizleşir (etkin tutma 0). 0 = kapalı, tutma sabit.
     sondurme_doygunluk_ha_sa: float = 0.0
     sondurme_pencere_dk: float = 60.0
 
@@ -80,13 +84,32 @@ def yakit_carpani(parametreler: Parametreler) -> np.ndarray:
     return (1.0 + np.array(parametreler.p_veg)) * (1.0 + np.array(parametreler.p_den))
 
 
-# v2 yakıt tablosu, Alexandridis vd. (2008) Tablo 1'den, kalibrasyonsuz:
+# Yakıt tablosu, Alexandridis vd. (2008) Tablo 1'den, kalibrasyonsuz:
 # p_veg tarım −0,3 · çalılık 0 · kızılçam +0,4; p_den seyrek −0,4 · normal 0 · yoğun +0,3.
 # Orman = kızılçam (bölgenin baskın türü), normal yoğunluk; maki = çalılık; ot ve tarım = tarım,
 # seyrek (yaz sonu hasat edilmiş tarla, sulu bahçe, kayalık otluk).
-V2_YAKIT = Parametreler(
+YAKIT_TABLOSU = Parametreler(
     p_veg=(0.0, 0.4, 0.0, -0.3, -0.3),
     p_den=(0.0, 0.0, 0.0, -0.4, -0.4),
+)
+
+# Model v1: yakıt tablosu, yakıt nemi ve büyümeye bağlı söndürme; Manavgat 2021'e ayarlı, Marmaris
+# 2022 ayarsız (genelleme testi). Hız, rüzgâr, eğim ve sönme nemi `orman-kalibre` ile bulundu
+# (2026-10-26; eğim etkisi ~0'a indi). Söndürme eşiği 0,58, tutma 0,85 ve doygunluk 26.500 ha/sa
+# Manavgat'ta tarandı (2026-10-29; 6000–80800 × 0,55–0,70 × 0,80–0,95, en iyi aday 20 yeni
+# tohumla doğrulandı). Büyüme ~500–1000 ha/sa olduğundan etkin tutma ~0,82–0,85 arasında oynar.
+# Model tutmaya çok duyarlı: sabit 0,82 → Manavgat 74 bin ha, 0,85 → 40 bin ha.
+V1 = replace(
+    YAKIT_TABLOSU,
+    hiz_olcegi=0.087,
+    c1=0.126,
+    c2=0.081,
+    a=0.0,
+    sonme_nemi=0.19,
+    sondurme_esigi=0.58,
+    sondurme_baslangic_dk=360.0,
+    sondurme_olasiligi=0.85,
+    sondurme_doygunluk_ha_sa=26500.0,
 )
 
 
@@ -335,7 +358,7 @@ def _yayilim_cekirdegi(
             p *= 1.0 - min(engel_etkisi * engel[rr, cc], 1.0)
             if p <= 0.0:
                 continue
-            # Söndürme; olasılık 1 iken çekiliş yapılmaz (v4'ün rastgele sayı dizisi değişmesin).
+            # Söndürme; olasılık 1 iken çekiliş yapılmaz (rastgele sayı dizisi değişmesin).
             # `tutma` doygunlukla düşer; 0 ise geçiş hiç tutulmaz, 1 ise hiç kaçmaz.
             if (
                 t >= sondurme_baslangic_dk

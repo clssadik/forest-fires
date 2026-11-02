@@ -2,17 +2,17 @@
 
     uv run orman-kalibre manavgat_2021                 # 150 rastgele + 50 yerel deneme
     uv run orman-kalibre manavgat_2021 --deneme 40 --yerel 10
-    uv run orman-kalibre manavgat_2021 --ortak         # + söndürme ayarları, v6'dan başlar
 
-Hedef, şekil ve zamanlamanın ortalamasıdır (ikisi de 0–1):
+Hedef, şekil, zamanlama ve bitişin ortalamasıdır (hepsi 0–1):
 - **şekil:** alan eşitlenmiş IoU (zaman ölçeğinden bağımsız),
 - **zamanlama:** uydunun her geçişinde, o ana kadar FIRMS'in gördüğü gerçek alan ile modelin
   yaktığı alanın IoU'su; geçişlerin ortalaması (arayüzdeki "anlık örtüşme"nin aynısı). Bu,
   "X saatte nereye varır?" sorusunun ölçüsüdür.
 
-**Ortak kip** (`--ortak`): model artık durduğu için (söndürme vekili, v4–v6) hız, rüzgâr, eğim ve
-nemle birlikte söndürmenin üç ayarı da aranır (`ORTAK_ARALIKLAR`, taban v6) ve hedefe üçüncü parça
-olarak **bitiş IoU** eklenir; yoksa arama bitiş alanını umursamadan taşan ayarları seçebilir.
+- **bitiş:** bitişte IoU; model söndürmeyle durduğu için gerekli, yoksa arama bitiş alanını
+  umursamadan taşan ayarları seçebilir.
+
+Hız, rüzgâr, eğim ve nemle birlikte söndürmenin üç ayarı aranır (`ORTAK_ARALIKLAR`, taban v1).
 Söndürmenin başlangıç anı ve büyüme penceresi aranmaz.
 
 Arama: önce aralıklardan rastgele örnekleme, sonra en iyilerin çevresinde yerel arama; her deneme
@@ -33,9 +33,9 @@ from dataclasses import asdict, dataclass, replace
 import numpy as np
 
 from orman.ayarlar import ISLENMIS_VERI_DIZINI
-from orman.dogrulama.calistir import V1, V2, V5, V6, DeneyOrtami
+from orman.dogrulama.calistir import DeneyOrtami
 from orman.dogrulama.olcutler import Referans, dogrula, mekansal_olcutler
-from orman.model.yayilim import Parametreler, coklu_yayilim
+from orman.model.yayilim import V1, Parametreler, coklu_yayilim
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR
 
@@ -47,8 +47,8 @@ ARALIKLAR: dict[str, tuple[float, float, str]] = {
     "a": (0.0, 0.1, "dogrusal"),  # eğim etkisi
     "sonme_nemi": (0.10, 0.40, "dogrusal"),  # yakıtın sönme nemi
 }
-# Ortak kip: üstüne söndürme. Tutma (olasılık) dar tutuldu: 0,95 üstünde yangın söner, 0,70
-# altında söndürme etkisizleşir (v5 taraması).
+# Üstüne söndürme. Tutma (olasılık) dar tutuldu: 0,95 üstünde yangın söner, 0,70 altında
+# söndürme etkisizleşir (elle tarama).
 ORTAK_ARALIKLAR: dict[str, tuple[float, float, str]] = ARALIKLAR | {
     "sondurme_esigi": (0.45, 0.75, "dogrusal"),
     "sondurme_olasiligi": (0.70, 0.95, "dogrusal"),
@@ -94,7 +94,7 @@ def zamanli_iou(toa: np.ndarray, referans: Referans, anlar_dk) -> float:
 
 
 def hedef(sekil: float, zamanlama: float, bitis: float | None = None) -> float:
-    """Parçaların eşit ağırlıklı ortalaması; `bitis` (bitiş IoU) yalnızca ortak kipte verilir."""
+    """Parçaların eşit ağırlıklı ortalaması; `bitis` (bitiş IoU) verilmezse iki parça."""
     parcalar = [sekil, zamanlama] if bitis is None else [sekil, zamanlama, bitis]
     return float(np.mean(parcalar))
 
@@ -140,7 +140,7 @@ class Degerlendirme:
 
 
 def degerlendir(
-    ortam: DeneyOrtami, parametreler: Parametreler, tohumlar, anlar_dk, bitis_hedefte=False
+    ortam: DeneyOrtami, parametreler: Parametreler, tohumlar, anlar_dk, bitis_hedefte=True
 ) -> Degerlendirme:
     r = ortam.referans
     toa = coklu_yayilim(
@@ -184,11 +184,10 @@ def kalibre(
     finalist: int = 5,
     dogrulama_calisma: int = 20,
     tohum: int = 0,
-    ortak: bool = False,
     yazdir=print,
 ) -> dict:
     baslangic = time.perf_counter()
-    taban, araliklar = (V6, ORTAK_ARALIKLAR) if ortak else (V2, ARALIKLAR)
+    taban, araliklar = V1, ORTAK_ARALIKLAR
     ortam = DeneyOrtami.hazirla(senaryo)
     anlar = gecis_anlari(ortam.referans.firms_toa, ortam.referans.kapsam)
     yazdir(f"Uydu geçişleri (sa): {', '.join(f'{t / 60:.1f}' for t in anlar)}")
@@ -197,7 +196,7 @@ def kalibre(
     denemeler: list[Degerlendirme] = []
 
     def dene(p: Parametreler) -> None:
-        denemeler.append(degerlendir(ortam, p, arama_tohumlari, anlar, ortak))
+        denemeler.append(degerlendir(ortam, p, arama_tohumlari, anlar))
         if len(denemeler) % 10 == 0:
             en_iyi = max(denemeler, key=lambda x: x.hedef)
             yazdir(f"[{len(denemeler):3d}] en iyi {_satir('', en_iyi)}")
@@ -213,25 +212,21 @@ def kalibre(
     dogrulama_tohumlari = range(1000, 1000 + dogrulama_calisma)
     adaylar = sorted(denemeler, key=lambda x: -x.hedef)[:finalist]
     yazdir(f"\nFinalistler ({dogrulama_calisma} yeni tohum):")
-    referanslar = {"model_v5": V5, "model_v6": V6} if ortak else {"model_v1": V1, "model_v2": V2}
+    referanslar = {"model_v1": V1}
     sonuclar = {}
     for ad, p in referanslar.items():
-        sonuclar[ad] = degerlendir(ortam, p, dogrulama_tohumlari, anlar, ortak)
+        sonuclar[ad] = degerlendir(ortam, p, dogrulama_tohumlari, anlar)
         yazdir(_satir(ad, sonuclar[ad]))
     finaller = []
     for i, d in enumerate(adaylar):
-        f = degerlendir(
-            ortam, Parametreler(**_demet(d.parametreler)), dogrulama_tohumlari, anlar, ortak
-        )
+        f = degerlendir(ortam, Parametreler(**_demet(d.parametreler)), dogrulama_tohumlari, anlar)
         finaller.append(f)
         yazdir(_satir(f"aday {i + 1}", f))
     en_iyi = max(finaller, key=lambda x: x.hedef)
 
     rapor = {
         "senaryo": senaryo.ad,
-        "hedef": "ortalama(alan eşitlenmiş IoU, uydu geçişlerinde zamanlı IoU"
-        + (", bitiş IoU)" if ortak else ")"),
-        "ortak": ortak,
+        "hedef": "ortalama(alan eşitlenmiş IoU, uydu geçişlerinde zamanlı IoU, bitiş IoU)",
         "gecis_anlari_saat": [round(t / 60.0, 2) for t in anlar],
         "araliklar": araliklar,
         "arama": {"rastgele": deneme, "yerel": yerel, "tohum_sayisi": calisma, "rng": tohum},
@@ -242,7 +237,7 @@ def kalibre(
         "denemeler": [asdict(d) for d in denemeler],
         "sure_sn": round(time.perf_counter() - baslangic, 1),
     }
-    d = ISLENMIS_VERI_DIZINI / senaryo.ad / ("kalibrasyon_ortak" if ortak else "kalibrasyon")
+    d = ISLENMIS_VERI_DIZINI / senaryo.ad / "kalibrasyon"
     d.mkdir(parents=True, exist_ok=True)
     (d / "sonuc.json").write_text(json.dumps(rapor, ensure_ascii=False, indent=2))
     yazdir(f"\nEn iyi: {_satir('', en_iyi)}\nSüre {rapor['sure_sn']} sn. Rapor: {d / 'sonuc.json'}")
@@ -264,9 +259,6 @@ def main() -> None:
     ayristirici.add_argument("--calisma", type=int, default=5, help="denemede tohum sayısı")
     ayristirici.add_argument("--finalist", type=int, default=5)
     ayristirici.add_argument("--tohum", type=int, default=0, help="arama rastgeleliği")
-    ayristirici.add_argument(
-        "--ortak", action="store_true", help="söndürme ayarlarını da ara, bitiş IoU hedefte"
-    )
     s = ayristirici.parse_args()
     kalibre(
         SENARYOLAR[s.senaryo],
@@ -275,5 +267,4 @@ def main() -> None:
         s.calisma,
         s.finalist,
         tohum=s.tohum,
-        ortak=s.ortak,
     )

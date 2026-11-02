@@ -5,7 +5,6 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
-from orman.dogrulama.calistir import V6
 from orman.dogrulama.kalibrasyon import (
     ARALIKLAR,
     ORTAK_ARALIKLAR,
@@ -16,7 +15,7 @@ from orman.dogrulama.kalibrasyon import (
     zamanli_iou,
 )
 from orman.dogrulama.olcutler import Referans
-from orman.model.yayilim import V2_YAKIT
+from orman.model.yayilim import V1, YAKIT_TABLOSU
 
 NAN = np.nan
 
@@ -74,33 +73,33 @@ def test_hedef_bitis_verilirse_uc_parcanin_ortalamasi():
     assert hedef(0.6, 0.6, bitis=0.0) == pytest.approx(0.4)
 
 
-def test_ortak_arama_sondurmeyi_de_arar_ve_tabani_korur():
+def test_arama_sondurmeyi_de_arar_ve_tabani_korur():
     assert set(ARALIKLAR) < set(ORTAK_ARALIKLAR)
     assert {"sondurme_esigi", "sondurme_olasiligi", "sondurme_doygunluk_ha_sa"} <= set(
         ORTAK_ARALIKLAR
     )
     rng = np.random.default_rng(3)
     for _ in range(200):
-        p = rastgele_parametreler(rng, V6, ORTAK_ARALIKLAR)
+        p = rastgele_parametreler(rng, V1, ORTAK_ARALIKLAR)
         q = komsu_parametreler(rng, p, ORTAK_ARALIKLAR)
         for aday in (p, q):
             for ad, (alt, ust, _) in ORTAK_ARALIKLAR.items():
                 assert alt <= getattr(aday, ad) <= ust, ad
             # Aranmayanlar tabandan: söndürmenin başlangıcı, pencere, yakıt tablosu.
-            assert aday.sondurme_baslangic_dk == V6.sondurme_baslangic_dk
-            assert aday.sondurme_pencere_dk == V6.sondurme_pencere_dk
-            assert aday.p_veg == V6.p_veg
-    assert set(ORTAK_ARALIKLAR) <= set(asdict(V6))
+            assert aday.sondurme_baslangic_dk == V1.sondurme_baslangic_dk
+            assert aday.sondurme_pencere_dk == V1.sondurme_pencere_dk
+            assert aday.p_veg == V1.p_veg
+    assert set(ORTAK_ARALIKLAR) <= set(asdict(V1))
 
 
 def test_rastgele_parametreler_araliklarda_ve_tekrarlanabilir():
-    a = rastgele_parametreler(np.random.default_rng(7), V2_YAKIT)
-    assert a == rastgele_parametreler(np.random.default_rng(7), V2_YAKIT)
+    a = rastgele_parametreler(np.random.default_rng(7), YAKIT_TABLOSU)
+    assert a == rastgele_parametreler(np.random.default_rng(7), YAKIT_TABLOSU)
     rng = np.random.default_rng(0)
     for _ in range(200):
-        p = rastgele_parametreler(rng, V2_YAKIT)
+        p = rastgele_parametreler(rng, YAKIT_TABLOSU)
         for ad, (alt, ust, _) in ARALIKLAR.items():
             assert alt <= getattr(p, ad) <= ust, ad
         # Aranmayan parametreler tabandan gelir (yakıt tablosu, yanma süresi).
-        assert p.p_veg == V2_YAKIT.p_veg and p.yanma_suresi_dk == V2_YAKIT.yanma_suresi_dk
-    assert set(ARALIKLAR) <= set(asdict(V2_YAKIT))
+        assert p.p_veg == YAKIT_TABLOSU.p_veg and p.yanma_suresi_dk == YAKIT_TABLOSU.yanma_suresi_dk
+    assert set(ARALIKLAR) <= set(asdict(YAKIT_TABLOSU))

@@ -54,7 +54,9 @@ uv --directory backend run orman-veri manavgat_2021
 
 ## Yayılım modeli
 
-Hücresel otomat (Alexandridis vd. 2008 biçiminde; rüzgâr + eğim). Bölge paketi hazırsa:
+Hücresel otomat, model v1 (Alexandridis vd. 2008 biçiminde; rüzgâr, eğim, yakıt türü, yakıt nemi
+ve büyüme hızına bağlı söndürme; parametreler `backend/src/orman/model/yayilim.py` → `V1`). Bölge
+paketi hazırsa:
 
 ```bash
 uv --directory backend run orman-model manavgat_2021 --calisma 20
@@ -62,12 +64,12 @@ uv --directory backend run orman-model manavgat_2021 --calisma 20
 
 Her hücrenin varış zamanını (`toa.tif`, dakika), çoklu çalıştırmada yanma olasılığını
 (`olasilik.tif`), bir özet (`ozet.json`) ve önizlemeyi (`onizleme_toa.png`)
-`data/islenmis/manavgat_2021/model_v1/` altına yazar. Model v1 henüz kalibre edilmedi.
+`data/islenmis/manavgat_2021/model_v1/` altına yazar.
 
 ## Doğrulama
 
-Modeli ve basit baseline'ları (rüzgârsız, eğimsiz, daire) gerçek yanmış alanla ve FIRMS
-tespitleriyle karşılaştırır (~30 sn):
+Modeli, rüzgârı kapatılmış hâlini ve aynı alanlı daire baseline'ını gerçek yanmış alanla ve
+FIRMS tespitleriyle karşılaştırır (~10 sn):
 
 ```bash
 uv --directory backend run orman-dogrula manavgat_2021
@@ -77,8 +79,8 @@ Sonuç tablosunu ekrana basar. `data/islenmis/manavgat_2021/dogrulama/` altına 
 `rapor.json` (IoU, Dice, kappa, karışıklık matrisi, zaman farkı, alan–zaman eğrileri),
 `firms_varis.tif` ve görseller (`harita.png`, `buyume.png`, `karsilastirma.png`, `zaman_farki.png`).
 
-Model v3'ün parametreleri `orman-kalibre manavgat_2021` ile bulundu (~5,5 dk). Bu parametreler
-±%20 oynatılınca iki yangında sonucun ne kadar değiştiği (~30 sn,
+Model v1'in parametreleri Manavgat 2021'de `orman-kalibre manavgat_2021` ile arandı; Marmaris
+2022 ayarsız bırakılan genelleme testidir. Parametreler ±%20 oynatılınca iki yangında sonucun ne kadar değiştiği (~30 sn,
 `data/islenmis/duyarlilik/sonuc.json`):
 
 ```bash
@@ -87,13 +89,13 @@ uv --directory backend run orman-duyarlilik
 
 ## Web API
 
-Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/<ad>/simulasyon` model v3'ü 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/<ad>/web/` altına yazar. Doğrulama ekranında üst bardaki olay adından Manavgat 2021 ile Marmaris 2022 arasında geçilir. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
+Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/<ad>/simulasyon` model v1'i 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/<ad>/web/` altına yazar. Doğrulama ekranında üst bardaki olay adından Manavgat 2021 ile Marmaris 2022 arasında geçilir. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
 
 ## Senaryo modu: "şimdi burada yangın çıksa?"
 
 Ön yüzde **Senaryo** sekmesi (`http://localhost:5173/#senaryo`): haritada herhangi bir yere
 tıklayın. Arka uç noktanın çevresinde 40 × 40 km'lik bir ızgara kurar; Copernicus DEM (GLO-90,
-uzaktan pencereyle), ESA WorldCover ve Open-Meteo **tahminini** indirir, model v3'ü 20 tohumla
+uzaktan pencereyle), ESA WorldCover ve Open-Meteo **tahminini** indirir, model v1'i 20 tohumla
 48 saat çalıştırır (`POST /api/senaryo?enlem=..&boylam=..`; yeni bir yer için ~10–25 sn, yakın
 bir noktaya tekrar ~1 sn). Sonuç: yanma olasılığının %10 / %50 / %90'a ulaştığı anlar;
 tarayıcı bunları zaman kaydırıcısıyla oynatır. Çıktılar `data/islenmis/senaryolar/<kimlik>/`.
