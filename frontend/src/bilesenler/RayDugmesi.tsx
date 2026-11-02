@@ -30,7 +30,7 @@ export function RayDugmesi({
       aria-pressed={onClick && !aria['aria-haspopup'] ? secili : undefined}
       aria-label={ad}
       {...aria}
-      className={`group relative grid size-[40px] shrink-0 place-items-center rounded-[7px] ${
+      className={`group relative grid size-[40px] shrink-0 place-items-center rounded-[7px] transition-colors duration-200 ${
         secili
           ? 'bg-yuzey-acik text-metin'
           : onClick

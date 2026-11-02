@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, MotionConfig } from 'motion/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CEKMECELER, useOlayDuzeni, type Cekmece } from '../../durum/olayDuzeni'
@@ -9,6 +10,11 @@ import { NotlarSekmesi } from '../sagPanel/NotlarSekmesi'
 import { OzetSekmesi } from '../sagPanel/OzetSekmesi'
 import { IkonBelge, IkonBilgi, IkonGrafik, IkonKapat, IkonKatman, IkonNot } from '../ikonlar'
 import { RayDugmesi } from '../RayDugmesi'
+
+const GENISLIK = 340
+/** Çekmecenin açılıp kapanması (genişlik) ve sekme değişiminde içeriğin belirmesi. */
+const ACILIS = { duration: 0.28, ease: [0.22, 1, 0.36, 1] } as const
+const SEKME = { duration: 0.2, ease: [0.22, 1, 0.36, 1] } as const
 
 const IKONLAR: Record<Cekmece, ReactNode> = {
   ozet: <IkonBilgi boyut={19} />,
@@ -39,14 +45,44 @@ export function SagRay() {
   )
 }
 
-/** Raydaki düğmeyle açılan sabit çekmece; sahneyi daraltır, üstüne binmez. */
+/**
+ * Raydaki düğmeyle açılan sabit çekmece; sahneyi daraltır, üstüne binmez. Genişliği açılıp
+ * kapanırken kayar; sekme değişince içerik yandan belirir. Kapanırken son sekme görünür kalır.
+ */
 export function SagCekmece({ veri }: { veri: OlayVerisi | null }) {
-  const { t } = useTranslation()
   const cekmece = useOlayDuzeni((d) => d.cekmece)
-  const kapat = useOlayDuzeni((d) => d.cekmeceKapat)
-  if (!cekmece) return null
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col border-l border-cizgi bg-panel">
+    <MotionConfig reducedMotion="user">
+      <AnimatePresence initial={false}>
+        {cekmece && (
+          <motion.aside
+            key="cekmece"
+            initial={{ width: 0 }}
+            animate={{ width: GENISLIK }}
+            exit={{ width: 0 }}
+            transition={ACILIS}
+            className="shrink-0 overflow-hidden border-l border-cizgi bg-panel"
+          >
+            <CekmeceIcerigi cekmece={cekmece} veri={veri} />
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </MotionConfig>
+  )
+}
+
+function CekmeceIcerigi({ cekmece, veri }: { cekmece: Cekmece; veri: OlayVerisi | null }) {
+  const { t } = useTranslation()
+  const kapat = useOlayDuzeni((d) => d.cekmeceKapat)
+  return (
+    <motion.div
+      key={cekmece}
+      initial={{ opacity: 0, x: 14 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={SEKME}
+      className="flex h-full flex-col"
+      style={{ width: GENISLIK }}
+    >
       <header className="flex h-[52px] shrink-0 items-center border-b border-cizgi pr-3 pl-5">
         <h2 className="text-[15px] leading-5 font-semibold">{t(`sagPanel.sekmeler.${cekmece}`)}</h2>
         <button
@@ -70,6 +106,6 @@ export function SagCekmece({ veri }: { veri: OlayVerisi | null }) {
           {veri && cekmece === 'notlar' && <NotlarSekmesi ad={veri.bilgi.ad} />}
         </div>
       )}
-    </aside>
+    </motion.div>
   )
 }
