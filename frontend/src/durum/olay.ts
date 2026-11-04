@@ -11,7 +11,7 @@ const ACILIS_SAAT = 24
 const GECIS_ZOOM = 0.6
 
 interface OlayDurumu {
-  /** Yüklenen ya da yüklenmekte olan yangın (doğrulama ekranındaki seçimle aynı). */
+  /** Yüklenen ya da yüklenmekte olan yangın (sol raydaki seçim). */
   ad: string | null
   yukleme: 'bos' | 'yukleniyor' | 'hazir' | 'hata'
   hata: string | null

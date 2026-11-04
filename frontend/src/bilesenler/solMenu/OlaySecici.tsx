@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { gunAyYil } from '../../bicim'
-import { useDogrulama } from '../../durum/dogrulama'
-import * as api from '../../dogrulama/api'
+import { useOlay } from '../../durum/olay'
+import * as api from '../../olay/api'
 import { IkonTakvim } from '../ikonlar'
 import { RayDugmesi } from '../RayDugmesi'
 
@@ -14,14 +14,13 @@ export interface OlayBasligi {
 }
 
 /**
- * Sol raydaki olay düğmesi: açılan kartta gösterilen olayın adı, yeri ve tarih aralığı. Olay ve
- * doğrulama ekranlarında kart bölge paketi hazır olan geçmiş yangınları da listeler (iki ekran
- * aynı seçimi paylaşır); senaryo ekranında yalnızca bilgiyi gösterir.
+ * Sol raydaki olay düğmesi: açılan kartta gösterilen olayın adı, yeri ve tarih aralığı ile bölge
+ * paketi hazır olan geçmiş yangınların listesi.
  */
-export function OlaySecici({ baslik, secilebilir }: { baslik: OlayBasligi; secilebilir: boolean }) {
+export function OlaySecici({ baslik }: { baslik: OlayBasligi }) {
   const { t } = useTranslation()
-  const secili = useDogrulama((d) => d.ad)
-  const yanginSec = useDogrulama((d) => d.yanginSec)
+  const secili = useOlay((d) => d.ad)
+  const yanginSec = useOlay((d) => d.yukle)
   // Kart açıkken düğmenin ekrandaki yeri; null = kapalı.
   const [konum, setKonum] = useState<{ sol: number; ust: number } | null>(null)
   const acik = konum !== null
@@ -30,7 +29,7 @@ export function OlaySecici({ baslik, secilebilir }: { baslik: OlayBasligi; secil
 
   useEffect(() => {
     if (!acik) return
-    if (secilebilir && !liste) api.yanginListesi().then(setListe, () => setListe([]))
+    if (!liste) api.yanginListesi().then(setListe, () => setListe([]))
     const disari = (e: PointerEvent) => {
       if (!kap.current?.contains(e.target as Node)) setKonum(null)
     }
@@ -41,7 +40,7 @@ export function OlaySecici({ baslik, secilebilir }: { baslik: OlayBasligi; secil
       document.removeEventListener('pointerdown', disari)
       document.removeEventListener('keydown', kacis)
     }
-  }, [acik, liste, secilebilir])
+  }, [acik, liste])
 
   return (
     <div ref={kap}>
@@ -72,30 +71,28 @@ export function OlaySecici({ baslik, secilebilir }: { baslik: OlayBasligi; secil
               {gunAyYil(baslik.baslangic)} – {gunAyYil(baslik.bitis)}
             </div>
           </div>
-          {secilebilir && (
-            <ul role="listbox" aria-label={t('ustBar.olaySecici')} className="border-t border-cizgi py-1">
-              {liste === null && <li className="px-3.5 py-1.5 text-[13px] text-soluk">{t('ustBar.olayYukleniyor')}</li>}
-              {liste
-                ?.filter((y) => y.paket_hazir)
-                .map((y) => (
-                  <li key={y.ad} role="option" aria-selected={y.ad === secili}>
-                    <button
-                      type="button"
-                      className={`flex w-full flex-col px-3.5 py-1.5 text-left text-[13px] hover:bg-white/[0.07] ${y.ad === secili ? 'font-semibold' : ''}`}
-                      onClick={() => {
-                        setKonum(null)
-                        void yanginSec(y.ad)
-                      }}
-                    >
-                      <span>{y.baslik}</span>
-                      <span className="text-[12px] font-normal text-soluk">
-                        {y.konum}, {gunAyYil(Date.parse(y.tutusma_utc))}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-            </ul>
-          )}
+          <ul role="listbox" aria-label={t('ustBar.olaySecici')} className="border-t border-cizgi py-1">
+            {liste === null && <li className="px-3.5 py-1.5 text-[13px] text-soluk">{t('ustBar.olayYukleniyor')}</li>}
+            {liste
+              ?.filter((y) => y.paket_hazir)
+              .map((y) => (
+                <li key={y.ad} role="option" aria-selected={y.ad === secili}>
+                  <button
+                    type="button"
+                    className={`flex w-full flex-col px-3.5 py-1.5 text-left text-[13px] hover:bg-white/[0.07] ${y.ad === secili ? 'font-semibold' : ''}`}
+                    onClick={() => {
+                      setKonum(null)
+                      void yanginSec(y.ad)
+                    }}
+                  >
+                    <span>{y.baslik}</span>
+                    <span className="text-[12px] font-normal text-soluk">
+                      {y.konum}, {gunAyYil(Date.parse(y.tutusma_utc))}
+                    </span>
+                  </button>
+                </li>
+              ))}
+          </ul>
         </div>
       )}
     </div>

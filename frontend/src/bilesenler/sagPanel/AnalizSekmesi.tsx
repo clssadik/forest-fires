@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sayi, yuzdeBicim } from '../../bicim'
-import { gercekAlanaUlasti } from '../../dogrulama/api'
+import { gercekAlanaUlasti } from '../../olay/api'
 import type { OlayVerisi } from '../../olay/veri'
 import { Bolum } from './ortak'
 

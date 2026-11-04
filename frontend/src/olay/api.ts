@@ -1,5 +1,30 @@
 /** Olay ekranı uç noktaları (backend/src/orman/olay.py, api.py) ve yanıt tipleri. */
-import { ApiHatasi } from '../dogrulama/api'
+
+export class ApiHatasi extends Error {
+  durum: number
+  constructor(durum: number, mesaj: string) {
+    super(mesaj)
+    this.durum = durum
+  }
+}
+
+/** `GET /api/yanginlar` satırı: tanımlı geçmiş yangınlar. */
+export interface YanginOzeti {
+  ad: string
+  baslik: string
+  konum: string
+  tutusma_utc: string
+  bitis_utc: string | null
+  paket_hazir: boolean
+  sonuc_var: boolean
+}
+
+export const yanginListesi = async (): Promise<YanginOzeti[]> => (await fetch('/api/yanginlar')).json()
+
+/** Model gerçek alan kadar yaktı mı? Durduysa "alan eşitlenmiş" ölçüt yaktığı tüm alandır ve
+ *  yanlış alarm kaçırılandan küçük kalır (alan eşitken ikisi aynıdır). */
+export const gercekAlanaUlasti = (e: { yanlis_alarm_ha: number; kacirilan_ha: number }) =>
+  e.yanlis_alarm_ha >= 0.99 * e.kacirilan_ha
 
 export type OlayTuru = 'tutusma' | 'uyduGecisi' | 'hizliBuyume' | 'sirtaUlasma'
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gercekAlanaUlasti } from '../../dogrulama/api'
+import { gercekAlanaUlasti } from '../../olay/api'
 import { useKatmanlar, type GorunumModu } from '../../durum/katmanlar'
 import type { OlayVerisi } from '../../olay/veri'
 import { HATA_RENKLERI, ORTU_RENKLERI, RAMPALAR } from '../../sahne/tematikRenkler'

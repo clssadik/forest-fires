@@ -1,6 +1,6 @@
 # Ön yüz (React + TypeScript)
 
-Analiz ekranı: 3B sahne (React Three Fiber), 2D harita (MapLibre), katman paneli, zaman çubuğu, grafikler ve olay listesi.
+Analiz ekranı: 3B sahne (React Three Fiber), katman paneli, zaman paneli, grafikler ve olay listesi.
 
 ```bash
 npm install     # bağımlılıkları kur

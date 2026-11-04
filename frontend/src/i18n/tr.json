@@ -13,8 +13,6 @@
     "olayYukleniyor": "Yangınlar yükleniyor…",
     "kipler": {
       "olay": "Olay",
-      "dogrulama": "Doğrulama",
-      "senaryo": "Senaryo",
       "iha": "İHA'lar",
       "kaynaklar": "Kaynaklar"
     },
@@ -141,15 +139,10 @@
     "modelAlan": "Model alan"
   },
   "zaman": {
-    "baslik": "Zaman Çizelgesi",
-    "oynat": "Oynat",
-    "duraklat": "Duraklat",
     "simulasyonuBaslat": "Simülasyonu Başlat",
     "hazir": "Hazır",
     "simulasyonuDurdur": "Simülasyonu Durdur",
     "durduruldu": "Durduruldu",
-    "ileri": "Bir saat ileri",
-    "hiz": "Oynatma hızı",
     "imlec": "Zaman imleci"
   },
   "grafikler": {
@@ -175,168 +168,6 @@
       "uyduGecisi": "Uydu yangını tespit etti",
       "sirtaUlasma": "Yangın tepeye tırmandı",
       "hizliBuyume": "Yangın hızla büyüdü"
-    }
-  },
-  "dogrulama": {
-    "yukleniyor": "Bölge verisi yükleniyor…",
-    "yuklenemedi": "Veri yüklenemedi",
-    "birim": {
-      "sa": "sa",
-      "ha": "ha"
-    },
-    "harita": {
-      "kaynaklar": "Copernicus DEM · ESA WorldCover · Sentinel-2 · NASA FIRMS",
-      "yukleniyor": "Model ve uydu verileri yükleniyor…"
-    },
-    "imlec": {
-      "model": "Model varışı:",
-      "firms": "FIRMS ilk tespit:",
-      "gercek": "Gerçekte:",
-      "yandi": "yandı",
-      "yanmadi": "yanmadı"
-    },
-    "lejant": {
-      "yayilim": "Model tahmini (yanma zamanı)",
-      "yeni": "yeni tutuşan",
-      "eski": "2+ gün önce",
-      "karsilastirma": "Model ve gözlenen yanık alan",
-      "gercekSinir": "Gerçek yanmış alan (Sentinel-2)",
-      "firms": "FIRMS tespiti (yeni → eski)",
-      "tutusma": "Tutuşma noktası"
-    },
-    "karisiklik": {
-      "dogru": "Doğru tahmin",
-      "yanlisAlarm": "Yanlış alarm",
-      "kacirilan": "Kaçırılan"
-    },
-    "katmanlar": {
-      "baslik": "Katmanlar",
-      "renkKipi": "Renk kipi",
-      "kipler": {
-        "yayilim": "Yayılım",
-        "karsilastirma": "Karşılaştırma"
-      },
-      "model": "Model tahmini",
-      "gercek": "Gerçek yanmış alan sınırı",
-      "firms": "FIRMS uydu tespitleri",
-      "altlik": "Arazi ve bitki örtüsü",
-      "osm": "OpenStreetMap (yer adları)"
-    },
-    "simulasyon": {
-      "baslik": "Simülasyon",
-      "yok": "Henüz simülasyon çalıştırılmadı. Çalıştırınca model tahmini haritada belirir.",
-      "ozet": "{{calisma}} çalıştırma · {{sure}} sn · {{zaman}}",
-      "calistir": "Simülasyonu çalıştır",
-      "calisiyor": "Çalışıyor…",
-      "bekleyin": "Model 20 kez farklı rastgelelikle çalışıyor; birkaç saniye sürer."
-    },
-    "anlik": {
-      "baslik": "Seçili an",
-      "model": "Model tahmini",
-      "gozlenen": "Gözlenen yanık",
-      "aciklama": "Gözlenen yanık: gerçek yanmış alanın FIRMS uydularının o ana kadar gördüğü kısmı. Son anda gerçek alanın tamamı sayılır. Alanlar yaklaşıktır.",
-      "sorensen": "Örtüşme (Sørensen)"
-    },
-    "sonuc": {
-      "baslik": "Doğrulama sonucu",
-      "calisma": "{{calisma}} çalıştırmanın topluluğu",
-      "esitAlan": "Şekil (alan eşitlenince)",
-      "esitAlanAciklama": "Model gerçek alan kadar yaktığı anda ({{saat}}. saat) gerçek alanla karşılaştırılır; zaman hızından bağımsızdır.",
-      "esitAlanDurdu": "Model gerçek alana ulaşmadan durdu ({{ha}} ha); yaktığı tüm alan gerçek alanla karşılaştırılır.",
-      "bitis": "Bitişte ({{zaman}})",
-      "isabet": "İsabet",
-      "duyarlilik": "Yakalama",
-      "karisiklik": "Karışıklık matrisi",
-      "alanlar": "Model {{model}} yaktı; gerçekte yanan {{gercek}}.",
-      "zaman": "Zaman",
-      "zamanAciklama": "Model bir hücreye FIRMS'ten ortanca {{fark}} saat sonra varıyor. ±12 saat içinde uyuşan alan: {{oran}}.",
-      "sorensen": "Sørensen",
-      "sorensenAciklama": "Ana ölçüt: yakalama ile isabetin dengesi. Her yeri yakmak puanı düşürür."
-    },
-    "baseline": {
-      "baslik": "Basit yöntemlerle kıyas",
-      "olcut": "bitişte Sørensen",
-      "adlar": {
-        "model_v1": "Model v1",
-        "ruzgarsiz": "Rüzgârsız model",
-        "daire": "Aynı alanlı daire"
-      },
-      "gecemiyor": "En iyi model, {{modelAd}}, {{model}} ile bu yangında {{ad}} yönteminin ({{en}}) gerisinde.",
-      "kaynak": "Kaynak: orman-dogrula raporu ({{calisma}} çalıştırma)."
-    },
-    "grafik": {
-      "baslik": "Yanan alan",
-      "model": "Model",
-      "firms": "FIRMS'in gördüğü gerçek alan",
-      "gercek": "Gerçek toplam {{ha}} ha",
-      "bin": "{{deger}} bin",
-      "bos": "Simülasyon çalıştırılınca model eğrisi burada görünür."
-    }
-  },
-  "senaryo": {
-    "baslik": "Senaryo",
-    "konum": "Haritadan seçilen yer",
-    "harita": {
-      "kaynaklar": "Copernicus DEM · ESA WorldCover · Open-Meteo",
-      "yukleniyor": "Harita yükleniyor…",
-      "hesaplaniyor": "Arazi ve hava tahmini indiriliyor, model çalışıyor…",
-      "ipucu": "Yangının çıkacağı yere tıklayın"
-    },
-    "bantlar": {
-      "yuksek": "Neredeyse kesin yanar (≥ %90)",
-      "orta": "Olası (≥ %50)",
-      "dusuk": "Düşük olasılık (≥ %10)",
-      "yuksekKisa": "≥ %90",
-      "ortaKisa": "≥ %50",
-      "dusukKisa": "≥ %10"
-    },
-    "lejant": {
-      "baslik": "Yanma olasılığı"
-    },
-    "yer": {
-      "baslik": "Tutuşma yeri",
-      "ipucu": "Haritada yangının çıkacağı yere tıklayın. Sistem o bölgenin arazisini, bitki örtüsünü ve önümüzdeki 48 saatin hava tahminini kendisi indirir; yangının nasıl yayılabileceğini hesaplar. Başka bir yere tıklayınca yeniden hesaplanır.",
-      "tutusma": "Tutuşma: {{zaman}} · {{yakit}}",
-      "calisiyor": "Hesaplanıyor. Yeni bir yer için ~20–30 sn sürer.",
-      "sure": "Veri {{veri}} sn · model {{model}} sn (20 çalıştırma)",
-      "altlik": "Bitki örtüsü haritasını göster"
-    },
-    "yakitlar": {
-      "0": "yanmaz alan",
-      "1": "orman",
-      "2": "maki / çalılık",
-      "3": "ot",
-      "4": "tarım alanı"
-    },
-    "hatalar": {
-      "yanmaz": "Bu noktanın çevresinde yanabilecek bitki yok (deniz, göl, şehir ya da kaya). Ormanlık ya da çalılık bir yere tıklayın.",
-      "veri": "Arazi ya da hava verisi indirilemedi. İnternet bağlantısını kontrol edip tekrar deneyin.",
-      "mesgul": "Bir hesap zaten sürüyor; bitmesini bekleyin.",
-      "diger": "Hesap yapılamadı. Arka uç çalışıyor mu?"
-    },
-    "alan": {
-      "baslik": "Tahmini yanan alan",
-      "menzil": "{{saat}}. saatte tahmini menzil: {{alt}} (neredeyse kesin) ile {{ust}} (düşük olasılık) arası.",
-      "kenar": "Olası alan {{saat}}. saatte hesap alanının (40 × 40 km) kenarına dayandı; gerçek yayılım daha geniş olabilir."
-    },
-    "hava": {
-      "baslik": "Hava (tahmin)",
-      "kaynak": "Open-Meteo, tutuşma noktası",
-      "ruzgar": "Rüzgâr",
-      "nem": "Bağıl nem",
-      "sicaklik": "Sıcaklık"
-    },
-    "grafik": {
-      "baslik": "Zamana göre yanan alan",
-      "bos": "Haritadan bir yer seçin"
-    },
-    "guven": {
-      "baslik": "Bu tahmin ne kadar güvenilir?",
-      "olcum": "Geçmiş iki yangında aynı ayarlarla sınandı (Manavgat 2021, Marmaris 2022; hava tahmini kusursuz varsayılarak). İlk 12 saatte gerçekte yanan alanın %54–82'si “olası” bandın içinde kaldı; bandın %72–77'si gerçekten yandı. Aynı büyüklükte bir daire %48–60'ta kalıyor.",
-      "sondurme": "Söndürmeyi kaba bir kuralla taklit eder: yangın hızlı büyürken ekipler yetişemez, yavaşlayınca durdurur. Ekiplerin sayısını ve yerini bilmez. 24 saatten sonra sapma büyür: Manavgat'ta 24. saatte alanın büyüklüğü doğruydu ama yeri kaydı, gerçek alanın ancak üçte biri tuttu; Marmaris'te 48. saatte gerçeğin yaklaşık 1,5 katına çıktı. İlk 12 saate güvenin, sonrasını kaba bir tahmin olarak okuyun.",
-      "yon": "Yön tahmini kabadır; rüzgâr verisi ~25 km çözünürlüklü tahminden gelir. Tek bir çizgi yerine olasılık bantları bu yüzden gösterilir.",
-      "hava": "Hava tahmin edildiği gibi gelmezse sonuç değişir.",
-      "bantlar": "Bantlar modelin kendi rastlantısallığını ve hava tahmininin üyeler arasındaki yayılımını birlikte gösterir. Topluluk havası kullanılamazsa yalnızca modelin rastlantısallığı kalır; bantlar daha dar olur."
     }
   },
   "olay": {

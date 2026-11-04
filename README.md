@@ -10,7 +10,7 @@ Proje dokümantasyonu (plan, kararlar, referanslar) `docs/` klasöründe yalnız
 | Klasör | İçerik |
 |---|---|
 | `backend/` | Python: veri hazırlama, simülasyon, doğrulama, FastAPI |
-| `frontend/` | React + TypeScript + Vite; analiz ekranı, 3B sahne (React Three Fiber), 2D harita (MapLibre) |
+| `frontend/` | React + TypeScript + Vite; analiz ekranı, 3B sahne (React Three Fiber) |
 | `data/` | İndirilen ham veri (`ham/`) ve ortak ızgaraya oturtulmuş katmanlar (`islenmis/`); git'e girmez |
 | `notebooks/` | Keşif ve deney defterleri |
 | `docs/` | Dokümantasyon ve referans görseller (yalnızca yerelde, git'e girmez) |
@@ -31,10 +31,7 @@ npm --prefix frontend install && npm --prefix frontend run dev
 
 Ardından http://localhost:5173 adresini açın. Ön yüz `/api` isteklerini arka uca (127.0.0.1:8000) yönlendirir; üst bardaki küçük nokta arka uç bağlantısını gösterir.
 
-Üst bardaki iki sekme:
-
-- **Doğrulama** (2B, gerçek veri): MapLibre haritasında model tahmini, gerçek yanmış alan sınırı ve FIRMS tespitleri; zaman kaydırıcısı, "Simülasyonu çalıştır" düğmesi ve ölçüt paneli. Önce bölge paketi gerekir (aşağıda "Veri"). Doğrudan açmak için: http://localhost:5173/#dogrulama
-- **Olay** (3B): FireTrace'ten esinlenen sahne. Buradaki veriler şimdilik **örnek veridir** (`frontend/src/veri/ornekSenaryo.ts`).
+Tek ekran vardır: **Olay** (3B, gerçek veri). Model tahmini, gerçek yanmış alan, FIRMS tespitleri, zaman paneli ve ölçütler burada görünür; sol raydaki seçiciyle Manavgat 2021 ile Marmaris 2022 arasında geçilir. Önce bölge paketi gerekir (aşağıda "Veri").
 
 ## Veri
 
@@ -89,16 +86,15 @@ uv --directory backend run orman-duyarlilik
 
 ## Web API
 
-Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/<ad>/simulasyon` model v1'i 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/<ad>/web/` altına yazar. Doğrulama ekranında üst bardaki olay adından Manavgat 2021 ile Marmaris 2022 arasında geçilir. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
+Arka uç ön yüze şunları sunar (`backend/src/orman/api.py`): yangın listesi, bölge bilgisi, harita altlığı (PNG), gerçek yanmış alan ve FIRMS (GeoJSON), Web Mercator'a yansıtılmış zaman rasterları (uint16 dakika) ve simülasyon. `POST /api/yanginlar/<ad>/simulasyon` model v1'i 20 tohumla çalıştırır (~5 sn) ve sonucu `data/islenmis/<ad>/web/` altına yazar. Olay ekranı sonuç yoksa simülasyonu kendiliğinden başlatır. Tarayıcı sonucu bir kez indirip kendisi oynatır. Etkileşimli belgeler: http://127.0.0.1:8000/docs
 
 ## Senaryo modu: "şimdi burada yangın çıksa?"
 
-Ön yüzde **Senaryo** sekmesi (`http://localhost:5173/#senaryo`): haritada herhangi bir yere
-tıklayın. Arka uç noktanın çevresinde 40 × 40 km'lik bir ızgara kurar; Copernicus DEM (GLO-90,
+Yalnızca arka uçta çalışır, ön yüzde ekranı yoktur. `POST /api/senaryo?enlem=..&boylam=..` isteğiyle
+bir nokta verin. Arka uç noktanın çevresinde 40 × 40 km'lik bir ızgara kurar; Copernicus DEM (GLO-90,
 uzaktan pencereyle), ESA WorldCover ve Open-Meteo **tahminini** indirir, model v1'i 20 tohumla
-48 saat çalıştırır (`POST /api/senaryo?enlem=..&boylam=..`; yeni bir yer için ~10–25 sn, yakın
-bir noktaya tekrar ~1 sn). Sonuç: yanma olasılığının %10 / %50 / %90'a ulaştığı anlar;
-tarayıcı bunları zaman kaydırıcısıyla oynatır. Çıktılar `data/islenmis/senaryolar/<kimlik>/`.
+48 saat çalıştırır (yeni bir yer için ~10–25 sn, yakın bir noktaya tekrar ~1 sn). Sonuç: yanma
+olasılığının %10 / %50 / %90'a ulaştığı anlar. Çıktılar `data/islenmis/senaryolar/<kimlik>/`.
 
 Aynı ayarların geçmiş yangınlarda ne kadar isabetli olduğu (~1 dk):
 

@@ -61,30 +61,3 @@ button:disabled {
   scrollbar-width: thin;
   scrollbar-color: var(--color-yuzey-acik) transparent;
 }
-
-/* MapLibre'nin hazır kontrolleri: siyah temaya uydur */
-.maplibregl-ctrl-group,
-.maplibregl-ctrl-attrib,
-.maplibregl-ctrl-scale {
-  background: rgb(10 10 10 / 0.85) !important;
-  color: var(--color-soluk);
-  box-shadow: 0 0 0 1px var(--color-cizgi) !important;
-}
-.maplibregl-ctrl-group button + button {
-  border-top-color: var(--color-cizgi) !important;
-}
-.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-  filter: invert(1);
-}
-.maplibregl-ctrl-attrib,
-.maplibregl-ctrl-attrib-inner,
-.maplibregl-ctrl-attrib a,
-.maplibregl-ctrl-scale {
-  color: var(--color-soluk) !important;
-}
-.maplibregl-ctrl-attrib-button {
-  filter: invert(1);
-}
-.maplibregl-ctrl-scale {
-  border-color: var(--color-soluk) !important;
-}

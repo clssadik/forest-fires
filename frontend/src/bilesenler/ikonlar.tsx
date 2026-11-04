@@ -94,44 +94,10 @@ export function IkonAyar(p: IkonOzellik) {
   )
 }
 
-export function IkonAsagi(p: IkonOzellik) {
-  return (
-    <Ikon {...p}>
-      <path d="m6 9 6 6 6-6" />
-    </Ikon>
-  )
-}
-
 export function IkonCizgi(p: IkonOzellik) {
   return (
     <Ikon {...p}>
       <path d="M5 12h14" />
-    </Ikon>
-  )
-}
-
-export function IkonOynat(p: IkonOzellik) {
-  return (
-    <Ikon {...p} dolgu>
-      <path d="M7 4.5v15l12.5-7.5z" />
-    </Ikon>
-  )
-}
-
-export function IkonDuraklat(p: IkonOzellik) {
-  return (
-    <Ikon {...p} dolgu>
-      <rect x="6" y="4.5" width="4" height="15" rx="1" />
-      <rect x="14" y="4.5" width="4" height="15" rx="1" />
-    </Ikon>
-  )
-}
-
-export function IkonIleri(p: IkonOzellik) {
-  return (
-    <Ikon {...p} dolgu>
-      <path d="M5 4.5v15L16 12z" />
-      <rect x="16.5" y="4.5" width="3" height="15" rx="1" />
     </Ikon>
   )
 }
