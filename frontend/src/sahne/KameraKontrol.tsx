@@ -1,6 +1,6 @@
 import { MapControls, OrthographicCamera, PerspectiveCamera } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { OrthographicCamera as OrtoKamera, PerspectiveCamera as PerspektifKamera, Spherical, Vector3 } from 'three'
 import { useHarita } from '../durum/harita'
 import type { OlayVerisi } from '../olay/veri'
@@ -80,6 +80,11 @@ export function KameraKontrol({ veri }: { veri: OlayVerisi }) {
   const ucus = useRef<Ucus | null>(null)
   const kayma = useRef(new Vector3())
   const donus = useRef<Donus | null>(null)
+  // Uçuş o anki kameranın konum ve zoom'uyla kurulur; 2B/3B geçişinde yeni kamerada sürmesin.
+  useEffect(() => {
+    ucus.current = null
+    donus.current = null
+  }, [kip])
   const kure = useRef(new Spherical())
 
   useFrame(({ camera, size, controls }) => {
