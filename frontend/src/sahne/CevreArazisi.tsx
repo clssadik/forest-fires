@@ -121,7 +121,7 @@ function orguKur(veri: OlayVerisi, cevre: Cevre, orgu: CevreOrgusu, etekAlti: nu
   g.setAttribute('color', new BufferAttribute(renk, 3))
   const sabit = (deger: number) => new BufferAttribute(new Float32Array(n).fill(deger), 1)
   for (const ad of ARAZI_NITELIKLERI) {
-    if (ad === 'aToa') g.setAttribute(ad, sabit(YANMADI_SAAT))
+    if (ad === 'aToa' || ad === 'aFirms') g.setAttribute(ad, sabit(YANMADI_SAAT))
     else g.setAttribute(ad, sabit(0))
   }
   g.setAttribute('aOrman', new BufferAttribute(ormanDizi, 1))

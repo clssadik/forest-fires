@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useOlay } from '../../durum/olay'
 import { Sahne } from '../../sahne/Sahne'
 import { HaritaKontrolleri } from './HaritaKontrolleri'
+import { ModLejanti } from './ModLejanti'
 import { Pusula } from './Pusula'
 import { RadarBilgisi } from './RadarBilgisi'
 import { Saat } from './Saat'
@@ -27,6 +28,7 @@ export function Harita() {
           <Pusula />
           <Saat veri={veri} />
           <RadarBilgisi />
+          <ModLejanti />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />
         </>
       ) : (

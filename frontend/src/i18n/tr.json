@@ -143,12 +143,18 @@
       "duman": "Duman"
     },
     "lejant": {
-      "yanik": "Model",
-      "gercekSinir": "Gerçek sınır",
-      "firms": "FIRMS",
-      "dogru": "Doğru",
-      "fazla": "Fazla",
-      "kacirilan": "Kaçırılan"
+      "karsilastirma": {
+        "baslik": "Şu an · FIRMS",
+        "ortak": "İkisi de",
+        "model": "Yalnız model",
+        "gozlem": "Yalnız uydu"
+      },
+      "hata": {
+        "baslik": "Bitiş · Sentinel-2",
+        "ortak": "Doğru",
+        "model": "Fazla",
+        "gozlem": "Kaçırılan"
+      }
     }
   },
   "hava": {

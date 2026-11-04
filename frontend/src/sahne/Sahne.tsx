@@ -11,7 +11,6 @@ import { Arazi } from './Arazi'
 import { Bulutlar } from './Bulutlar'
 import { Cevre } from './cevre'
 import { CevreArazisi } from './CevreArazisi'
-import { FirmsNoktalari } from './FirmsNoktalari'
 import { GecisNoktalari } from './GecisNoktalari'
 import { Gokyuzu } from './Gokyuzu'
 import { KameraKontrol } from './KameraKontrol'
@@ -43,10 +42,9 @@ function UniformGuncelleyici({ veri }: { veri: OlayVerisi }) {
     const yumusat = (u: { value: number }, hedef: number) => {
       u.value = MathUtils.damp(u.value, hedef, 10, dt)
     }
-    yumusat(U.uGercekSinir, g.gercekSinir)
     yumusat(U.uYayilim, g.yayilim)
     yumusat(U.uOlasilik, g.olasilik)
-    yumusat(U.uFirms, g.firms)
+    yumusat(U.uKiyas, g.kiyas)
     yumusat(U.uIzokron, g.izokron)
     yumusat(U.uHata, g.hata)
     // 2B'de kabartma düzleşir.
@@ -84,7 +82,6 @@ export function Sahne({ veri }: { veri: OlayVerisi }) {
       <YanginEfektleri veri={veri} gorunur={kip === '3B' && yayilim} duman={gucler.duman > 0} />
       {kip === '3B' && <Bulutlar />}
       <RuzgarCizgileri veri={veri} opaklik={gucler.ruzgar} />
-      <FirmsNoktalari veri={veri} />
       {yayilim && <YayilimIsaretleri veri={veri} kabartma={etiketKabartma} />}
       <GecisNoktalari veri={veri} />
       <SeciliOlayIsareti veri={veri} kabartma={etiketKabartma} />

@@ -6,9 +6,8 @@ import { DOKU_GURULTU_GLSL, gurultuDokusu } from './gurultuDokusu'
  * bir model varış zamanı (aToa, tutuşmadan sonra saat) taşır; global zaman `uT`
  * değiştikçe yalnızca uniform güncellenir, geometri yeniden kurulmaz.
  *
- * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR; görünüm için
- * yumuşatılmışı aGercekYumusak), modelin yanma
- * olasılığını (aOlasilik) ve köşenin modelde hiç yanıp yanmadığını
+ * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR), modelin yanma
+ * olasılığını (aOlasilik), FIRMS varışını (aFirms) ve köşenin modelde hiç yanıp yanmadığını
  * (aYandi) taşır.
  */
 
@@ -22,11 +21,10 @@ export const YANMADI_SAAT = 10_000
  */
 export const yanginUniformlari = {
   uT: { value: -1 },
-  uGercekSinir: { value: 0 },
   uYayilim: { value: 1 },
   uOlasilik: { value: 0.5 },
   uKabartma: { value: 1 },
-  uFirms: { value: 0 },
+  uKiyas: { value: 0 },
   uIzokron: { value: 0 },
   uHata: { value: 0 },
   /** Model alanının gerçek alana eşitlendiği an (saat); hata katmanı bu anki modeli karşılaştırır. */
@@ -56,7 +54,7 @@ float yGurultu(vec2 p) { return dGurultu(p); }
 
 const UNIFORM_GLSL = /* glsl */ `
 uniform float uT;
-uniform float uGercekSinir;
+uniform float uKiyas;
 uniform float uYayilim;
 uniform float uOlasilik;
 uniform float uKabartma;
@@ -74,7 +72,7 @@ uniform float uDuman;
 uniform float uGece;
 `
 
-const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'GercekYumusak', 'Olasilik', 'Firms', 'Orman', 'Su']
+const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'Olasilik', 'Firms', 'Orman', 'Su']
 
 /** Arazi örgüsünün taşıması gereken köşe nitelikleri (çevre arazisi bunları sabit değerle doldurur). */
 export const ARAZI_NITELIKLERI = DEGISKENLER.map((d) => `a${d}`)
@@ -167,19 +165,30 @@ float w = fwidth(f);
 float iso = 1.0 - smoothstep(0.0, w * 1.3, abs(fract(f - 0.5) - 0.5));
 renk = mix(renk, vec3(0.95, 0.55, 0.15), iso * 0.6 * yandi * uYayilim * uIzokron * step(0.5, vToa));
 
-// Gerçek alanın sınırı (beyaz kesikli); yumuşatılmış orandan, küçük lekelerin çevresine çizilmesin
-float gs = fwidth(vGercekYumusak);
-float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercekYumusak - 0.5));
-float kesik = step(0.5, fract((yp.x + yp.y) * 2.2));
-renk = mix(renk, vec3(0.97, 0.96, 0.92), sinir * kesik * 0.9 * uGercekSinir);
+// Üç renkli düz haritalar; ikisinde de aynı anlam: ortak, yalnız model, yalnız gözlem.
+vec3 UCLU_ORTAK = vec3(0.83, 0.28, 0.16);
+vec3 UCLU_MODEL = vec3(0.94, 0.71, 0.24);
+vec3 UCLU_GOZLEM = vec3(0.27, 0.36, 0.5);
+
+// Kıyas: t anında modelin yaktığı ile uydunun (FIRMS) gördüğü
+float modelSimdi = modelde * step(vToa, uT);
+float uyduSimdi = step(vFirms, uT);
+vec3 kiyasRengi = modelSimdi * uyduSimdi > 0.5 ? UCLU_ORTAK : modelSimdi > 0.5 ? UCLU_MODEL : UCLU_GOZLEM;
+float kiyasOrtu = uKiyas * max(modelSimdi, uyduSimdi);
 
 // Model hatası (eşit alan, zamandan bağımsız): doğru, yanlış alarm, kaçırılan
 float modelIc = modelde * step(vToa, uHataEsik);
 float gercekVar = step(0.5, vGercek);
-vec3 hataRengi = modelIc * gercekVar > 0.5 ? vec3(0.83, 0.28, 0.16)
-  : modelIc > 0.5 ? vec3(0.94, 0.71, 0.24)
-  : vec3(0.27, 0.36, 0.5);
-renk = mix(renk, hataRengi, uHata * max(modelIc, gercekVar));
+vec3 hataRengi = modelIc * gercekVar > 0.5 ? UCLU_ORTAK : modelIc > 0.5 ? UCLU_MODEL : UCLU_GOZLEM;
+float hataOrtu = uHata * max(modelIc, gercekVar);
+
+// Zemin griye çekilir: kumlu arazi "yalnız model" sarısıyla karışmasın
+float parlaklik = dot(renk, vec3(0.3, 0.59, 0.11));
+renk = mix(renk, vec3(parlaklik) * 0.6, max(uKiyas, uHata));
+renk = mix(renk, kiyasRengi, kiyasOrtu);
+renk = mix(renk, hataRengi, hataOrtu);
+float duzOrtu = max(kiyasOrtu, hataOrtu);
+vec3 duzRenk = uHata > uKiyas ? hataRengi : kiyasRengi;
 
 diffuseColor.rgb = renk;`,
     )
@@ -210,6 +219,8 @@ roughnessFactor = mix(roughnessFactor, 0.12, suM);`,
 // Suda gök yansıması (Fresnel)
 float fres = 0.03 + 0.97 * pow(1.0 - max(dot(normal, normalize(vViewPosition)), 0.0), 5.0);
 totalEmissiveRadiance += mix(uUfuk, uGok, 0.35) * fres * suM * 0.85;
+// Hata ve kıyas renkleri gece de okunsun
+totalEmissiveRadiance += duzRenk * duzOrtu * uGece * 0.45;
 float parca = smoothstep(0.25, 0.65, yGurultu(yp * 2.2 + 3.7));
 float cephe = yandi * exp(-max(yas, 0.0) / 0.5) * (0.35 + 0.65 * parca);
 float kor = yandi * smoothstep(8.0, 0.0, yas) * smoothstep(0.7, 0.85, n3) * step(0.5, n2) * (0.4 + 0.6 * parca);

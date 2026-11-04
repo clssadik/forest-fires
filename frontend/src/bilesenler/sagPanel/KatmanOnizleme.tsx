@@ -25,29 +25,27 @@ const benekli =
     }
   }
 
-const kesikSinir = (c: CanvasRenderingContext2D) => {
-  c.strokeStyle = 'rgba(247,245,235,0.95)'
-  c.lineWidth = 1.6
-  c.setLineDash([4, 3])
-  c.beginPath()
-  c.ellipse(BOYUT / 2, BOYUT / 2, 19, 15, -0.4, 0, Math.PI * 2)
-  c.stroke()
-  c.setLineDash([])
-}
-
 export type OnizlemeKimligi = GorunumModu | HaritaAnahtari
 
 const cizimler: Record<OnizlemeKimligi, Ciz> = {
   yayilim: benekli('#e67a2a', ['#f19a3f', '#d65f1f', '#f6b45a', '#c94f18'], 520, 2),
-  karsilastirma: (c, r) => {
-    benekli('#2a2420', ['#3a322c', '#1f1a17', '#4a3f36'], 420, 2)(c, r)
-    kesikSinir(c)
-    for (let i = 0; i < 16; i++) {
-      c.fillStyle = r() < 0.5 ? '#ff5a28' : '#b8281a'
+  karsilastirma: (c) => {
+    c.fillStyle = '#4a5238'
+    c.fillRect(0, 0, BOYUT, BOYUT)
+    const daire = (x: number, renk: string) => {
+      c.fillStyle = renk
       c.beginPath()
-      c.arc(r() * BOYUT, r() * BOYUT, 1.8, 0, Math.PI * 2)
+      c.arc(x, BOYUT / 2, 17, 0, Math.PI * 2)
       c.fill()
     }
+    daire(19, '#f0b43c')
+    daire(33, '#455c80')
+    c.save()
+    c.beginPath()
+    c.arc(19, BOYUT / 2, 17, 0, Math.PI * 2)
+    c.clip()
+    daire(33, '#d4472a')
+    c.restore()
   },
   hata: (c) => {
     const yarim = BOYUT / 2

@@ -31,28 +31,25 @@ export interface KatmanGucleri {
   yayilim: number
   olasilik: number
   izokron: number
-  gercekSinir: number
-  firms: number
+  kiyas: number
   hata: number
   ruzgar: number
   duman: number
   agaclar: boolean
 }
 
-/** Hata modu modelin çizimlerini kapattığı için onlara bağlı anahtarlar orada etkisizdir. */
-export const anahtarEtkin = (mod: GorunumModu, anahtar: HaritaAnahtari) => mod !== 'hata' || anahtar === 'ruzgar'
+/** Kıyas ve hata modları modelin çizimlerini kapattığı için onlara bağlı anahtarlar orada etkisizdir. */
+export const anahtarEtkin = (mod: GorunumModu, anahtar: HaritaAnahtari) => mod === 'yayilim' || anahtar === 'ruzgar'
 
 export function katmanGucleri(mod: GorunumModu, anahtarlar: Record<HaritaAnahtari, boolean>): KatmanGucleri {
-  const model = mod !== 'hata'
-  const kiyas = mod === 'karsilastirma'
+  const model = mod === 'yayilim'
   const acik = (a: HaritaAnahtari) => anahtarlar[a] && anahtarEtkin(mod, a)
   return {
     yayilim: model ? 1 : 0,
     olasilik: model ? 0.5 : 0,
     izokron: acik('izokron') ? 1 : 0,
-    gercekSinir: kiyas ? 1 : 0,
-    firms: kiyas ? 1 : 0,
-    hata: model ? 0 : 0.85,
+    kiyas: mod === 'karsilastirma' ? 0.85 : 0,
+    hata: mod === 'hata' ? 0.85 : 0,
     ruzgar: acik('ruzgar') ? 0.7 : 0,
     duman: acik('duman') ? 1 : 0,
     agaclar: model,
