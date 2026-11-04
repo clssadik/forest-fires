@@ -22,17 +22,6 @@ export function Bolum({ baslik, alt, sag, children }: { baslik?: ReactNode; alt?
   )
 }
 
-/** Küçük sayı kartı: etiket, değer, isteğe bağlı kısa açıklama. */
-export function SayiKarti({ etiket, deger, alt }: { etiket: string; deger: ReactNode; alt?: string }) {
-  return (
-    <div className="rounded-[10px] bg-yuzey p-3">
-      <div className="text-[12px] leading-4 text-ikincil">{etiket}</div>
-      <div className="mt-1 text-[16px] leading-5 font-semibold tabular-nums">{deger}</div>
-      {alt && <div className="mt-1 text-[11.5px] leading-[15px] text-ikincil">{alt}</div>}
-    </div>
-  )
-}
-
 /** Açma/kapama anahtarının görünüşü; tıklamayı onu saran satır (`role="switch"`) alır. */
 export function AnahtarGorseli({ acik }: { acik: boolean }) {
   return (
