@@ -81,12 +81,17 @@ function ornekVeri() {
     olasilik: new Uint8Array([255, 51, 0, 0, 0, 0]),
     modelToa: new Uint16Array([0, 60, YOK, YOK, YOK, YOK]),
     firmsToa: new Uint16Array([90, YOK, YOK, YOK, YOK, YOK]),
+    siddet: new Uint8Array([200, 0, 0, 0, 0, 0]),
   }
   return new OlayVerisi(bilgi, rasterlar)
 }
 
 describe('OlayVerisi', () => {
   const v = ornekVeri()
+
+  it('en geç varış yanmayan hücreleri saymaz', () => {
+    expect(v.enGecVarisSaat).toBe(1)
+  })
 
   it('hücre merkezleri ızgaranın ortasına göre km', () => {
     expect(v.hucreKonumu(0, 0)).toEqual({ x: -1, z: -0.5 })

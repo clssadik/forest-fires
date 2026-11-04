@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import {
   anahtarEtkin,
-  GORUNUM_MODLARI,
   HARITA_ANAHTARLARI,
+  MOD_GRUPLARI,
   useKatmanlar,
   type GorunumModu,
   type HaritaAnahtari,
@@ -10,19 +10,23 @@ import {
 import { KatmanOnizleme } from './KatmanOnizleme'
 import { AnahtarGorseli, Bolum } from './ortak'
 
-/** Katmanlar sekmesi: birbirini dışlayan görünüm modları ve üstlerine binen anahtarlar. */
+/** Katmanlar sekmesi: sorularına göre gruplanmış görünüm modları ve üstlerine binen anahtarlar. */
 export function KatmanListesi() {
   const { t } = useTranslation()
   const seciliMod = useKatmanlar((d) => d.mod)
   return (
     <>
-      <Bolum baslik={t('katmanlar.gorunum')}>
-        <ul role="radiogroup" aria-label={t('katmanlar.gorunum')} className="-mx-2 space-y-0.5">
-          {GORUNUM_MODLARI.map((mod) => (
-            <ModSatiri key={mod} mod={mod} secili={mod === seciliMod} />
-          ))}
-        </ul>
-      </Bolum>
+      <div role="radiogroup" aria-label={t('katmanlar.gorunum')}>
+        {MOD_GRUPLARI.map((g) => (
+          <Bolum key={g.ad} baslik={t(`katmanlar.gruplar.${g.ad}`)}>
+            <ul className="-mx-2 space-y-0.5">
+              {g.modlar.map((mod) => (
+                <ModSatiri key={mod} mod={mod} secili={mod === seciliMod} />
+              ))}
+            </ul>
+          </Bolum>
+        ))}
+      </div>
       <Bolum baslik={t('katmanlar.harita')}>
         <ul className="-mx-2 space-y-0.5">
           {HARITA_ANAHTARLARI.map((a) => (

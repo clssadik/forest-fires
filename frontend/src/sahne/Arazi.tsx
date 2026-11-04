@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { BufferAttribute, BufferGeometry, Color } from 'three'
 import { useOlay } from '../durum/olay'
 import { YOK } from '../olay/api'
+import { ORTU_RENKLERI } from './tematikRenkler'
 import { ORMAN_YOGUNLUGU, ORTU_SIRASI, sahneY, type OlayVerisi, type OrtuSinifi } from '../olay/veri'
 import { araziGolgelendirici, YANMADI_SAAT } from './yanginMalzemesi'
 
@@ -69,6 +70,9 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     const gercek = new Float32Array(n)
     const olasilik = new Float32Array(n)
     const firms = new Float32Array(n)
+    const firmsVar = new Float32Array(n)
+    const siddet = new Float32Array(n)
+    const ortuRengi = new Float32Array(n * 3)
     const orman = new Float32Array(n)
     const su = new Float32Array(n)
     const c = new Color()
@@ -89,6 +93,10 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
         gercek[k] = r.gercek[k] / 255
         olasilik[k] = r.olasilik[k] / 255
         firms[k] = r.firmsToa[k] === YOK ? YANMADI_SAAT : r.firmsToa[k] / 60
+        firmsVar[k] = r.firmsToa[k] === YOK ? 0 : 1
+        siddet[k] = r.siddet[k] / 255
+        const tema = ORTU_RENKLERI[ortu]
+        if (tema) c.set(tema).toArray(ortuRengi, k * 3)
         orman[k] = ORMAN_YOGUNLUGU[ortu]
       }
     }
@@ -113,6 +121,9 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     g.setAttribute('aGercek', new BufferAttribute(gercek, 1))
     g.setAttribute('aOlasilik', new BufferAttribute(olasilik, 1))
     g.setAttribute('aFirms', new BufferAttribute(firms, 1))
+    g.setAttribute('aFirmsVar', new BufferAttribute(firmsVar, 1))
+    g.setAttribute('aSiddet', new BufferAttribute(siddet, 1))
+    g.setAttribute('aOrtuRengi', new BufferAttribute(ortuRengi, 3))
     g.setAttribute('aOrman', new BufferAttribute(orman, 1))
     g.setAttribute('aSu', new BufferAttribute(su, 1))
     g.computeVertexNormals()

@@ -80,6 +80,12 @@ def kaba_zaman(toa: np.ndarray, k: int) -> np.ndarray:
     return np.where(np.isfinite(ortanca), ortanca, np.nan).astype(np.float32)
 
 
+def kaba_siddet(dnbr: np.ndarray, gercek: np.ndarray, k: int) -> np.ndarray:
+    """Gerçek yanık içindeki ortalama dNBR, 0..1'e kırpılmış; dışarısı 0."""
+    yanik = np.where(gercek > 0, np.clip(dnbr, 0.0, 1.0), np.nan)
+    return np.nan_to_num(kaba_ortalama(yanik, k), nan=0.0)
+
+
 def kaba_mod(sinif: np.ndarray, k: int, sinif_sayisi: int) -> np.ndarray:
     """Blokta en sık görülen sınıf (eşitlikte küçük kod)."""
     b = _bloklar(sinif, k)
@@ -304,6 +310,7 @@ def olay_paketi(ortam, toa: np.ndarray, olasilik: np.ndarray, ozet: dict) -> Ola
         "olasilik": np.nan_to_num(kaba_ortalama(olasilik, k), nan=0.0),
         "gercek": kaba_ortalama(referans.gercek.astype(np.float32), k),
         "firms_toa": kaba_zaman(referans.firms_toa, k),
+        "siddet": kaba_siddet(paket.dnbr, referans.gercek, k),
     }
     satir_n, sutun_n = bantlar["yukseklik"].shape
     genislik_km, yukseklik_km = sutun_n * kaba_m / 1000, satir_n * kaba_m / 1000

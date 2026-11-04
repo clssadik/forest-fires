@@ -129,6 +129,8 @@ export interface OlayRasterlari {
   /** Tutuşmadan sonra dakika; YOK = yanmadı. */
   modelToa: Uint16Array
   firmsToa: Uint16Array
+  /** Gerçek yanıkta ortalama dNBR, 0..1 → 0..255; yanık dışı 0. */
+  siddet: Uint8Array
 }
 
 /** uint16 zaman rasterlarında "yanmadı / veri yok". */
@@ -149,8 +151,8 @@ export const olayBilgisi = async (ad: string): Promise<OlayBilgisi> => (await is
 const bant = async (ad: string, bantAdi: string) => (await iste(`${ad}/olay/${bantAdi}`)).arrayBuffer()
 
 export async function olayRasterlari(ad: string): Promise<OlayRasterlari> {
-  const [yukseklik, ortu, gercek, olasilik, modelToa, firmsToa] = await Promise.all(
-    ['yukseklik', 'ortu', 'gercek', 'olasilik', 'model_toa', 'firms_toa'].map((b) => bant(ad, b)),
+  const [yukseklik, ortu, gercek, olasilik, modelToa, firmsToa, siddet] = await Promise.all(
+    ['yukseklik', 'ortu', 'gercek', 'olasilik', 'model_toa', 'firms_toa', 'siddet'].map((b) => bant(ad, b)),
   )
   return {
     yukseklik: new Float32Array(yukseklik),
@@ -159,5 +161,6 @@ export async function olayRasterlari(ad: string): Promise<OlayRasterlari> {
     olasilik: new Uint8Array(olasilik),
     modelToa: new Uint16Array(modelToa),
     firmsToa: new Uint16Array(firmsToa),
+    siddet: new Uint8Array(siddet),
   }
 }

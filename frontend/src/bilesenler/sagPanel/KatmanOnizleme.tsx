@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { GorunumModu, HaritaAnahtari } from '../../durum/katmanlar'
 import { rastgeleUreteci } from '../../model/gurultu'
+import { HATA_RENKLERI, ORTU_RENKLERI, RAMPALAR } from '../../sahne/tematikRenkler'
 
 /**
  * Katman satırındaki küçük önizleme resmi: her mod ve anahtarın sahnedeki görünümünü
@@ -25,35 +26,37 @@ const benekli =
     }
   }
 
+const rampa =
+  (renkler: string[]): Ciz =>
+  (c) => {
+    const g = c.createLinearGradient(0, BOYUT, BOYUT, 0)
+    renkler.forEach((r, i) => g.addColorStop(i / (renkler.length - 1), r))
+    c.fillStyle = g
+    c.fillRect(0, 0, BOYUT, BOYUT)
+  }
+
 export type OnizlemeKimligi = GorunumModu | HaritaAnahtari
 
 const cizimler: Record<OnizlemeKimligi, Ciz> = {
   yayilim: benekli('#e67a2a', ['#f19a3f', '#d65f1f', '#f6b45a', '#c94f18'], 520, 2),
-  karsilastirma: (c) => {
-    c.fillStyle = '#4a5238'
-    c.fillRect(0, 0, BOYUT, BOYUT)
-    const daire = (x: number, renk: string) => {
+  varis: rampa(RAMPALAR.varis),
+  guven: rampa(RAMPALAR.guven),
+  zamanFarki: rampa(RAMPALAR.zamanFarki),
+  siddet: rampa(RAMPALAR.siddet),
+  ortu: (c) => {
+    const renkler = Object.values(ORTU_RENKLERI)
+    renkler.forEach((renk, i) => {
       c.fillStyle = renk
-      c.beginPath()
-      c.arc(x, BOYUT / 2, 17, 0, Math.PI * 2)
-      c.fill()
-    }
-    daire(19, '#f0b43c')
-    daire(33, '#455c80')
-    c.save()
-    c.beginPath()
-    c.arc(19, BOYUT / 2, 17, 0, Math.PI * 2)
-    c.clip()
-    daire(33, '#d4472a')
-    c.restore()
+      c.fillRect((i * BOYUT) / renkler.length, 0, BOYUT / renkler.length + 1, BOYUT)
+    })
   },
   hata: (c) => {
     const yarim = BOYUT / 2
-    c.fillStyle = '#d4472a'
+    c.fillStyle = HATA_RENKLERI.dogru
     c.fillRect(0, 0, BOYUT, BOYUT)
-    c.fillStyle = '#f0b43c'
+    c.fillStyle = HATA_RENKLERI.fazla
     c.fillRect(yarim, 0, yarim, yarim)
-    c.fillStyle = '#455c80'
+    c.fillStyle = HATA_RENKLERI.kacirilan
     c.fillRect(0, yarim, yarim, yarim)
   },
   izokron: (c) => {

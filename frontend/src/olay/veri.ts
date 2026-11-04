@@ -152,6 +152,13 @@ export class OlayVerisi {
     return (this.bitisMs - this.tutusmaMs) / SAAT
   }
 
+  /** Modelin en geç yaktığı hücrenin varışı (tutuşmadan sonra saat). */
+  get enGecVarisSaat() {
+    let enGec = 0
+    for (const toa of this.r.modelToa) if (toa !== YOK && toa > enGec) enGec = toa
+    return enGec / 60
+  }
+
   /** Hücre merkezinin sahne konumu. */
   hucreKonumu(i: number, j: number) {
     return { x: (j + 0.5) * this.hucreKm - this.genislikKm / 2, z: (i + 0.5) * this.hucreKm - this.yukseklikKm / 2 }

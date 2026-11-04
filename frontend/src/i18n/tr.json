@@ -132,10 +132,19 @@
   "katmanlar": {
     "gorunum": "Görünüm",
     "harita": "Harita",
+    "gruplar": {
+      "model": "Model",
+      "dogruluk": "Doğruluk",
+      "gercek": "Gerçek"
+    },
     "modlar": {
       "yayilim": "Yayılım",
-      "karsilastirma": "Karşılaştırma",
-      "hata": "Hata"
+      "varis": "Varış zamanı",
+      "guven": "Güven",
+      "hata": "Hata",
+      "zamanFarki": "Zaman farkı",
+      "siddet": "Yanma şiddeti",
+      "ortu": "Bitki örtüsü"
     },
     "anahtarlar": {
       "izokron": "Varış çizgileri",
@@ -143,17 +152,19 @@
       "duman": "Duman"
     },
     "lejant": {
-      "karsilastirma": {
-        "baslik": "Şu an · FIRMS",
-        "ortak": "İkisi de",
-        "model": "Yalnız model",
-        "gozlem": "Yalnız uydu"
-      },
-      "hata": {
-        "baslik": "Bitiş · Sentinel-2",
-        "ortak": "Doğru",
-        "model": "Fazla",
-        "gozlem": "Kaçırılan"
+      "saat": "+{{saat}} sa",
+      "varis": { "baslik": "Model varışı", "bas": "Tutuşma" },
+      "guven": { "baslik": "{{sayi}} çalıştırmada yanma" },
+      "hata": { "baslik": "Bitiş · Sentinel-2", "dogru": "Doğru", "fazla": "Fazla", "kacirilan": "Kaçırılan" },
+      "zamanFarki": { "baslik": "Model − FIRMS", "erken": "24 sa erken", "tam": "Zamanında", "gec": "24 sa geç" },
+      "siddet": { "baslik": "Sentinel-2 dNBR", "dusuk": "Düşük", "orta": "Orta", "yuksek": "Yüksek" },
+      "ortu": {
+        "baslik": "ESA WorldCover",
+        "orman": "Orman",
+        "maki": "Maki",
+        "ot": "Ot",
+        "tarim": "Tarım",
+        "yerlesim": "Yerleşim"
       }
     }
   },

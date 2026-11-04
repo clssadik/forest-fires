@@ -33,6 +33,19 @@ def test_kaba_zaman_blogun_yarisi_yaninca():
     assert olay.kaba_zaman(uc, 2)[0, 0] == pytest.approx(25.0)
 
 
+def test_kaba_siddet_yalniz_gercek_yanigin_ortalamasi():
+    dnbr = np.array([[0.4, 0.8, 0.9, 2.0], [np.nan, 0.6, -0.5, 0.2]], dtype=np.float32)
+    gercek = np.array([[1, 1, 1, 1], [0, 1, 1, 0]], dtype=np.uint8)
+    sonuc = olay.kaba_siddet(dnbr, gercek, 2)
+    np.testing.assert_allclose(sonuc, [[0.6, (0.9 + 1.0 + 0.0) / 3]], atol=1e-6)
+
+
+def test_kaba_siddet_yanmayan_blok_sifir():
+    dnbr = np.full((2, 2), 0.7, dtype=np.float32)
+    sonuc = olay.kaba_siddet(dnbr, np.zeros((2, 2), dtype=np.uint8), 2)
+    np.testing.assert_array_equal(sonuc, [[0.0]])
+
+
 def test_kaba_mod_ve_ortu_sinifi():
     worldcover = np.array([[10, 10], [80, 40]], dtype=np.uint8)
     ortu = olay.ortu_sinifi(worldcover)

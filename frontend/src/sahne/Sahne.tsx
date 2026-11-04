@@ -27,6 +27,7 @@ const DUZ_KABARTMA = 0.02
 function UniformGuncelleyici({ veri }: { veri: OlayVerisi }) {
   useFrame((_, dt) => {
     U.uHataEsik.value = veri.bilgi.model.esit_alan_esik_dk / 60
+    U.uVarisUst.value = Math.max(veri.enGecVarisSaat, 1)
     U.uZaman.value += Math.min(dt, 0.1)
     const t = useZaman.getState().t
     const tutusmaMs = veri.tutusmaMs
@@ -44,7 +45,11 @@ function UniformGuncelleyici({ veri }: { veri: OlayVerisi }) {
     }
     yumusat(U.uYayilim, g.yayilim)
     yumusat(U.uOlasilik, g.olasilik)
-    yumusat(U.uKiyas, g.kiyas)
+    yumusat(U.uVaris, g.varis)
+    yumusat(U.uGuven, g.guven)
+    yumusat(U.uZamanFarki, g.zamanFarki)
+    yumusat(U.uSiddet, g.siddet)
+    yumusat(U.uOrtuKat, g.ortu)
     yumusat(U.uIzokron, g.izokron)
     yumusat(U.uHata, g.hata)
     // 2B'de kabartma düzleşir.

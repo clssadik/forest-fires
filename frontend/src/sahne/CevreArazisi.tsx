@@ -124,6 +124,7 @@ function orguKur(veri: OlayVerisi, cevre: Cevre, orgu: CevreOrgusu, etekAlti: nu
     if (ad === 'aToa' || ad === 'aFirms') g.setAttribute(ad, sabit(YANMADI_SAAT))
     else g.setAttribute(ad, sabit(0))
   }
+  g.setAttribute('aOrtuRengi', new BufferAttribute(new Float32Array(n * 3), 3))
   g.setAttribute('aOrman', new BufferAttribute(ormanDizi, 1))
   g.setAttribute('aSu', new BufferAttribute(suDizi, 1))
   g.computeBoundingSphere()

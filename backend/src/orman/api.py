@@ -16,7 +16,7 @@ Uç noktalar (`{ad}` = senaryo adı, ör. `manavgat_2021`):
 
 Olay ekranı (3B; `olay.py`; simülasyon yoksa ilk istekte çalıştırılır):
     GET  /api/yanginlar/{ad}/olay            kaba ızgara, saatlik seriler, eksen profili, olaylar
-    GET  /api/yanginlar/{ad}/olay/{bant}     yukseklik (float32 m) | ortu | gercek | olasilik
+    GET  /api/yanginlar/{ad}/olay/{bant}     yukseklik (float32 m) | ortu | gercek | olasilik | siddet
                                              (uint8; son ikisi 0–255 oran) | model_toa | firms_toa
                                              (uint16 dk)
 
@@ -68,7 +68,7 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 RASTER_KATMANLARI = ("model_toa", "firms_varis", "gercek")
-OLAY_BANTLARI = ("yukseklik", "ortu", "gercek", "olasilik", "model_toa", "firms_toa")
+OLAY_BANTLARI = ("yukseklik", "ortu", "gercek", "olasilik", "model_toa", "firms_toa", "siddet")
 EN_FAZLA_CALISMA = 50
 _simulasyon_kilidi = threading.Lock()
 
@@ -369,7 +369,7 @@ def olay_bandi(ad: str, bant: str) -> Response:
     veri = _guncel_olay_paketi(ad).bantlar[bant]
     if bant in ("model_toa", "firms_toa"):
         veri = gosterim.dakika_kodla(veri)
-    elif bant in ("gercek", "olasilik"):
+    elif bant in ("gercek", "olasilik", "siddet"):
         veri = np.round(np.nan_to_num(veri, nan=0.0) * 255).astype(np.uint8)
     elif bant == "yukseklik":
         veri = veri.astype("<f4")

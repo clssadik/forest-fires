@@ -1,5 +1,6 @@
 import { Color, Vector2, Vector3, type WebGLProgramParametersWithUniforms } from 'three'
 import { DOKU_GURULTU_GLSL, gurultuDokusu } from './gurultuDokusu'
+import { HATA_RENKLERI, RAMPALAR, rampaGlsl, renkGlsl } from './tematikRenkler'
 
 /**
  * Arazi ve ağaç malzemelerinin ortak yangın gölgelendiricisi. Her köşe/örnek
@@ -7,7 +8,8 @@ import { DOKU_GURULTU_GLSL, gurultuDokusu } from './gurultuDokusu'
  * değiştikçe yalnızca uniform güncellenir, geometri yeniden kurulmaz.
  *
  * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR), modelin yanma
- * olasılığını (aOlasilik), FIRMS varışını (aFirms) ve köşenin modelde hiç yanıp yanmadığını
+ * olasılığını (aOlasilik), FIRMS varışını (aFirms, aFirmsVar), yanma şiddetini (aSiddet),
+ * örtü rengini (aOrtuRengi) ve köşenin modelde hiç yanıp yanmadığını
  * (aYandi) taşır.
  */
 
@@ -24,7 +26,12 @@ export const yanginUniformlari = {
   uYayilim: { value: 1 },
   uOlasilik: { value: 0.5 },
   uKabartma: { value: 1 },
-  uKiyas: { value: 0 },
+  uVaris: { value: 0 },
+  uVarisUst: { value: 1 },
+  uGuven: { value: 0 },
+  uZamanFarki: { value: 0 },
+  uSiddet: { value: 0 },
+  uOrtuKat: { value: 0 },
   uIzokron: { value: 0 },
   uHata: { value: 0 },
   /** Model alanının gerçek alana eşitlendiği an (saat); hata katmanı bu anki modeli karşılaştırır. */
@@ -54,7 +61,12 @@ float yGurultu(vec2 p) { return dGurultu(p); }
 
 const UNIFORM_GLSL = /* glsl */ `
 uniform float uT;
-uniform float uKiyas;
+uniform float uVaris;
+uniform float uVarisUst;
+uniform float uGuven;
+uniform float uZamanFarki;
+uniform float uSiddet;
+uniform float uOrtuKat;
 uniform float uYayilim;
 uniform float uOlasilik;
 uniform float uKabartma;
@@ -72,10 +84,17 @@ uniform float uDuman;
 uniform float uGece;
 `
 
-const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'Olasilik', 'Firms', 'Orman', 'Su']
+const DEGISKENLER = ['Toa', 'Yandi', 'Gercek', 'Olasilik', 'Firms', 'FirmsVar', 'Siddet', 'Orman', 'Su']
 
 /** Arazi örgüsünün taşıması gereken köşe nitelikleri (çevre arazisi bunları sabit değerle doldurur). */
 export const ARAZI_NITELIKLERI = DEGISKENLER.map((d) => `a${d}`)
+
+const TEMATIK_GLSL = [
+  rampaGlsl('rampaVaris', RAMPALAR.varis),
+  rampaGlsl('rampaGuven', RAMPALAR.guven),
+  rampaGlsl('rampaZamanFarki', RAMPALAR.zamanFarki),
+  rampaGlsl('rampaSiddet', RAMPALAR.siddet),
+].join('\n')
 
 const SU_GLSL = /* glsl */ `
 float suDalga(vec2 p, float t) {
@@ -92,6 +111,8 @@ export function araziGolgelendirici(s: WebGLProgramParametersWithUniforms) {
       `#include <common>
 ${UNIFORM_GLSL}
 ${DEGISKENLER.map((d) => `attribute float a${d};\nvarying float v${d};`).join('\n')}
+attribute vec3 aOrtuRengi;
+varying vec3 vOrtuRengi;
 varying vec3 vDunya;
 varying float vEgim;`,
     )
@@ -100,6 +121,7 @@ varying float vEgim;`,
       `#include <begin_vertex>
 transformed.y *= uKabartma;
 ${DEGISKENLER.map((d) => `v${d} = a${d};`).join(' ')}
+vOrtuRengi = aOrtuRengi;
 vDunya = (modelMatrix * vec4(transformed, 1.0)).xyz;
 vEgim = 1.0 - normal.y;`,
     )
@@ -111,7 +133,9 @@ vEgim = 1.0 - normal.y;`,
 ${UNIFORM_GLSL}
 ${GURULTU_GLSL}
 ${SU_GLSL}
+${TEMATIK_GLSL}
 ${DEGISKENLER.map((d) => `varying float v${d};`).join('\n')}
+varying vec3 vOrtuRengi;
 varying vec3 vDunya;
 varying float vEgim;`,
     )
@@ -165,30 +189,39 @@ float w = fwidth(f);
 float iso = 1.0 - smoothstep(0.0, w * 1.3, abs(fract(f - 0.5) - 0.5));
 renk = mix(renk, vec3(0.95, 0.55, 0.15), iso * 0.6 * yandi * uYayilim * uIzokron * step(0.5, vToa));
 
-// Üç renkli düz haritalar; ikisinde de aynı anlam: ortak, yalnız model, yalnız gözlem.
-vec3 UCLU_ORTAK = vec3(0.83, 0.28, 0.16);
-vec3 UCLU_MODEL = vec3(0.94, 0.71, 0.24);
-vec3 UCLU_GOZLEM = vec3(0.27, 0.36, 0.5);
+// Tematik modlar: zemin griye çekilir, üstüne tek bir düz harita boyanır. Modlar birbirini
+// dışladığı için renkler toplanabilir; yalnızca geçişte iki mod kısa süre birlikte görünür.
+vec3 duzRenk = vec3(0.0);
+float duzOrtu = 0.0;
+#define BOYA(ortu, r) { float o_ = (ortu); renk = mix(renk, (r), o_); duzRenk += (r) * o_; duzOrtu += o_; }
 
-// Kıyas: t anında modelin yaktığı ile uydunun (FIRMS) gördüğü
-float modelSimdi = modelde * step(vToa, uT);
-float uyduSimdi = step(vFirms, uT);
-vec3 kiyasRengi = modelSimdi * uyduSimdi > 0.5 ? UCLU_ORTAK : modelSimdi > 0.5 ? UCLU_MODEL : UCLU_GOZLEM;
-float kiyasOrtu = uKiyas * max(modelSimdi, uyduSimdi);
+float parlaklik = dot(renk, vec3(0.3, 0.59, 0.11));
+float zemin = max(max(uHata, uZamanFarki), max(uVaris, max(uGuven, max(uSiddet, uOrtuKat))));
+renk = mix(renk, vec3(parlaklik) * 0.6, zemin / 0.9);
+
+// Varış zamanı: cephe t anına kadar ilerledikçe boyanır; karekök ilk saatlere daha çok renk ayırır
+BOYA(uVaris * modelde * step(vToa, uT), rampaVaris(sqrt(max(vToa, 0.0) / uVarisUst)));
+
+// Güven: 20 çalıştırmanın kaçında yandı
+BOYA(uGuven * smoothstep(0.02, 0.06, vOlasilik), rampaGuven(vOlasilik));
 
 // Model hatası (eşit alan, zamandan bağımsız): doğru, yanlış alarm, kaçırılan
 float modelIc = modelde * step(vToa, uHataEsik);
 float gercekVar = step(0.5, vGercek);
-vec3 hataRengi = modelIc * gercekVar > 0.5 ? UCLU_ORTAK : modelIc > 0.5 ? UCLU_MODEL : UCLU_GOZLEM;
-float hataOrtu = uHata * max(modelIc, gercekVar);
+vec3 hataRengi = modelIc * gercekVar > 0.5 ? ${renkGlsl(HATA_RENKLERI.dogru)}
+  : modelIc > 0.5 ? ${renkGlsl(HATA_RENKLERI.fazla)}
+  : ${renkGlsl(HATA_RENKLERI.kacirilan)};
+BOYA(uHata * max(modelIc, gercekVar), hataRengi);
 
-// Zemin griye çekilir: kumlu arazi "yalnız model" sarısıyla karışmasın
-float parlaklik = dot(renk, vec3(0.3, 0.59, 0.11));
-renk = mix(renk, vec3(parlaklik) * 0.6, max(uKiyas, uHata));
-renk = mix(renk, kiyasRengi, kiyasOrtu);
-renk = mix(renk, hataRengi, hataOrtu);
-float duzOrtu = max(kiyasOrtu, hataOrtu);
-vec3 duzRenk = uHata > uKiyas ? hataRengi : kiyasRengi;
+// Zaman farkı: model − FIRMS varışı; ikisi de gördüğünde ve ikisi de geçtikten sonra görünür
+float ikisiDe = modelde * step(0.999, vFirmsVar);
+BOYA(uZamanFarki * ikisiDe * step(max(vToa, vFirms), uT), rampaZamanFarki((vToa - vFirms) / 48.0 + 0.5));
+
+// Yanma şiddeti: Key ve Benson eşikleriyle dNBR 0,1 düşük, 0,8 üstü en yüksek renk
+BOYA(uSiddet * smoothstep(0.02, 0.06, vSiddet), rampaSiddet((vSiddet - 0.1) / 0.7));
+
+// Bitki örtüsü: sınıf rengi; su ve çevre arazisinin rengi yok
+BOYA(uOrtuKat * step(0.001, vOrtuRengi.r + vOrtuRengi.g + vOrtuRengi.b), vOrtuRengi);
 
 diffuseColor.rgb = renk;`,
     )
@@ -219,8 +252,8 @@ roughnessFactor = mix(roughnessFactor, 0.12, suM);`,
 // Suda gök yansıması (Fresnel)
 float fres = 0.03 + 0.97 * pow(1.0 - max(dot(normal, normalize(vViewPosition)), 0.0), 5.0);
 totalEmissiveRadiance += mix(uUfuk, uGok, 0.35) * fres * suM * 0.85;
-// Hata ve kıyas renkleri gece de okunsun
-totalEmissiveRadiance += duzRenk * duzOrtu * uGece * 0.45;
+// Tematik renkler gece de okunsun
+totalEmissiveRadiance += duzRenk * uGece * 0.45;
 float parca = smoothstep(0.25, 0.65, yGurultu(yp * 2.2 + 3.7));
 float cephe = yandi * exp(-max(yas, 0.0) / 0.5) * (0.35 + 0.65 * parca);
 float kor = yandi * smoothstep(8.0, 0.0, yas) * smoothstep(0.7, 0.85, n3) * step(0.5, n2) * (0.4 + 0.6 * parca);

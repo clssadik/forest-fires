@@ -28,7 +28,7 @@ export function Harita() {
           <Pusula />
           <Saat veri={veri} />
           <RadarBilgisi />
-          <ModLejanti />
+          <ModLejanti veri={veri} />
           <HaritaKontrolleri veri={veri} tamEkran={tamEkran} />
         </>
       ) : (
