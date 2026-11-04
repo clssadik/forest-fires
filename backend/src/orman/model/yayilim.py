@@ -435,35 +435,20 @@ class CokluSonuc:
 
 def coklu_yayilim(
     arazi: Arazi,
-    ruzgar: Ruzgar | list[Ruzgar],
+    ruzgar: Ruzgar,
     tutusma: list[tuple[int, int]],
     parametreler: Parametreler,
     tohumlar,
     bitis_dk: float,
     is_parcacigi: int | None = None,
 ) -> CokluSonuc:
-    """Aynı girdilerle farklı tohumlarla birden çok çalıştırma (çekirdek GIL'i bırakır, paralel).
-
-    `ruzgar` tek bir alan ya da alan listesi olabilir. Liste verilirse tohum i, listenin
-    `i % len(ruzgar)` öğesini kullanır; böylece her çalıştırma farklı bir topluluk üyesiyle
-    koşabilir. Tek nesne verildiğinde önceki davranış aynen korunur.
-    """
+    """Aynı girdilerle farklı tohumlarla birden çok çalıştırma (çekirdek GIL'i bırakır, paralel)."""
     tohumlar = list(tohumlar)
-    ruzgarlar = [ruzgar] if isinstance(ruzgar, Ruzgar) else list(ruzgar)
-    if not ruzgarlar:
-        raise ValueError("En az bir rüzgar alanı gerekli.")
     with ThreadPoolExecutor(is_parcacigi) as havuz:
         sonuclar = list(
             havuz.map(
-                lambda i_t: yayilim(
-                    arazi,
-                    ruzgarlar[i_t[0] % len(ruzgarlar)],
-                    tutusma,
-                    parametreler,
-                    i_t[1],
-                    bitis_dk,
-                ),
-                enumerate(tohumlar),
+                lambda tohum: yayilim(arazi, ruzgar, tutusma, parametreler, tohum, bitis_dk),
+                tohumlar,
             )
         )
     yigin = np.stack(sonuclar)

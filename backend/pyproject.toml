@@ -27,7 +27,6 @@ orman-veri = "orman.veri.bolge_paketi:main"
 orman-model = "orman.model.calistir:main"
 orman-dogrula = "orman.dogrulama.calistir:main"
 orman-kalibre = "orman.dogrulama.kalibrasyon:main"
-orman-senaryo-olc = "orman.dogrulama.senaryo_olcumu:main"
 orman-duyarlilik = "orman.dogrulama.duyarlilik:main"
 
 [build-system]

@@ -70,7 +70,7 @@ class BolgePaketi:
     yakit: np.ndarray  # yakıt sınıfı kodu, uint8 (0 = yanmaz)
     hava: pd.DataFrame  # saatlik, UTC, nokta bazında
     engel: np.ndarray | None = None  # OSM yol / akarsu engel gücü (0–1); None = katman yok
-    # Doğrulama katmanları; yalnızca geçmiş yangın paketlerinde var (senaryo modunda None).
+    # Doğrulama katmanları; yalnızca geçmiş yangın paketlerinde var (yoksa None).
     tespitler: pd.DataFrame | None = None  # FIRMS, UTC; satir/sutun = ızgara hücresi
     dnbr: np.ndarray | None = None  # Sentinel-2 dNBR (ofseti düzeltilmiş), float32, NaN = veri yok
     yanmis_alan: np.ndarray | None = None  # gerçek yanmış alan, uint8 (1 = yanmış)
@@ -115,31 +115,22 @@ def _firms_hazirla(senaryo: Senaryo) -> Path:
     return yol
 
 
-def model_girdilerini_olustur(senaryo: Senaryo, canli: bool = False) -> dict[str, Path]:
-    """Modelin çalışması için yeterli katmanlar: yükseklik, eğim, bakı, yakıt, hava alanı.
-
-    `canli=True` (senaryo modu, "şimdi"): hava Open-Meteo tahmin API'sinden, DEM uzak
-    karolardan pencereyle. Doğrulama katmanları (FIRMS, Sentinel-2) üretilmez.
-    """
+def model_girdilerini_olustur(senaryo: Senaryo) -> dict[str, Path]:
+    """Modelin çalışması için yeterli katmanlar: yükseklik, eğim, bakı, yakıt, hava alanı."""
     d = ISLENMIS_VERI_DIZINI / senaryo.ad
     d.mkdir(parents=True, exist_ok=True)
     # Kaynaklar birbirinden bağımsız; ağ beklemesi üst üste binsin diye aynı anda indirilir.
     with ThreadPoolExecutor(4) as havuz:
-        if canli and (d / "yukseklik.tif").exists():  # arazi değişmez: aynı noktaya ikinci istek
-            yukseklik = havuz.submit(
-                lambda: {ad: d / f"{ad}.tif" for ad in ("yukseklik", "egim", "baki")}
-            )
-        else:
-            yukseklik = havuz.submit(dem.hazirla, senaryo.izgara, canli)
+        yukseklik = havuz.submit(dem.hazirla, senaryo.izgara)
         ortu = havuz.submit(arazi_ortusu.hazirla, senaryo.izgara)
-        # OSM engelleri yalnızca geçmiş yangınlarda: Overpass senaryo modu için fazla yavaş.
-        engel = None if canli else havuz.submit(engeller.hazirla, senaryo.izgara)
-        hava_yolu = havuz.submit(
-            hava.hazirla, senaryo.izgara, senaryo.baslangic, senaryo.bitis, tahmin=canli
+        engel = havuz.submit(engeller.hazirla, senaryo.izgara)
+        hava_yolu = havuz.submit(hava.hazirla, senaryo.izgara, senaryo.baslangic, senaryo.bitis)
+        yollar = (
+            yukseklik.result()
+            | ortu.result()
+            | engel.result()
+            | {"hava": hava_yolu.result()["islenmis"]}
         )
-        yollar = yukseklik.result() | ortu.result() | {"hava": hava_yolu.result()["islenmis"]}
-        if engel is not None:
-            yollar |= engel.result()
     yollar["hava_alani"] = hava_alani_modulu.hazirla(
         senaryo.izgara,
         _oku(yollar["yukseklik"]),

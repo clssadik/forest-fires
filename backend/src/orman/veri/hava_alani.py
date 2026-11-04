@@ -331,23 +331,3 @@ def hazirla(
     yol = _yol(izgara.ad)
     alan_olustur(izgara, arazi_yuksekligi, hava, carpan, deniz_dahil).kaydet(yol)
     return yol
-
-
-def topluluk_hazirla(
-    izgara: Izgara,
-    arazi_yuksekligi: np.ndarray,
-    hava: pd.DataFrame,
-    carpan: int = KABA_CARPAN,
-    deniz_dahil: bool = False,
-) -> dict[int, HavaAlani]:
-    """Topluluk tablosundan (`uye` sütunlu) her üye için ayrı bir `HavaAlani` üretir.
-
-    Kontrol üyesi 0 dahildir. Alanlar bellekte tutulur; üye başına ~50 saat × kaba ızgara
-    küçüktür ve diske yazılmaz (senaryo paketinin tekil `hava_alani.npz` dosyası korunur).
-    """
-    if "uye" not in hava.columns:
-        raise ValueError("Topluluk tablosunda 'uye' sütunu yok.")
-    return {
-        int(uye): alan_olustur(izgara, arazi_yuksekligi, tablo, carpan, deniz_dahil)
-        for uye, tablo in hava.groupby("uye", sort=True)
-    }

@@ -23,7 +23,7 @@ from orman.model.yayilim import V1, Arazi, Parametreler, Ruzgar, coklu_yayilim, 
 from orman.senaryo import Senaryo
 from orman.veri.bolge_paketi import SENARYOLAR, BolgePaketi, yukle
 
-GUNCEL_MODEL = "model_v1"  # web simülasyonu ve senaryo modunun kullandığı model
+GUNCEL_MODEL = "model_v1"  # web simülasyonunun kullandığı model
 # Ad -> (açıklama, parametreler); None = daire baseline'ı (modelsiz). Ablasyon rüzgârı kapatır:
 # rüzgâr olmadan ne kadar kötüleştiğini gösterir. Eğim ablasyonu yok: v1'de eğim etkisi zaten 0.
 DENEYLER: dict[str, tuple[str, Parametreler | None]] = {
