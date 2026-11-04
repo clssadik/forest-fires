@@ -55,78 +55,36 @@
       "analiz": "Analiz"
     },
     "analiz": {
-      "deneyler": "Kıyas",
-      "deneyAdlari": {
-        "model_v1": "v1",
-        "ruzgarsiz": "Rüzgârsız",
-        "daire": "Daire"
-      },
-      "hataBaslik": "Nerede yanıldı?",
-      "hataAlt": "{{saat}}. sa",
-      "dogru": "Doğru",
-      "yanlisAlarm": "Fazla",
-      "kacirilan": "Eksik",
-      "hektar": "{{deger}} ha",
-      "zamanBaslik": "Varış zamanı",
-      "erken": "Erken",
-      "gec": "Geç",
-      "saatEtiket": "{{deger}} sa",
-      "ortanca": "Ortanca",
-      "ortancaGec": "{{deger}} sa geç",
-      "ortancaErken": "{{deger}} sa erken",
-      "onIkiSaat": "±12 sa içinde",
       "bitisBaslik": "Bitişte yanan alan",
       "model": "Model",
       "gercek": "Gerçek",
-      "hataAltDurdu": "Bitiş",
-      "zamanSag": "FIRMS'e göre"
-    },
-    "kanitlar": {
-      "yuksek": "Yüksek",
-      "orta": "Orta",
-      "dusuk": "Düşük",
+      "hektar": "{{deger}} ha",
+      "hataBaslik": "Nerede yanıldı?",
+      "anSaat": "+{{saat}} sa",
+      "anBitis": "Bitiş",
+      "dogru": "Doğru",
+      "fazla": "Fazla",
+      "kacirilan": "Kaçırılan",
+      "zamanBaslik": "Varış zamanı",
+      "zamanSag": "FIRMS'e göre",
+      "ortanca": "Ortanca fark",
+      "ortancaGec": "{{deger}} sa geç",
+      "ortancaErken": "{{deger}} sa erken",
+      "onIkiSaat": "±12 sa içinde",
+      "veriBaslik": "Veri",
+      "yanikAlan": "Yanık alan",
+      "yanikAlanDeger": "Sentinel-2 · {{once}} → {{sonra}}",
+      "tespitler": "Yangın tespitleri",
+      "tespitlerDeger": "FIRMS · {{sayi}}",
       "hava": "Hava",
-      "havaKaynak": "ERA5 · saatlik · {{nokta}} nokta",
-      "dem": "Yükseklik",
-      "demKaynak": "Copernicus DEM",
-      "worldcover": "Bitki örtüsü",
-      "worldcoverKaynak": "ESA WorldCover {{yil}}",
-      "izgaraKaynak": "{{satir}} × {{sutun}} hücre",
-      "km": "~{{deger}} km",
-      "m": "{{deger}} m",
-      "ha": "{{deger}} ha",
-      "yok": "Bu yangın için yok",
-      "baslik": "Veri",
-      "siddet": "Yanma şiddeti",
-      "siddetKaynak": "Sentinel-2 · {{once}} → {{sonra}}",
-      "firms": "Yangın tespitleri",
-      "firmsKaynak": "NASA FIRMS · kapsama {{oran}}",
-      "izgara": "Izgara"
-    },
-    "notlar": {
-      "sinirlar": "Sınırlar",
-      "sinirListesi": [
-        {
-          "baslik": "Söndürme",
-          "metin": "Ekip sayısı ve yeri bilinmiyor; yavaşlayan yangın durmuş sayılır."
-        },
-        {
-          "baslik": "Uçuşan kor",
-          "metin": "Kıvılcımla açılan yeni odaklar hesapta yok."
-        },
-        {
-          "baslik": "Yerel rüzgâr",
-          "metin": "Vadilerdeki dönüşler görünmüyor."
-        },
-        {
-          "baslik": "Yakıt",
-          "metin": "Örtü 5 sınıfa indirildi; yük ve nem tablodan gelir."
-        }
-      ],
-      "notlarim": "Notlarım",
-      "yerTutucu": "",
-      "saklama": "Yalnızca bu tarayıcıda saklanır.",
-      "saklanamiyor": "Tarayıcı depolaması kapalı; not sayfa kapanınca kaybolur."
+      "havaDeger": "ERA5 · ~{{deger}} km",
+      "yukseklik": "Yükseklik",
+      "yukseklikDeger": "Copernicus · {{deger}} m",
+      "ortu": "Bitki örtüsü",
+      "ortuDeger": "WorldCover {{yil}} · {{deger}} m",
+      "izgara": "Model ızgarası",
+      "izgaraDeger": "{{deger}} m",
+      "yok": "—"
     }
   },
   "katmanlar": {
@@ -155,7 +113,7 @@
       "saat": "+{{saat}} sa",
       "varis": { "baslik": "Model varışı", "bas": "Tutuşma" },
       "guven": { "baslik": "{{sayi}} çalıştırmada yanma" },
-      "hata": { "baslik": "Bitiş · Sentinel-2", "dogru": "Doğru", "fazla": "Fazla", "kacirilan": "Kaçırılan" },
+      "hata": { "baslik": "{{an}} · Sentinel-2", "dogru": "Doğru", "fazla": "Fazla", "kacirilan": "Kaçırılan" },
       "zamanFarki": { "baslik": "Model − FIRMS", "erken": "24 sa erken", "tam": "Zamanında", "gec": "24 sa geç" },
       "siddet": { "baslik": "Sentinel-2 dNBR", "dusuk": "Düşük", "orta": "Orta", "yuksek": "Yüksek" },
       "ortu": {

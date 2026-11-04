@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { gercekAlanaUlasti } from '../../dogrulama/api'
 import { useKatmanlar, type GorunumModu } from '../../durum/katmanlar'
 import type { OlayVerisi } from '../../olay/veri'
 import { HATA_RENKLERI, ORTU_RENKLERI, RAMPALAR } from '../../sahne/tematikRenkler'
@@ -36,6 +37,9 @@ export function ModLejanti({ veri }: { veri: OlayVerisi }) {
   const mod = useKatmanlar((d) => d.mod)
   if (mod === 'yayilim') return null
 
+  const m = veri.bilgi.model
+  const hataAni = (model: typeof m) =>
+    gercekAlanaUlasti(model.esit_alan) ? saat(model.esit_alan_esik_dk / 60) : t('sagPanel.analiz.anBitis')
   const metin = (anahtar: string) => t(`katmanlar.lejant.${mod}.${anahtar}`)
   const saat = (s: number) => t('katmanlar.lejant.saat', { saat: Math.round(s) })
   const icerik: Record<Exclude<GorunumModu, 'yayilim'>, () => ReactNode> = {
@@ -62,7 +66,7 @@ export function ModLejanti({ veri }: { veri: OlayVerisi }) {
 
   return (
     <div className="pointer-events-none absolute bottom-4 left-4 z-10 rounded-[8px] bg-black/70 px-3 py-2 text-[12.5px] leading-[18px] text-white ring-1 ring-white/10">
-      <div className="mb-1 font-semibold">{t(`katmanlar.lejant.${mod}.baslik`, { sayi: veri.bilgi.model.calisma_sayisi })}</div>
+      <div className="mb-1 font-semibold">{t(`katmanlar.lejant.${mod}.baslik`, { sayi: m.calisma_sayisi, an: hataAni(m) })}</div>
       {icerik[mod]()}
     </div>
   )

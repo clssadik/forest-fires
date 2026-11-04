@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { YOK, type OlayBilgisi, type OlayRasterlari } from './api'
-import { aradegerle, firmsKaynakAdi, OlayVerisi, pusulaYonu } from './veri'
+import { aradegerle, OlayVerisi, pusulaYonu } from './veri'
 
 const SAAT = 3_600_000
 
@@ -156,11 +156,3 @@ describe('yardımcılar', () => {
   })
 })
 
-describe('firmsKaynakAdi', () => {
-  it('uydu ve algılayıcı adını okunur yazar', () => {
-    expect(firmsKaynakAdi('VIIRS_NOAA20_SP')).toBe('VIIRS NOAA-20')
-    expect(firmsKaynakAdi('VIIRS_SNPP_NRT')).toBe('VIIRS S-NPP')
-    expect(firmsKaynakAdi('MODIS_SP')).toBe('MODIS')
-    expect(firmsKaynakAdi('BILINMEYEN')).toBe('BILINMEYEN')
-  })
-})

@@ -210,14 +210,6 @@ export function IkonUcNokta(p: IkonOzellik) {
   )
 }
 
-export function IkonRuzgar(p: IkonOzellik) {
-  return (
-    <Ikon {...p}>
-      <path d="M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7" />
-    </Ikon>
-  )
-}
-
 export function IkonTermometre(p: IkonOzellik) {
   return (
     <Ikon {...p}>
@@ -231,15 +223,6 @@ export function IkonDamla(p: IkonOzellik) {
   return (
     <Ikon {...p} dolgu>
       <path d="M12 2.8s6.5 7.2 6.5 11.7a6.5 6.5 0 0 1-13 0C5.5 10 12 2.8 12 2.8z" />
-    </Ikon>
-  )
-}
-
-export function IkonYaprak(p: IkonOzellik) {
-  return (
-    <Ikon {...p} dolgu>
-      <path d="M5 20c0-9 5-15 16-16-1 11-7 16-16 16z" />
-      <path d="M5 20 13 12" className="stroke-panel" strokeWidth={1.6} />
     </Ikon>
   )
 }
