@@ -44,7 +44,7 @@ export function SolMenu() {
           : bos
 
   const kip = (e: Ekran) => ({ secili: ekran === e, onClick: () => ekranAyarla(e), ad: t(`ustBar.kipler.${e}`) })
-  const yakinda = (ad: string) => `${ad} · ${t('ustBar.kipYakinda')}`
+  const yakinda = (ad: string) => `${ad}, ${t('ustBar.kipYakinda')}`
 
   return (
     <nav

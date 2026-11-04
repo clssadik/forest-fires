@@ -203,7 +203,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
           ys: s.ruzgar,
           renk: '#9fc7ef',
           deger: kisaSayi(Math.round(h.ruzgarKmSa)),
-          birim: `${t('olayDuzeni.birim.kmSa')} · ${pusulaYonu(h.ruzgarYonu)}`,
+          birim: `${t('olayDuzeni.birim.kmSa')} ${pusulaYonu(h.ruzgarYonu)}`,
         },
       ],
     },
@@ -265,7 +265,7 @@ function Seritler({ veri }: { veri: OlayVerisi }) {
             <SeritGrafigi seriler={sr.seriler} ust={sr.ust} />
             {sr.kimlik === 'alan' &&
               veri.olaylar.map((o) => {
-                const metin = `${t(`olaylar.turler.${o.tur}`)} · ${gunAySaat(o.zaman)}`
+                const metin = `${t(`olaylar.turler.${o.tur}`)}, ${gunAySaat(o.zaman)}`
                 const secili = seciliOlay === o
                 return (
                   <button

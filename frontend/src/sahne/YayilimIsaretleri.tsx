@@ -89,7 +89,7 @@ export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabart
               </span>
               {saat === sonSaat && !cakisma && (
                 <div className="absolute top-[-11px] left-[14px] rounded-[4px] bg-black/75 ring-1 ring-white/10 px-1.5 py-[2px] text-[12.5px] whitespace-nowrap text-white">
-                  {t('harita.izokron', { saat })} · {gunAySaat(an)}
+                  {t('harita.izokron', { saat })}, {gunAySaat(an)}
                 </div>
               )}
             </div>

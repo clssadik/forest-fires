@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { gunAy, sayi, yuzdeBicim } from '../../bicim'
+import { sayi, yuzdeBicim } from '../../bicim'
 import { gercekAlanaUlasti } from '../../dogrulama/api'
 import type { OlayVerisi } from '../../olay/veri'
 import { Bolum } from './ortak'
@@ -9,8 +9,6 @@ type Model = OlayVerisi['bilgi']['model']
 
 /** Hata payları: panel renksizdir, sıra koyu griye doğru iner. */
 const GRILER = ['#e8e8e8', '#8f8f8f', '#525252'] as const
-
-const tarih = (iso: string | null | undefined) => (iso ? gunAy(Date.parse(`${iso}T12:00:00Z`)) : '—')
 
 /**
  * Analiz sekmesi: yanan alan, modelin nerede yanıldığı, ne kadar geç kaldığı ve dayandığı veriler.
@@ -130,18 +128,11 @@ function Veriler({ veri }: { veri: OlayVerisi }) {
   return (
     <Bolum baslik={t(`${a}.veriBaslik`)}>
       <Satirlar>
-        <Satir
-          ad={t(`${a}.yanikAlan`)}
-          deger={
-            sentinel2
-              ? t(`${a}.yanikAlanDeger`, { once: tarih(sentinel2.once.ana_tarih), sonra: tarih(sentinel2.sonra.ana_tarih) })
-              : t(`${a}.yok`)
-          }
-        />
+        <Satir ad={t(`${a}.yanikAlan`)} deger={sentinel2 ? t(`${a}.yanikAlanDeger`) : t(`${a}.yok`)} />
         <Satir ad={t(`${a}.tespitler`)} deger={firms ? t(`${a}.tespitlerDeger`, { sayi: sayi(firms.toplam) }) : t(`${a}.yok`)} />
         <Satir ad={t(`${a}.hava`)} deger={t(`${a}.havaDeger`, { deger: hava.cozunurluk_km })} />
         <Satir ad={t(`${a}.yukseklik`)} deger={t(`${a}.yukseklikDeger`, { deger: dem.cozunurluk_m })} />
-        <Satir ad={t(`${a}.ortu`)} deger={t(`${a}.ortuDeger`, { yil: worldcover.yil, deger: worldcover.cozunurluk_m })} />
+        <Satir ad={t(`${a}.ortu`)} deger={t(`${a}.ortuDeger`, { deger: worldcover.cozunurluk_m })} />
         <Satir ad={t(`${a}.izgara`)} deger={t(`${a}.izgaraDeger`, { deger: izgara.cozunurluk_m })} />
       </Satirlar>
     </Bolum>

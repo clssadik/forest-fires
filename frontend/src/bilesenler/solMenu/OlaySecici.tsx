@@ -89,7 +89,7 @@ export function OlaySecici({ baslik, secilebilir }: { baslik: OlayBasligi; secil
                     >
                       <span>{y.baslik}</span>
                       <span className="text-[12px] font-normal text-soluk">
-                        {y.konum} · {gunAyYil(Date.parse(y.tutusma_utc))}
+                        {y.konum}, {gunAyYil(Date.parse(y.tutusma_utc))}
                       </span>
                     </button>
                   </li>

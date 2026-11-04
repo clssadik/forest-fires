@@ -45,8 +45,8 @@
     "eg": "Eğ (ufka bak)",
     "dik": "Dikleş (tepeden bak)",
     "ipucu3B": "<tus>⇧ Shift</tus>",
-    "ipucu2B": "Sürükle: kaydır · iki parmak, tekerlek: yakınlaş",
-    "izokron": "+{{saat}} sa"
+    "ipucu2B": "Sürükle: kaydır, iki parmak veya tekerlek: yakınlaş",
+    "izokron": "{{saat}}. saat"
   },
   "sagPanel": {
     "sekmeler": {
@@ -58,11 +58,11 @@
       "bitisBaslik": "Bitişte yanan alan",
       "model": "Model",
       "gercek": "Gerçek",
-      "oran": "Model / Gerçek",
+      "oran": "Gerçeğe oran",
       "oranDeger": "{{deger}} kat",
       "hektar": "{{deger}} ha",
       "hataBaslik": "Hata dağılımı",
-      "anSaat": "+{{saat}} sa",
+      "anSaat": "{{saat}}. saat",
       "anBitis": "Bitiş",
       "dogru": "Doğru",
       "fazla": "Fazla",
@@ -70,23 +70,23 @@
       "zamanBaslik": "Varış farkı",
       "zamanSag": "FIRMS'e göre",
       "ortanca": "Ortanca fark",
-      "ortancaGec": "{{deger}} sa geç",
-      "ortancaErken": "{{deger}} sa erken",
-      "onIkiSaat": "±12 sa içinde",
+      "ortancaGec": "{{deger}} saat geç",
+      "ortancaErken": "{{deger}} saat erken",
+      "onIkiSaat": "12 saat içinde",
       "veriBaslik": "Veri",
       "yanikAlan": "Yanık alan",
-      "yanikAlanDeger": "Sentinel-2 · {{once}} → {{sonra}}",
+      "yanikAlanDeger": "Sentinel-2",
       "tespitler": "Yangın tespitleri",
-      "tespitlerDeger": "FIRMS · {{sayi}}",
+      "tespitlerDeger": "FIRMS {{sayi}}",
       "hava": "Hava",
-      "havaDeger": "ERA5 · ~{{deger}} km",
+      "havaDeger": "ERA5 {{deger}} km",
       "yukseklik": "Yükseklik",
-      "yukseklikDeger": "Copernicus · {{deger}} m",
+      "yukseklikDeger": "Copernicus {{deger}} m",
       "ortu": "Bitki örtüsü",
-      "ortuDeger": "WorldCover {{yil}} · {{deger}} m",
+      "ortuDeger": "WorldCover {{deger}} m",
       "izgara": "Model ızgarası",
       "izgaraDeger": "{{deger}} m",
-      "yok": "—"
+      "yok": "Yok"
     }
   },
   "katmanlar": {
@@ -112,11 +112,11 @@
       "duman": "Duman"
     },
     "lejant": {
-      "saat": "+{{saat}} sa",
+      "saat": "{{saat}}. saat",
       "varis": { "baslik": "Model varışı", "bas": "Tutuşma" },
       "guven": { "baslik": "{{sayi}} çalıştırmada yanma" },
-      "hata": { "baslik": "{{an}} · Sentinel-2", "dogru": "Doğru", "fazla": "Fazla", "kacirilan": "Kaçırılan" },
-      "zamanFarki": { "baslik": "Model − FIRMS", "erken": "24 sa erken", "tam": "Zamanında", "gec": "24 sa geç" },
+      "hata": { "baslik": "{{an}}, Sentinel-2", "dogru": "Doğru", "fazla": "Fazla", "kacirilan": "Kaçırılan" },
+      "zamanFarki": { "baslik": "Model ve FIRMS farkı", "erken": "24 saat erken", "tam": "Zamanında", "gec": "24 saat geç" },
       "siddet": { "baslik": "Sentinel-2 dNBR", "dusuk": "Düşük", "orta": "Orta", "yuksek": "Yüksek" },
       "ortu": {
         "baslik": "ESA WorldCover",
@@ -340,14 +340,14 @@
     }
   },
   "olay": {
-    "yukleniyor": "Olay verisi yükleniyor… (ilk açılışta model çalıştırılır, ~10 sn)",
+    "yukleniyor": "Olay verisi yükleniyor",
     "yuklenemedi": "Olay verisi yüklenemedi"
   },
   "olayDuzeni": {
     "ray": "Olay ekranı panelleri",
     "kapat": "Kapat",
     "seciliAn": "Seçili an",
-    "saatSayaci": "+{{saat}} sa",
+    "saatSayaci": "{{saat}}. saat",
     "sureAciklama": "Tutuşmadan bu yana geçen süre",
     "yakitNemi": "Yakıt nemi",
     "birim": {
