@@ -1,10 +1,13 @@
 import { Line } from '@react-three/drei'
-import { useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Vector3 } from 'three'
 import { gunAySaat } from '../bicim'
 import { useZaman } from '../durum/zaman'
 import type { OlayVerisi } from '../olay/veri'
 import { Etiket } from './Etiket'
+import { etiketlerCakisir, sonGecilenSaat } from './etiketYerlesimi'
 
 /**
  * Ana yayılım ekseni (sarı çizgi; tutuşmadan, model alanı gerçek alana eşitlendiğinde en
@@ -16,8 +19,8 @@ const YUKSELTI = 0.12
 const SAAT = 3_600_000
 /** Etiketlenen izokronlar (tutuşmadan sonra saat). */
 const IZOKRON_SAATLERI = [6, 12, 24, 48, 96]
-/** Eksen üzerinde iki etiket arasındaki en az uzaklık (km). */
-const ETIKET_ARALIGI_KM = 3
+const A = new Vector3()
+const B = new Vector3()
 
 export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabartma: number }) {
   const { t } = useTranslation()
@@ -39,20 +42,34 @@ export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabart
       gelecek: cephe < uzunluk - 0.2 ? noktalar(cephe, uzunluk) : null,
     }
   }, [cephe, kabartma, veri, uzunluk])
-  // Tutuşmaya ya da bir öncekine çok yakın etiketler atlanır (üst üste binmesinler).
-  const izokronlar = useMemo(() => {
-    const secilen: { saat: number; p: { x: number; z: number } }[] = []
-    let onceki = veri.bilgi.tutusma
-    for (const saat of IZOKRON_SAATLERI.filter((s) => s < veri.bitisSaat)) {
-      const p = veri.eksenIzokronu(saat)
-      if (!p || Math.hypot(p.x - onceki.x, p.z - onceki.z) < ETIKET_ARALIGI_KM) continue
-      secilen.push({ saat, p })
-      onceki = p
-    }
-    return secilen
-  }, [veri])
+  const izokronlar = useMemo(
+    () =>
+      IZOKRON_SAATLERI.filter((s) => s < veri.bitisSaat).flatMap((saat) => {
+        const p = veri.eksenIzokronu(saat)
+        return p ? [{ saat, p }] : []
+      }),
+    [veri],
+  )
+  // Yalnızca cephenin geçtiği son izokronun etiketi yazılır; işaretler yerinde kalır.
+  const sonSaat = sonGecilenSaat(izokronlar.map((k) => k.saat), (zaman - veri.tutusmaMs) / SAAT)
+  const sonIzokron = izokronlar.find((k) => k.saat === sonSaat)
   const tutusma = veri.bilgi.tutusma
   const basladi = zaman >= veri.tutusmaMs
+
+  // Kamera eğilince eksen kısalır: son izokron etiketi ekranda tutuşmanınkine binerse yazısı gizlenir.
+  const [cakisma, setCakisma] = useState(false)
+  const sonCakisma = useRef(false)
+  useFrame(({ camera, size }) => {
+    if (!sonIzokron) return
+    const y = (x: number, z: number) => veri.araziY(x, z) * kabartma + YUKSELTI
+    A.set(tutusma.x, y(tutusma.x, tutusma.z), tutusma.z).project(camera)
+    B.set(sonIzokron.p.x, y(sonIzokron.p.x, sonIzokron.p.z), sonIzokron.p.z).project(camera)
+    const c = etiketlerCakisir(((B.x - A.x) / 2) * size.width, ((A.y - B.y) / 2) * size.height)
+    if (c !== sonCakisma.current) {
+      sonCakisma.current = c
+      setCakisma(c)
+    }
+  })
 
   return (
     <group>
@@ -70,9 +87,11 @@ export function YayilimIsaretleri({ veri, kabartma }: { veri: OlayVerisi; kabart
               <span className="absolute -top-[7px] -left-[7px] grid size-[14px] place-items-center rounded-full border-2 border-[#f6a43a] bg-[#fff4df]">
                 <span className="size-[4px] rounded-full bg-[#f08a2a]" />
               </span>
-              <div className="absolute top-[-11px] left-[14px] rounded-[4px] bg-black/75 ring-1 ring-white/10 px-1.5 py-[2px] text-[12.5px] whitespace-nowrap text-white">
-                {t('harita.izokron', { saat })} · {gunAySaat(an)}
-              </div>
+              {saat === sonSaat && !cakisma && (
+                <div className="absolute top-[-11px] left-[14px] rounded-[4px] bg-black/75 ring-1 ring-white/10 px-1.5 py-[2px] text-[12.5px] whitespace-nowrap text-white">
+                  {t('harita.izokron', { saat })} · {gunAySaat(an)}
+                </div>
+              )}
             </div>
           </Etiket>
         )

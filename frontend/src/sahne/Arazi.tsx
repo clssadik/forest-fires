@@ -86,7 +86,7 @@ function kutuBulanikligi(a: Float32Array, satir: number, sutun: number, gecis: n
   return kaynak
 }
 
-/** Gerçek DEM'den arazi örgüsü; köşe başına model varışı, gerçek yanık, olasılık, FIRMS taşır. */
+/** Gerçek DEM'den arazi örgüsü; köşe başına model varışı, gerçek yanık, olasılık taşır. */
 export function Arazi({ veri }: { veri: OlayVerisi }) {
   const imlecAyarla = useOlay((d) => d.imlecAyarla)
   const geometri = useMemo(() => {
@@ -98,7 +98,6 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     const yandi = new Float32Array(n)
     const gercek = new Float32Array(n)
     const olasilik = new Float32Array(n)
-    const firms = new Float32Array(n)
     const orman = new Float32Array(n)
     const su = new Float32Array(n)
     const c = new Color()
@@ -118,7 +117,6 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
         yandi[k] = model === YOK ? 0 : 1
         gercek[k] = r.gercek[k] / 255
         olasilik[k] = r.olasilik[k] / 255
-        firms[k] = r.firmsToa[k] === YOK ? YANMADI_SAAT : r.firmsToa[k] / 60
         orman[k] = ORMAN_YOGUNLUGU[ortu]
       }
     }
@@ -143,7 +141,6 @@ export function Arazi({ veri }: { veri: OlayVerisi }) {
     g.setAttribute('aGercek', new BufferAttribute(gercek, 1))
     g.setAttribute('aGercekYumusak', new BufferAttribute(kutuBulanikligi(gercek, satir, sutun, 2), 1))
     g.setAttribute('aOlasilik', new BufferAttribute(olasilik, 1))
-    g.setAttribute('aFirms', new BufferAttribute(firms, 1))
     g.setAttribute('aOrman', new BufferAttribute(orman, 1))
     g.setAttribute('aSu', new BufferAttribute(su, 1))
     g.computeVertexNormals()

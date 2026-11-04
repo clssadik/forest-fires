@@ -130,32 +130,25 @@
     }
   },
   "katmanlar": {
-    "gruplar": {
-      "model": "Model",
-      "gozlem": "Uydu gözlemi",
-      "zemin": "Arazi ve hava"
+    "gorunum": "Görünüm",
+    "harita": "Harita",
+    "modlar": {
+      "yayilim": "Yayılım",
+      "karsilastirma": "Karşılaştırma",
+      "hata": "Hata"
     },
-    "adlar": {
-      "arazi": "3B arazi",
-      "goruntu": "Bitki örtüsü",
-      "yanikIzi": "Gerçek yanık alan",
-      "yayilim": "Yayılım tahmini",
-      "olasilik": "Yanma olasılığı",
-      "ruzgar": "Rüzgâr",
+    "anahtarlar": {
       "izokron": "Varış çizgileri",
-      "firms": "Yangın tespitleri",
-      "hata": "Model hatası"
+      "ruzgar": "Rüzgâr",
+      "duman": "Duman"
     },
-    "aciklamalar": {
-      "arazi": "Yükseklik ve eğim",
-      "goruntu": "ESA WorldCover",
-      "yanikIzi": "Sentinel-2",
-      "yayilim": "Model v1",
-      "olasilik": "20 çalıştırmada yanma sıklığı",
-      "ruzgar": "Yön ve hız",
-      "izokron": "Cephenin saat saat konumu",
-      "firms": "NASA FIRMS",
-      "hata": "Doğru, fazla, kaçırılan"
+    "lejant": {
+      "yanik": "Model",
+      "gercekSinir": "Gerçek sınır",
+      "firms": "FIRMS",
+      "dogru": "Doğru",
+      "fazla": "Fazla",
+      "kacirilan": "Kaçırılan"
     }
   },
   "hava": {

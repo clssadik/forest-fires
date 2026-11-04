@@ -314,7 +314,7 @@ function saatlikCephe(hucreler: Hucre[], agirlik: number) {
   return saatler
 }
 
-export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: boolean }) {
+export function YanginEfektleri({ veri, gorunur, duman }: { veri: OlayVerisi; gorunur: boolean; duman: boolean }) {
   const isik = useRef<PointLight>(null)
   const { alevler, dumanlar, cephe } = useMemo(() => {
     const r = rastgeleUreteci(77)
@@ -382,6 +382,7 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
   }, [veri])
 
   const gorunurU = useMemo(() => ({ value: 1 }), [])
+  const dumanU = useMemo(() => ({ value: 1 }), [])
   const alevMalzeme = useMemo(
     () =>
       new ShaderMaterial({
@@ -400,18 +401,19 @@ export function YanginEfektleri({ veri, gorunur }: { veri: OlayVerisi; gorunur: 
     () =>
       new ShaderMaterial({
         // Sis uniform'ları kopya; yangın uniform'ları paylaşılan nesneler (her karede güncel)
-        uniforms: { ...UniformsUtils.clone(UniformsLib.fog), ...U, uGorunur: gorunurU },
+        uniforms: { ...UniformsUtils.clone(UniformsLib.fog), ...U, uGorunur: dumanU },
         vertexShader: DUMAN_VERTEX,
         fragmentShader: DUMAN_FRAGMENT,
         transparent: true,
         depthWrite: false,
         fog: true,
       }),
-    [gorunurU],
+    [dumanU],
   )
 
   useFrame((_, dt) => {
     gorunurU.value += ((gorunur ? 1 : 0) - gorunurU.value) * Math.min(dt * 6, 1)
+    dumanU.value += ((gorunur && duman ? 1 : 0) - dumanU.value) * Math.min(dt * 6, 1)
     const saat = (useZaman.getState().t - veri.tutusmaMs) / 3_600_000
     alevler.guncelle(saat)
     dumanlar.guncelle(saat)

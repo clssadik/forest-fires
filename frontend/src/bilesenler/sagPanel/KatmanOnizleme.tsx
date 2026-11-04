@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
-import type { KatmanKimligi } from '../../durum/katmanlar'
+import type { GorunumModu, HaritaAnahtari } from '../../durum/katmanlar'
 import { rastgeleUreteci } from '../../model/gurultu'
 
 /**
- * Katman satırındaki küçük önizleme resmi: her katmanın sahnedeki görünümünü
+ * Katman satırındaki küçük önizleme resmi: her mod ve anahtarın sahnedeki görünümünü
  * taklit eden küçük bir prosedürel desen.
  */
 
@@ -25,25 +25,49 @@ const benekli =
     }
   }
 
-const cizimler: Record<KatmanKimligi, Ciz> = {
-  arazi: (c, r) => {
-    benekli('#5b6b3c', ['#3f4f2a', '#7d8a50', '#2f3b20', '#93955e'], 420)(c, r)
-    const g = c.createLinearGradient(0, 0, 0, BOYUT)
-    g.addColorStop(0, 'rgba(230,225,205,0.55)')
-    g.addColorStop(0.45, 'rgba(230,225,205,0)')
-    c.fillStyle = g
-    c.fillRect(0, 0, BOYUT, BOYUT)
-  },
-  goruntu: benekli('#9c9a96', ['#c9c7c2', '#7d7b77', '#b3b0aa', '#8e8b85'], 600, 1.8),
-  yanikIzi: benekli('#3a2016', ['#5a2c18', '#8a3a1c', '#c4521e', '#24130d'], 520, 1.8),
+const kesikSinir = (c: CanvasRenderingContext2D) => {
+  c.strokeStyle = 'rgba(247,245,235,0.95)'
+  c.lineWidth = 1.6
+  c.setLineDash([4, 3])
+  c.beginPath()
+  c.ellipse(BOYUT / 2, BOYUT / 2, 19, 15, -0.4, 0, Math.PI * 2)
+  c.stroke()
+  c.setLineDash([])
+}
+
+export type OnizlemeKimligi = GorunumModu | HaritaAnahtari
+
+const cizimler: Record<OnizlemeKimligi, Ciz> = {
   yayilim: benekli('#e67a2a', ['#f19a3f', '#d65f1f', '#f6b45a', '#c94f18'], 520, 2),
-  olasilik: (c, r) => {
-    benekli('#d0402a', ['#e2553a', '#b72f20', '#e86a42'], 400, 2)(c, r)
-    const g = c.createRadialGradient(BOYUT / 2, BOYUT / 2, 1, BOYUT / 2, BOYUT / 2, 12)
-    g.addColorStop(0, 'rgba(255,240,180,1)')
-    g.addColorStop(1, 'rgba(255,140,60,0)')
-    c.fillStyle = g
+  karsilastirma: (c, r) => {
+    benekli('#2a2420', ['#3a322c', '#1f1a17', '#4a3f36'], 420, 2)(c, r)
+    kesikSinir(c)
+    for (let i = 0; i < 16; i++) {
+      c.fillStyle = r() < 0.5 ? '#ff5a28' : '#b8281a'
+      c.beginPath()
+      c.arc(r() * BOYUT, r() * BOYUT, 1.8, 0, Math.PI * 2)
+      c.fill()
+    }
+  },
+  hata: (c) => {
+    const yarim = BOYUT / 2
+    c.fillStyle = '#d4472a'
     c.fillRect(0, 0, BOYUT, BOYUT)
+    c.fillStyle = '#f0b43c'
+    c.fillRect(yarim, 0, yarim, yarim)
+    c.fillStyle = '#455c80'
+    c.fillRect(0, yarim, yarim, yarim)
+  },
+  izokron: (c) => {
+    c.fillStyle = '#2a2420'
+    c.fillRect(0, 0, BOYUT, BOYUT)
+    c.strokeStyle = '#f08c2a'
+    c.lineWidth = 1.4
+    for (const r of [8, 16, 26, 38]) {
+      c.beginPath()
+      c.ellipse(14, 40, r * 1.2, r * 0.8, -0.5, 0, Math.PI * 2)
+      c.stroke()
+    }
   },
   ruzgar: (c, r) => {
     benekli('#c3cfd2', ['#d9e2e3', '#b4c2c6'], 300, 2.5)(c, r)
@@ -58,37 +82,22 @@ const cizimler: Record<KatmanKimligi, Ciz> = {
       c.stroke()
     }
   },
-  izokron: (c) => {
-    c.fillStyle = '#2a2420'
+  duman: (c, r) => {
+    c.fillStyle = '#4c4f4f'
     c.fillRect(0, 0, BOYUT, BOYUT)
-    c.strokeStyle = '#f08c2a'
-    c.lineWidth = 1.4
-    for (const r of [8, 16, 26, 38]) {
-      c.beginPath()
-      c.ellipse(14, 40, r * 1.2, r * 0.8, -0.5, 0, Math.PI * 2)
-      c.stroke()
-    }
-  },
-  hata: (c) => {
-    const yarim = BOYUT / 2
-    c.fillStyle = '#d4472a'
-    c.fillRect(0, 0, BOYUT, BOYUT)
-    c.fillStyle = '#f0b43c'
-    c.fillRect(yarim, 0, yarim, yarim)
-    c.fillStyle = '#455c80'
-    c.fillRect(0, yarim, yarim, yarim)
-  },
-  firms: (c, r) => {
-    c.fillStyle = '#6e6a5e'
-    c.fillRect(0, 0, BOYUT, BOYUT)
-    for (let i = 0; i < 40; i++) {
-      c.fillStyle = r() < 0.5 ? '#ff5a28' : '#9a2216'
-      c.fillRect(r() * BOYUT, r() * BOYUT, 4, 4)
+    for (let i = 0; i < 9; i++) {
+      const x = r() * BOYUT
+      const y = r() * BOYUT
+      const g = c.createRadialGradient(x, y, 1, x, y, 14)
+      g.addColorStop(0, 'rgba(205,205,200,0.55)')
+      g.addColorStop(1, 'rgba(205,205,200,0)')
+      c.fillStyle = g
+      c.fillRect(0, 0, BOYUT, BOYUT)
     }
   },
 }
 
-export function KatmanOnizleme({ kimlik, soluk }: { kimlik: KatmanKimligi; soluk: boolean }) {
+export function KatmanOnizleme({ kimlik, soluk }: { kimlik: OnizlemeKimligi; soluk: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const c = ref.current?.getContext('2d')

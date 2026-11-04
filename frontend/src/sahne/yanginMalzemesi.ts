@@ -8,7 +8,7 @@ import { DOKU_GURULTU_GLSL, gurultuDokusu } from './gurultuDokusu'
  *
  * Arazi köşesi ayrıca gerçek yanık oranını (aGercek, Sentinel-2 dNBR; görünüm için
  * yumuşatılmışı aGercekYumusak), modelin yanma
- * olasılığını (aOlasilik), FIRMS varışını (aFirms) ve köşenin modelde hiç yanıp yanmadığını
+ * olasılığını (aOlasilik) ve köşenin modelde hiç yanıp yanmadığını
  * (aYandi) taşır.
  */
 
@@ -22,14 +22,12 @@ export const YANMADI_SAAT = 10_000
  */
 export const yanginUniformlari = {
   uT: { value: -1 },
-  uYanikIzi: { value: 0.9 },
+  uGercekSinir: { value: 0 },
   uYayilim: { value: 1 },
-  uOlasilik: { value: 0.8 },
-  uGoruntu: { value: 1 },
-  uArazi: { value: 1 },
+  uOlasilik: { value: 0.5 },
   uKabartma: { value: 1 },
-  uFirms: { value: 1 },
-  uIzokron: { value: 1 },
+  uFirms: { value: 0 },
+  uIzokron: { value: 0 },
   uHata: { value: 0 },
   /** Model alanının gerçek alana eşitlendiği an (saat); hata katmanı bu anki modeli karşılaştırır. */
   uHataEsik: { value: 0 },
@@ -58,13 +56,10 @@ float yGurultu(vec2 p) { return dGurultu(p); }
 
 const UNIFORM_GLSL = /* glsl */ `
 uniform float uT;
-uniform float uYanikIzi;
+uniform float uGercekSinir;
 uniform float uYayilim;
 uniform float uOlasilik;
-uniform float uGoruntu;
-uniform float uArazi;
 uniform float uKabartma;
-uniform float uFirms;
 uniform float uIzokron;
 uniform float uHata;
 uniform float uHataEsik;
@@ -141,7 +136,7 @@ renk = mix(renk, vec3(0.56, 0.51, 0.45) * katman * (0.85 + 0.3 * n3), kaya * 0.4
 
 // Bitki örtüsü benekleri (WorldCover orman / maki)
 float agac = smoothstep(0.6, 0.9, n1 * 0.35 + n2 * 0.35 + n3 * 0.3 + vOrman * 0.35) * step(0.05, vOrman);
-renk = mix(renk, mix(renk, vec3(0.06, 0.08, 0.035), agac * 0.7), uGoruntu);
+renk = mix(renk, vec3(0.06, 0.08, 0.035), agac * 0.7);
 
 // Su: kıyıda sığ turkuaz, açıkta koyu; kıyı çizgisinde köpük
 float suM = smoothstep(0.45, 0.55, vSu);
@@ -149,16 +144,10 @@ vec3 suRengi = mix(vec3(0.09, 0.3, 0.33), vec3(0.025, 0.1, 0.16), smoothstep(0.5
 renk = mix(renk, suRengi, suM);
 float kopuk = smoothstep(0.42, 0.5, vSu) * (1.0 - smoothstep(0.5, 0.62, vSu)) * smoothstep(0.35, 0.75, yGurultu(yp * 70.0 + uZaman * 0.25));
 renk = mix(renk, vec3(0.85, 0.9, 0.9), kopuk * 0.6);
-renk = mix(vec3(0.6, 0.5, 0.36), renk, uArazi);
 
 float toa = vToa + (n1 - 0.5) * 0.6;
 float yas = uT - toa;
 float modelde = step(0.999, vYandi);
-
-// Yanık izi: Sentinel-2'nin gördüğü gerçek yanmış alan (zamandan bağımsız, yangın sonrası)
-float gercekIc = smoothstep(0.35, 0.65, vGercekYumusak + (n2 - 0.5) * 0.2);
-// Soluk kül kahvesi: FIRMS'in kırmızısı ve modelin karası üstünde okunabilsin.
-renk = mix(renk, vec3(0.34, 0.31, 0.28) * (0.85 + 0.3 * n3), uYanikIzi * gercekIc * 0.6);
 
 // Tutuşma olasılığı: modelin önümüzdeki 12 saatte yakması beklenen yer, tohum oranıyla
 float ileri = -yas;
@@ -178,20 +167,11 @@ float w = fwidth(f);
 float iso = 1.0 - smoothstep(0.0, w * 1.3, abs(fract(f - 0.5) - 0.5));
 renk = mix(renk, vec3(0.95, 0.55, 0.15), iso * 0.6 * yandi * uYayilim * uIzokron * step(0.5, vToa));
 
-// FIRMS: uydunun t anına kadar gördüğü yanan pikseller; hafif düz dolgu ve ince kenar, yeni olanlar parlak
-float firmsYas = uT - vFirms;
-float firmsEski = smoothstep(0.0, 24.0, firmsYas);
-float firmsIc = step(0.0, firmsYas);
-float firmsKenar = min(fwidth(firmsIc), 1.0);
-vec3 firmsRengi = mix(vec3(1.0, 0.3, 0.1), vec3(0.75, 0.16, 0.1), firmsEski);
-renk = mix(renk, firmsRengi, firmsIc * (0.32 - 0.14 * firmsEski) * uFirms);
-renk = mix(renk, firmsRengi, firmsKenar * 0.85 * uFirms);
-
 // Gerçek alanın sınırı (beyaz kesikli); yumuşatılmış orandan, küçük lekelerin çevresine çizilmesin
 float gs = fwidth(vGercekYumusak);
 float sinir = 1.0 - smoothstep(0.0, gs * 1.5, abs(vGercekYumusak - 0.5));
 float kesik = step(0.5, fract((yp.x + yp.y) * 2.2));
-renk = mix(renk, vec3(0.97, 0.96, 0.92), sinir * kesik * 0.9 * uYanikIzi);
+renk = mix(renk, vec3(0.97, 0.96, 0.92), sinir * kesik * 0.9 * uGercekSinir);
 
 // Model hatası (eşit alan, zamandan bağımsız): doğru, yanlış alarm, kaçırılan
 float modelIc = modelde * step(vToa, uHataEsik);
@@ -206,7 +186,7 @@ diffuseColor.rgb = renk;`,
     .replace(
       '#include <roughnessmap_fragment>',
       `#include <roughnessmap_fragment>
-roughnessFactor = mix(roughnessFactor, 0.12, suM * uArazi);`,
+roughnessFactor = mix(roughnessFactor, 0.12, suM);`,
     )
     .replace(
       '#include <normal_fragment_maps>',
@@ -215,7 +195,6 @@ roughnessFactor = mix(roughnessFactor, 0.12, suM * uArazi);`,
 // (Mikkelsen 2010, three.js bumpmap ile aynı yöntem); ek gürültü okuması gerekmez.
 {
   float kabarti = (suM > 0.01 ? suDalga(yp, uZaman) * 0.0012 * suM : 0.0) + (n2 * 0.7 + n3 * 0.3) * 0.0016 * (1.0 - suM);
-  kabarti *= uArazi;
   vec3 sx = dFdx(-vViewPosition);
   vec3 sy = dFdy(-vViewPosition);
   vec3 r1 = cross(sy, normal);
@@ -230,7 +209,7 @@ roughnessFactor = mix(roughnessFactor, 0.12, suM * uArazi);`,
       `#include <emissivemap_fragment>
 // Suda gök yansıması (Fresnel)
 float fres = 0.03 + 0.97 * pow(1.0 - max(dot(normal, normalize(vViewPosition)), 0.0), 5.0);
-totalEmissiveRadiance += mix(uUfuk, uGok, 0.35) * fres * suM * uArazi * 0.85;
+totalEmissiveRadiance += mix(uUfuk, uGok, 0.35) * fres * suM * 0.85;
 float parca = smoothstep(0.25, 0.65, yGurultu(yp * 2.2 + 3.7));
 float cephe = yandi * exp(-max(yas, 0.0) / 0.5) * (0.35 + 0.65 * parca);
 float kor = yandi * smoothstep(8.0, 0.0, yas) * smoothstep(0.7, 0.85, n3) * step(0.5, n2) * (0.4 + 0.6 * parca);

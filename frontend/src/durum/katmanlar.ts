@@ -1,52 +1,60 @@
 import { create } from 'zustand'
 
-/** Sağ paneldeki katman listesi (bkz. docs/02 §5.2). */
-export type KatmanKimligi =
-  | 'arazi'
-  | 'goruntu'
-  | 'yanikIzi'
-  | 'yayilim'
-  | 'olasilik'
-  | 'izokron'
-  | 'firms'
-  | 'ruzgar'
-  | 'hata'
+/**
+ * Olay haritasının görünümü: birbirini dışlayan üç mod ve onların üstüne binen birkaç anahtar.
+ * Aynı pikselleri boyayan katmanlar ayrı ayrı açılmaz; hangisinin görüneceğini mod belirler.
+ */
+export type GorunumModu = 'yayilim' | 'karsilastirma' | 'hata'
+export type HaritaAnahtari = 'izokron' | 'ruzgar' | 'duman'
 
-export interface Katman {
-  kimlik: KatmanKimligi
-  acik: boolean
-  /** 0..1 sabit çizim saydamlığı; null ise tam opak. */
-  opaklik: number | null
-}
+export const GORUNUM_MODLARI: GorunumModu[] = ['yayilim', 'karsilastirma', 'hata']
+export const HARITA_ANAHTARLARI: HaritaAnahtari[] = ['izokron', 'ruzgar', 'duman']
 
-export const VARSAYILAN_KATMANLAR: Katman[] = [
-  { kimlik: 'arazi', acik: true, opaklik: 1 },
-  { kimlik: 'goruntu', acik: true, opaklik: 1 },
-  { kimlik: 'yanikIzi', acik: true, opaklik: 0.9 },
-  { kimlik: 'yayilim', acik: true, opaklik: 1 },
-  { kimlik: 'olasilik', acik: false, opaklik: 0.8 },
-  { kimlik: 'izokron', acik: true, opaklik: 1 },
-  { kimlik: 'firms', acik: true, opaklik: 1 },
-  { kimlik: 'ruzgar', acik: false, opaklik: 0.7 },
-  { kimlik: 'hata', acik: false, opaklik: 0.85 },
-]
+const VARSAYILAN_ANAHTARLAR: Record<HaritaAnahtari, boolean> = { izokron: false, ruzgar: false, duman: true }
 
 interface KatmanDurumu {
-  katmanlar: Katman[]
-  degistir: (kimlik: KatmanKimligi) => void
+  mod: GorunumModu
+  anahtarlar: Record<HaritaAnahtari, boolean>
+  modSec: (mod: GorunumModu) => void
+  degistir: (anahtar: HaritaAnahtari) => void
 }
 
 export const useKatmanlar = create<KatmanDurumu>((set) => ({
-  katmanlar: VARSAYILAN_KATMANLAR,
-  degistir: (kimlik) =>
-    set((d) => ({
-      katmanlar: d.katmanlar.map((k) => (k.kimlik === kimlik ? { ...k, acik: !k.acik } : k)),
-    })),
+  mod: 'yayilim',
+  anahtarlar: VARSAYILAN_ANAHTARLAR,
+  modSec: (mod) => set({ mod }),
+  degistir: (anahtar) => set((d) => ({ anahtarlar: { ...d.anahtarlar, [anahtar]: !d.anahtarlar[anahtar] } })),
 }))
 
-/** Katmanın etkin opaklığı: kapalıysa 0, opaklığı tanımsızsa 1. */
-export const etkinOpaklik = (katmanlar: Katman[], kimlik: KatmanKimligi) => {
-  const k = katmanlar.find((x) => x.kimlik === kimlik)
-  if (!k || !k.acik) return 0
-  return k.opaklik ?? 1
+/** Sahnedeki her çizimin 0..1 gücü. */
+export interface KatmanGucleri {
+  yayilim: number
+  olasilik: number
+  izokron: number
+  gercekSinir: number
+  firms: number
+  hata: number
+  ruzgar: number
+  duman: number
+  agaclar: boolean
+}
+
+/** Hata modu modelin çizimlerini kapattığı için onlara bağlı anahtarlar orada etkisizdir. */
+export const anahtarEtkin = (mod: GorunumModu, anahtar: HaritaAnahtari) => mod !== 'hata' || anahtar === 'ruzgar'
+
+export function katmanGucleri(mod: GorunumModu, anahtarlar: Record<HaritaAnahtari, boolean>): KatmanGucleri {
+  const model = mod !== 'hata'
+  const kiyas = mod === 'karsilastirma'
+  const acik = (a: HaritaAnahtari) => anahtarlar[a] && anahtarEtkin(mod, a)
+  return {
+    yayilim: model ? 1 : 0,
+    olasilik: model ? 0.5 : 0,
+    izokron: acik('izokron') ? 1 : 0,
+    gercekSinir: kiyas ? 1 : 0,
+    firms: kiyas ? 1 : 0,
+    hata: model ? 0 : 0.85,
+    ruzgar: acik('ruzgar') ? 0.7 : 0,
+    duman: acik('duman') ? 1 : 0,
+    agaclar: model,
+  }
 }
